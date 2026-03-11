@@ -2,12 +2,14 @@
   "name": "poreia-dev",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "."
   },
-  "remoteUser": "node",
-  "forwardPorts": [3000],
+  "remoteUser": "root",
+  "forwardPorts": [
+    5173
+  ],
   "portsAttributes": {
-    "3000": {
+    "5173": {
       "label": "Vite dev server",
       "onAutoForward": "notify"
     }
@@ -20,8 +22,7 @@
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "ms-vscode.vscode-typescript-next"
+        "esbenp.prettier-vscode"
       ]
     }
   }
