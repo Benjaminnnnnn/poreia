@@ -1,0 +1,7 @@
+{
+  "name": "Poreia",
+  "description": "A high-fidelity AI travel planner featuring an interactive global map and intelligent itinerary generation.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
