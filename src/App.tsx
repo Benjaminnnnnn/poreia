@@ -73,8 +73,8 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
   }, [trip, isRefining, onNavigateHome]);
 
   if (!trip) return (
-      <div className="w-full h-full flex items-center justify-center bg-white/50 backdrop-blur">
-          <Loader2 className="animate-spin text-blue-600" size={32} />
+      <div className="w-full h-full flex items-center justify-center bg-white/40 backdrop-blur-xl">
+          <Loader2 className="animate-spin text-sky-600" size={32} />
       </div>
   );
 
@@ -128,13 +128,13 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
             <ItineraryResult 
                 itinerary={trip.currentItinerary} 
                 onUpdate={handleManualItineraryUpdate}
-                className="w-full h-full shadow-none md:shadow-2xl md:rounded-l-2xl border-l border-slate-200" 
+                className="w-full h-full shadow-none md:shadow-2xl md:rounded-l-[2rem] md:border-l md:border-white/40 md:bg-white/70" 
             />
          ) : (
-            <div className="flex items-center justify-center h-full bg-white/50 backdrop-blur rounded-2xl">
+            <div className="flex items-center justify-center h-full bg-white/45 backdrop-blur-xl rounded-[2rem]">
                 <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="animate-spin text-blue-600" size={32} />
-                    <p className="text-slate-500 font-medium">Planning your trip...</p>
+                    <Loader2 className="animate-spin text-sky-600" size={32} />
+                    <p className="text-sky-900 font-medium">Planning your trip...</p>
                 </div>
             </div>
          )}
@@ -144,29 +144,34 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
       <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
          <div className="w-full max-w-2xl pointer-events-auto">
              <form onSubmit={handleRefine} className="relative group">
-                 <div className="absolute inset-0 bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50" />
+                 <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-r from-sky-500/20 via-cyan-400/15 to-orange-400/20 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
+                 <div className="absolute inset-0 bg-white/82 backdrop-blur-xl rounded-[1.75rem] shadow-[0_24px_70px_rgba(8,47,73,0.18)] border border-white/60" />
                  <div className="relative flex items-center p-2">
-                    <div className="pl-3 pr-2 text-blue-600">
+                    <div className="pl-3 pr-2 text-sky-600">
                         {isRefining ? <Sparkles className="animate-spin-slow" size={20} /> : <Sparkles size={20} />}
                     </div>
+                    <label htmlFor="trip-refine-input" className="sr-only">
+                      Refine your itinerary
+                    </label>
                     <input
+                        id="trip-refine-input"
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Refine this trip (e.g., 'Add a dinner spot on Day 2')"
-                        className="w-full h-12 bg-transparent border-none outline-none text-slate-800 placeholder-slate-500 text-sm md:text-base font-medium"
+                        className="w-full h-12 bg-transparent border-none outline-none text-sky-950 placeholder-sky-700/60 text-sm md:text-base font-medium"
                         disabled={isRefining}
                     />
                     <button 
                         type="submit"
                         disabled={!inputValue.trim() || isRefining}
-                        className="p-2 bg-slate-900 rounded-xl text-white hover:bg-slate-700 disabled:opacity-50 transition-colors"
+                        className="p-2.5 bg-gradient-to-r from-orange-500 to-amber-400 rounded-2xl text-white shadow-lg shadow-orange-500/30 hover:brightness-105 disabled:opacity-50 transition-all"
                     >
                         <SendHorizontal size={18} />
                     </button>
                  </div>
                  {isRefining && (
-                    <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-blue-500 animate-progress rounded-full" />
+                    <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-gradient-to-r from-sky-400 via-cyan-400 to-orange-400 animate-progress rounded-full" />
                  )}
              </form>
          </div>
@@ -269,7 +274,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-50 font-sans text-slate-900 flex flex-row">
+    <div className="app-aurora relative w-screen h-screen overflow-hidden bg-slate-50 font-sans text-slate-900 flex flex-row">
       
       {/* Sidebar - Now a relative flex item (on desktop) */}
       <Sidebar 
@@ -290,6 +295,8 @@ export default function App() {
             selectedPinId={activePin?.id}
           />
         </div>
+
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_32%),linear-gradient(180deg,rgba(8,47,73,0.06),rgba(255,255,255,0.08))]" />
 
         {/* Global Loading Overlay - REMOVED */}
 

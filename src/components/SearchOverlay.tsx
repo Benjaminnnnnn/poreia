@@ -26,40 +26,41 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({ onSearch, isGenerating })
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 z-40 flex flex-col items-center justify-end pointer-events-none p-6 transition-all duration-500 ${isFocused ? 'h-full bg-black/20 backdrop-blur-sm' : 'h-auto'}`}>
-      
-      <div className={`w-full max-w-2xl transition-all duration-300 pointer-events-auto ${isFocused ? 'mb-[50vh] translate-y-1/2' : 'mb-8'}`}>
-        
-        {/* Search Box Container */}
+    <div className={`absolute inset-0 z-40 flex flex-col items-center justify-end pointer-events-none px-6 pb-6 pt-24 transition-all duration-500 ${isFocused ? 'bg-sky-950/12 backdrop-blur-sm' : ''}`}>
+      <div className={`w-full max-w-3xl transition-all duration-300 pointer-events-auto ${isFocused ? 'mb-[18vh]' : 'mb-[5vh]'}`}>
         <div 
           className={`
             relative group overflow-hidden
-            bg-white/80 backdrop-blur-xl 
-            border border-white/40 shadow-2xl shadow-blue-900/10
-            rounded-3xl transition-all duration-300
-            ${isFocused ? 'scale-105 ring-4 ring-blue-500/20' : 'hover:scale-[1.01]'}
+            rounded-[2rem] transition-all duration-300
+            ${isFocused ? 'scale-[1.02]' : 'hover:-translate-y-0.5'}
           `}
         >
-          <form onSubmit={handleSubmit} className="relative flex items-center p-2">
-            <div className="pl-4 pr-3 text-blue-600">
+          <div className="absolute inset-0 bg-gradient-to-r from-sky-500/30 via-cyan-400/20 to-orange-400/30 blur-xl" />
+          <div className="absolute inset-0 rounded-[2rem] border border-white/60 bg-white/82 backdrop-blur-2xl shadow-[0_28px_80px_rgba(8,47,73,0.22)]" />
+          <form onSubmit={handleSubmit} className="relative flex items-center gap-2 p-2">
+            <div className="pl-4 pr-3 text-sky-600">
                {isGenerating ? <Sparkles className="animate-spin-slow" size={24} /> : <Search size={24} />}
             </div>
-            
+
+            <label htmlFor="trip-search-input" className="sr-only">
+              Describe the trip you want to plan
+            </label>
             <input
+              id="trip-search-input"
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setTimeout(() => setIsFocused(false), 200)}
               placeholder="Plan a 5-day foodie trip to Tokyo on a $2,000 budget..."
-              className="w-full h-14 bg-transparent border-none outline-none text-slate-800 placeholder-slate-400 text-lg font-medium"
+              className="h-16 flex-1 bg-transparent border-none outline-none text-base font-medium text-sky-950 placeholder-sky-800/45 sm:text-lg"
               disabled={isGenerating}
             />
 
             <button 
               type="submit"
               disabled={!query.trim() || isGenerating}
-              className="p-3 bg-blue-600 rounded-2xl text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="shrink-0 rounded-2xl bg-orange-500 p-3.5 text-white shadow-lg shadow-orange-500/25 transition-all hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <SendHorizontal size={20} />
             </button>
@@ -67,21 +68,21 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({ onSearch, isGenerating })
 
           {/* Loading Progress Bar */}
           {isGenerating && (
-            <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 via-purple-500 to-blue-400 w-full animate-progress" />
+            <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-sky-400 via-cyan-400 to-orange-400 w-full animate-progress" />
           )}
         </div>
 
         {/* Suggestions */}
         <div className={`
-          mt-4 grid gap-2 transition-all duration-300 overflow-hidden
-          ${isFocused ? 'opacity-100 max-h-60' : 'opacity-0 max-h-0'}
+          mt-4 grid gap-3 transition-all duration-300 overflow-hidden
+          ${isFocused ? 'opacity-100 max-h-60' : 'opacity-100 max-h-60'}
         `}>
           <div className="flex flex-wrap gap-2 justify-center">
              {SUGGESTED_PROMPTS.map((prompt, idx) => (
                <button
                  key={idx}
                  onClick={() => handleSuggestionClick(prompt)}
-                 className="px-4 py-2 bg-white/90 backdrop-blur-md border border-white/50 rounded-full text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all shadow-sm"
+                 className="cursor-pointer rounded-full border border-white/50 bg-white/72 px-4 py-2 text-sm font-medium text-sky-900 shadow-sm backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-orange-200 hover:bg-white hover:text-orange-600"
                >
                  {prompt}
                </button>

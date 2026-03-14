@@ -32,7 +32,7 @@ interface ItineraryResultProps {
   onUpdate?: (updatedItinerary: TravelItinerary) => void;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = ['#0ea5e9', '#22d3ee', '#f97316', '#facc15', '#14b8a6', '#fb7185'];
 
 // --- Helper to get image URL ---
 const getActivityImageUrl = (prompt?: string, seed?: string) => {
@@ -72,15 +72,15 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             {...dragProps}
             onClick={onClick}
             className={`
-            relative bg-white rounded-xl p-3 border transition-all group
+            relative rounded-2xl bg-white/92 p-3 border transition-all group shadow-[0_18px_40px_rgba(8,47,73,0.06)]
             ${isOverlay 
-                ? 'border-blue-500 shadow-2xl scale-105 rotate-2 cursor-grabbing' 
+                ? 'border-sky-400 shadow-2xl scale-105 rotate-2 cursor-grabbing' 
                 : isActive 
-                    ? 'border-blue-500 ring-1 ring-blue-500 shadow-md cursor-grab active:cursor-grabbing touch-none'
-                    : 'border-slate-100 hover:border-blue-300 hover:shadow-md cursor-grab active:cursor-grabbing touch-none'
+                    ? 'border-sky-300 ring-2 ring-sky-200 shadow-lg cursor-grab active:cursor-grabbing touch-none'
+                    : 'border-white hover:border-orange-200 hover:shadow-lg cursor-grab active:cursor-grabbing touch-none'
             }
         `}>
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-slate-300 z-10 pointer-events-none">
+            <div className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-sky-200 z-10 pointer-events-none">
                 <GripVertical size={18} />
             </div>
 
@@ -88,7 +88,7 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             <div className="pl-10 pr-8 flex gap-3 items-start">
                 
                 {/* Image Thumbnail */}
-                <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-slate-100 rounded-lg overflow-hidden border border-slate-100 relative">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-sky-50 rounded-xl overflow-hidden border border-sky-100 relative">
                    {imageUrl ? (
                        <img 
                             src={imageUrl} 
@@ -106,19 +106,19 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
                 {/* Text Content */}
                 <div className="flex-1 min-w-0 py-0.5">
                     <div className="flex flex-wrap items-center justify-between gap-x-2 mb-1">
-                        <div className="flex items-center gap-1.5 text-blue-600 font-medium text-xs">
+                        <div className="flex items-center gap-1.5 text-sky-700 font-medium text-xs">
                             <Clock size={12} />
                             {activity.time}
                         </div>
                         {activity.costEstimate !== undefined && activity.costEstimate > 0 && (
-                            <div className="flex items-center gap-1 text-emerald-600 font-bold text-[10px] bg-emerald-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                            <div className="flex items-center gap-1 text-orange-600 font-bold text-[10px] bg-orange-50 px-2 py-0.5 rounded-full whitespace-nowrap">
                                 <DollarSign size={10} />
                                 {currency}{activity.costEstimate}
                             </div>
                         )}
                     </div>
-                    <p className="text-slate-800 font-semibold text-sm leading-snug mb-1.5 line-clamp-2">{activity.description}</p>
-                    <div className="flex items-center gap-1 text-slate-400 text-xs truncate">
+                    <p className="text-sky-950 font-semibold text-sm leading-snug mb-1.5 line-clamp-2">{activity.description}</p>
+                    <div className="flex items-center gap-1 text-sky-800/55 text-xs truncate">
                         <MapPin size={12} className="shrink-0" />
                         <span className="truncate">{activity.location}</span>
                     </div>
@@ -128,10 +128,10 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             {/* Actions (Hidden in overlay) */}
             {!isOverlay && onEdit && onDelete && (
                 <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                    <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 text-slate-400 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors" title="Edit">
                         <Pencil size={14} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors" title="Delete">
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors" title="Delete">
                         <Trash2 size={14} />
                     </button>
                 </div>
@@ -183,16 +183,16 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
 
   if (isEditing) {
     return (
-      <div 
+        <div 
         ref={setNodeRef} 
         style={style}
-        className="bg-white rounded-xl p-4 border-2 border-blue-500 shadow-lg space-y-3"
+        className="space-y-3 rounded-2xl border-2 border-sky-400 bg-white p-4 shadow-lg"
       >
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-slate-500">Time</label>
             <input 
-              className="w-full text-sm p-1.5 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none" 
+              className="w-full rounded-xl border bg-slate-50 p-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-200" 
               value={editForm.time}
               onChange={e => setEditForm({...editForm, time: e.target.value})}
             />
@@ -201,7 +201,7 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
             <label className="text-xs font-semibold text-slate-500">Cost ({currency})</label>
             <input 
               type="number"
-              className="w-full text-sm p-1.5 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none" 
+              className="w-full rounded-xl border bg-slate-50 p-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-200" 
               value={editForm.costEstimate || ''}
               onChange={e => setEditForm({...editForm, costEstimate: parseFloat(e.target.value) || 0})}
             />
@@ -210,7 +210,7 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
         <div>
            <label className="text-xs font-semibold text-slate-500">Activity</label>
            <input 
-              className="w-full text-sm p-1.5 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none font-medium" 
+              className="w-full rounded-xl border bg-slate-50 p-1.5 text-sm font-medium outline-none focus:ring-2 focus:ring-sky-200" 
               value={editForm.description}
               onChange={e => setEditForm({...editForm, description: e.target.value})}
             />
@@ -218,7 +218,7 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
         <div>
            <label className="text-xs font-semibold text-slate-500">Location</label>
            <input 
-              className="w-full text-sm p-1.5 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none" 
+              className="w-full rounded-xl border bg-slate-50 p-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-200" 
               value={editForm.location}
               onChange={e => setEditForm({...editForm, location: e.target.value})}
             />
@@ -227,15 +227,15 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
         <div>
            <label className="text-xs font-semibold text-slate-500">Image Description (AI)</label>
            <input 
-              className="w-full text-sm p-1.5 border rounded bg-slate-50 focus:ring-2 focus:ring-blue-200 outline-none" 
+              className="w-full rounded-xl border bg-slate-50 p-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-200" 
               value={editForm.img_prompt || ''}
               onChange={e => setEditForm({...editForm, img_prompt: e.target.value})}
             />
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-           <button onClick={handleCancel} className="p-1.5 rounded hover:bg-slate-100 text-slate-500"><X size={16}/></button>
-           <button onClick={handleSave} className="p-1.5 rounded bg-blue-600 text-white hover:bg-blue-700"><Check size={16}/></button>
+           <button onClick={handleCancel} className="rounded-xl p-1.5 text-slate-500 hover:bg-slate-100"><X size={16}/></button>
+           <button onClick={handleSave} className="rounded-xl bg-gradient-to-r from-sky-500 to-cyan-400 p-1.5 text-white hover:brightness-105"><Check size={16}/></button>
         </div>
       </div>
     );
@@ -424,39 +424,39 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     : null;
 
   return (
-    <div className={`w-full bg-slate-50 flex flex-col lg:flex-row overflow-hidden ${className}`}>
+    <div className={`w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(240,249,255,0.9))] flex flex-col lg:flex-row overflow-hidden ${className}`}>
         
         {/* LEFT COLUMN: Scrollable Itinerary List */}
-        <div className="flex-1 h-full overflow-y-auto overflow-x-hidden bg-white relative shadow-xl z-20">
+        <div className="z-20 h-full flex-1 overflow-y-auto overflow-x-hidden bg-white/88 relative shadow-xl backdrop-blur-xl">
             {/* Header Image/Gradient */}
-            <div className="h-48 bg-gradient-to-br from-blue-500 via-indigo-600 to-slate-800 relative shrink-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-slate-900/20 to-transparent" />
+            <div className="relative h-52 shrink-0 overflow-hidden bg-gradient-to-br from-sky-500 via-cyan-400 to-orange-400">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.3),transparent_24%),linear-gradient(to_top,rgba(8,47,73,0.58),rgba(8,47,73,0.12),transparent)]" />
                 <div className="absolute bottom-6 left-6 pr-4">
                     <div className="flex flex-wrap gap-2 mb-2">
-                        <span className="px-2 py-1 bg-slate-950/35 text-slate-50 backdrop-blur-sm rounded-md text-xs font-semibold shadow-sm">
+                        <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm shadow-sm">
                         {localItinerary.totalDays} Days
                         </span>
-                        <span className="px-2 py-1 bg-slate-950/35 text-slate-50 backdrop-blur-sm rounded-md text-xs font-semibold shadow-sm">
+                        <span className="rounded-full bg-white/18 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm shadow-sm">
                         {localItinerary.currency}{localItinerary.totalBudget.toLocaleString()} Total
                         </span>
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-bold text-white drop-shadow-sm">{localItinerary.destination}</h2>
-                    <p className="text-slate-100 text-sm mt-1 max-w-md line-clamp-2 drop-shadow-sm">{localItinerary.title}</p>
+                    <h2 className="font-display text-2xl font-bold text-white drop-shadow-sm md:text-4xl">{localItinerary.destination}</h2>
+                    <p className="mt-1 max-w-md line-clamp-2 text-sm text-sky-50 drop-shadow-sm">{localItinerary.title}</p>
                 </div>
             </div>
 
             <div className="p-4 md:p-6 space-y-8 pb-32">
                 {/* Overview */}
                 <section>
-                    <h3 className="text-sm uppercase tracking-wider text-slate-400 font-semibold mb-3">Overview</h3>
-                    <p className="text-slate-600 leading-relaxed text-sm md:text-base">
+                    <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-sky-700/60">Overview</h3>
+                    <p className="text-sm leading-relaxed text-slate-700 md:text-base">
                     {localItinerary.overview}
                     </p>
                 </section>
 
                 {/* Budget Breakdown */}
-                <section className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <h3 className="text-sm uppercase tracking-wider text-slate-400 font-semibold mb-4 flex items-center gap-2">
+                <section className="rounded-[1.75rem] border border-white bg-[linear-gradient(180deg,#ffffff,rgba(240,249,255,0.95))] p-4 shadow-[0_20px_50px_rgba(8,47,73,0.06)]">
+                    <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-sky-700/60">
                         <Wallet size={16} /> Budget Allocation
                     </h3>
                     <div className="h-56 w-full">
@@ -487,7 +487,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
 
                 {/* Daily Itinerary - Draggable */}
                 <section className="space-y-6">
-                    <h3 className="text-sm uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-2">
+                    <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-sky-700/60">
                         <Calendar size={16} /> Daily Plan
                     </h3>
                     
@@ -498,14 +498,14 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                         onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <div className="relative pl-4 border-l-2 border-slate-100 space-y-8">
+                        <div className="relative space-y-8 border-l-2 border-sky-100 pl-4">
                         {localItinerary.days.map((dayPlan, dayIndex) => (
                             <div key={dayPlan.day} className="relative">
                             {/* Timeline Dot */}
-                            <div className="absolute -left-[21px] top-0 w-3 h-3 rounded-full bg-blue-500 ring-4 ring-white" />
+                            <div className="absolute -left-[21px] top-0 h-3 w-3 rounded-full bg-orange-400 ring-4 ring-white" />
                             
                             <div className="mb-4">
-                                <h4 className="text-lg font-bold text-slate-800">Day {dayPlan.day}: {dayPlan.theme}</h4>
+                                <h4 className="text-lg font-bold text-sky-950">Day {dayPlan.day}: {dayPlan.theme}</h4>
                             </div>
 
                             {/* Droppable Area for Day */}
@@ -527,7 +527,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                                     />
                                     ))}
                                     {dayPlan.activities.length === 0 && (
-                                        <div className="text-center py-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 text-sm">
+                                        <div className="rounded-2xl border-2 border-dashed border-sky-100 py-4 text-center text-sm text-sky-700/50">
                                             Drop items here
                                         </div>
                                     )}
