@@ -86,24 +86,24 @@ const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, cl
       const iconHtml = `
         <div class="relative flex items-center justify-center w-10 h-10 group transition-all duration-300 ${isSelected ? 'z-[1000] scale-110' : 'z-[500]'}">
           <!-- Pulse Animation (Only for selected) -->
-          ${isSelected ? '<div class="absolute w-12 h-12 rounded-full bg-blue-500/30 animate-ping opacity-75"></div>' : ''}
+          ${isSelected ? '<div class="absolute w-12 h-12 rounded-full bg-orange-400/35 animate-ping opacity-75"></div>' : ''}
           
           <!-- Outer Glow -->
-          <div class="absolute w-10 h-10 rounded-full bg-blue-500/10"></div>
+          <div class="absolute w-10 h-10 rounded-full bg-sky-500/15"></div>
           
           <!-- Tooltip / Card -->
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-40 bg-white rounded-xl shadow-xl p-2 opacity-0 group-hover:opacity-100 ${isSelected ? 'opacity-100' : ''} transition-opacity duration-200 pointer-events-none z-[1000] flex gap-3 items-center transform scale-95 group-hover:scale-100 origin-bottom">
+          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-44 rounded-2xl border border-white/70 bg-white/95 shadow-xl p-2 opacity-0 group-hover:opacity-100 ${isSelected ? 'opacity-100' : ''} transition-opacity duration-200 pointer-events-none z-[1000] flex gap-3 items-center transform scale-95 group-hover:scale-100 origin-bottom">
             <img src="${pinImage}" class="w-8 h-8 rounded-lg object-cover shrink-0 bg-slate-100" alt="${pin.name}" />
             <div class="flex flex-col overflow-hidden text-left">
-              <span class="text-[10px] font-bold text-slate-800 truncate w-full leading-tight">${pin.name}</span>
-              <span class="text-[8px] text-slate-500 truncate w-full">${pin.description}</span>
+              <span class="text-[10px] font-bold text-sky-950 truncate w-full leading-tight">${pin.name}</span>
+              <span class="text-[8px] text-sky-800/70 truncate w-full">${pin.description}</span>
             </div>
             <!-- Triangle arrow -->
             <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45"></div>
           </div>
 
           <!-- Pin Center -->
-          <div class="relative w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-lg transition-transform duration-300 group-hover:scale-125 ${isSelected ? 'bg-indigo-600 scale-125 ring-2 ring-indigo-200' : ''}"></div>
+          <div class="relative w-4 h-4 bg-sky-500 border-2 border-white rounded-full shadow-lg transition-transform duration-300 group-hover:scale-125 ${isSelected ? 'bg-orange-500 scale-125 ring-2 ring-orange-200' : ''}"></div>
         </div>
       `;
 
@@ -209,16 +209,16 @@ const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, cl
             <button 
             onClick={handleLocateMe}
             disabled={isLocating}
-            className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-lg shadow-black/5 border border-white/50 text-slate-700 hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95"
+            className="w-11 h-11 flex items-center justify-center cursor-pointer bg-white/88 backdrop-blur-xl rounded-2xl shadow-lg shadow-sky-950/10 border border-white/60 text-slate-700 hover:bg-white hover:text-orange-500 transition-all active:scale-95"
             title="Locate Me"
             >
-            <Locate size={20} className={isLocating ? 'animate-pulse text-blue-600' : ''} />
+            <Locate size={20} className={isLocating ? 'animate-pulse text-orange-500' : ''} />
             </button>
 
-            <div className="flex flex-col bg-white rounded-xl shadow-lg shadow-black/5 border border-white/50 overflow-hidden">
+            <div className="flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/88 backdrop-blur-xl shadow-lg shadow-sky-950/10">
             <button 
                 onClick={handleZoomIn}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                className="w-11 h-11 flex items-center justify-center cursor-pointer text-slate-700 hover:bg-sky-50 hover:text-sky-700 active:bg-sky-100 transition-colors"
                 title="Zoom In"
             >
                 <Plus size={20} />
@@ -226,7 +226,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, cl
             <div className="h-[1px] w-full bg-slate-100" />
             <button 
                 onClick={handleZoomOut}
-                className="w-10 h-10 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                className="w-11 h-11 flex items-center justify-center cursor-pointer text-slate-700 hover:bg-orange-50 hover:text-orange-600 active:bg-orange-100 transition-colors"
                 title="Zoom Out"
             >
                 <Minus size={20} />
@@ -235,8 +235,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, cl
         </div>
       )}
 
-      <div className="absolute bottom-0 right-0 z-[400] bg-white/70 backdrop-blur-sm px-2 py-1 text-[10px] text-slate-500 pointer-events-none select-none rounded-tl-lg">
-        &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="hover:underline pointer-events-auto text-blue-600">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noreferrer" className="hover:underline pointer-events-auto text-blue-600">CARTO</a>
+      <div className="absolute bottom-0 right-0 z-[400] rounded-tl-xl bg-white/72 px-2 py-1 text-[10px] text-slate-500 backdrop-blur-sm pointer-events-none select-none">
+        &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="pointer-events-auto text-sky-700 hover:underline">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noreferrer" className="pointer-events-auto text-orange-500 hover:underline">CARTO</a>
       </div>
     </div>
   );

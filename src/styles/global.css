@@ -6,10 +6,73 @@ body,
   height: 100%;
 }
 
+:root {
+  color-scheme: light;
+  --bg-base: #e0f2fe;
+  --bg-surface: rgba(255, 255, 255, 0.72);
+  --bg-surface-strong: rgba(255, 255, 255, 0.9);
+  --text-primary: #082f49;
+  --text-secondary: #0c4a6e;
+  --brand-sky: #0ea5e9;
+  --brand-cyan: #22d3ee;
+  --brand-orange: #f97316;
+  --brand-amber: #facc15;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f8fafc;
+  font-family: 'DM Sans', sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(34, 211, 238, 0.42), transparent 28%),
+    radial-gradient(circle at top right, rgba(249, 115, 22, 0.32), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.26), transparent 30%),
+    linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 45%, #fff7ed 100%);
+  color: var(--text-primary);
   overflow: hidden;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.24);
+}
+
+.font-display {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.app-aurora::before,
+.app-aurora::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  border-radius: 9999px;
+  filter: blur(60px);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.app-aurora::before {
+  width: 28rem;
+  height: 28rem;
+  top: -8rem;
+  right: -8rem;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.45), rgba(34, 211, 238, 0));
+  animation: auroraFloat 16s ease-in-out infinite alternate;
+}
+
+.app-aurora::after {
+  width: 24rem;
+  height: 24rem;
+  bottom: -10rem;
+  left: -6rem;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.35), rgba(249, 115, 22, 0));
+  animation: auroraFloat 18s ease-in-out infinite alternate-reverse;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -22,11 +85,22 @@ body {
 }
 
 .leaflet-container {
-  background: #aad3df;
-  font-family: 'Inter', sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(125, 211, 252, 0.45), transparent 35%),
+    linear-gradient(180deg, #d8f1ff 0%, #c4ebff 100%);
+  font-family: 'DM Sans', sans-serif;
 }
 
 .custom-pin-icon {
   background: transparent;
   border: none;
+}
+
+@keyframes auroraFloat {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(1.25rem, -1rem, 0) scale(1.08);
+  }
 }
