@@ -14,6 +14,8 @@ export interface DayPlan {
   day: number;
   theme: string;
   activities: Activity[];
+  mood?: string;
+  notes?: string;
 }
 
 export interface BudgetBreakdown {

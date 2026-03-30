@@ -4,17 +4,23 @@ import React, {
   startTransition,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  ArrowLeft,
+  Compass,
+  LayoutList,
+  Loader2,
+  Plus,
+  SendHorizontal,
+  Sparkles,
+} from 'lucide-react';
 import SearchOverlay from './components/SearchOverlay';
-import Sidebar from './components/Sidebar';
-import { INITIAL_PINS } from './constants';
-import { MapPinData, TripSession, ChatMessage, TravelItinerary } from './types';
+import { ChatMessage, TravelItinerary, TripSession } from './types';
 import { generateOrRefineItinerary } from './services/itineraryService';
-import { SendHorizontal, Sparkles, Loader2, PanelLeftOpen } from 'lucide-react';
 
-const WorldMap = lazy(() => import('./components/WorldMap'));
 const ItineraryResult = lazy(() => import('./components/ItineraryResult'));
 const TRIPS_STORAGE_KEY = 'poreia_trips';
 const TRIPS_STORAGE_VERSION = 1;
@@ -32,7 +38,6 @@ interface PersistedTripsPayload {
   trips: TripSession[];
 }
 
-// --- Local Storage Helper ---
 const loadTrips = (): TripSession[] => {
   if (typeof window === 'undefined') {
     return [];
@@ -82,7 +87,9 @@ interface SurfaceFallbackProps {
 }
 
 const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({ className = '', label }) => (
-  <div className={`flex items-center justify-center bg-[rgba(255,250,245,0.9)] backdrop-blur-xl ${className}`}>
+  <div
+    className={`flex items-center justify-center bg-[rgba(255,250,245,0.72)] backdrop-blur-xl ${className}`}
+  >
     <div className="flex flex-col items-center gap-3 text-[rgba(92,58,36,0.96)]">
       <Loader2 className="animate-spin text-[rgba(217,102,58,0.92)]" size={32} />
       <p className="font-medium">{label}</p>
@@ -90,24 +97,96 @@ const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({ className = '', label
   </div>
 );
 
-// --- Home Page Component ---
-interface HomePageProps {
-  onSearch: (prompt: string) => Promise<void>;
-  isGenerating: boolean;
+interface AppHeaderProps {
+  currentTrip: TripSession | null;
+  isHomePage: boolean;
+  onNavigateHome: () => void;
+  onStartNewTrip: () => void;
+  tripCount: number;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ onSearch, isGenerating }) => {
-  return (
-    <div className="w-full h-full">
-      <SearchOverlay 
-        onSearch={onSearch} 
-        isGenerating={isGenerating} 
-      />
-    </div>
-  );
-};
+const AppHeader: React.FC<AppHeaderProps> = ({
+  currentTrip,
+  isHomePage,
+  onNavigateHome,
+  onStartNewTrip,
+  tripCount,
+}) => (
+  <header className="shrink-0 border-b border-[rgba(229,218,204,0.96)] bg-[rgba(252,248,242,0.96)] px-4 py-2.5 sm:px-5 lg:px-6">
+    <div className="flex min-h-[3.4rem] items-center justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.55rem] border border-[rgba(233,208,184,0.96)] bg-[rgba(255,253,249,0.98)] text-[rgba(216,101,58,0.95)]">
+          <Compass size={17} />
+        </div>
 
-// --- Trip Page Component ---
+        <div className="min-w-0">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[rgba(208,101,59,0.88)]">
+              Poreia
+            </p>
+            <span className="rounded-[0.35rem] bg-[rgba(246,239,229,0.92)] px-2 py-1 text-[0.63rem] font-semibold uppercase tracking-[0.16em] text-[rgba(110,74,52,0.76)]">
+              {tripCount} {tripCount === 1 ? 'trip' : 'trips'}
+            </span>
+          </div>
+          <p className="mt-0.5 truncate font-display text-[1.15rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)] sm:text-[1.35rem]">
+            {isHomePage
+              ? 'Trip planner'
+              : currentTrip?.currentItinerary?.destination || currentTrip?.title || 'Trip workspace'}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        {!isHomePage ? (
+          <button
+            type="button"
+            onClick={onNavigateHome}
+            className="inline-flex min-h-[38px] items-center gap-2 rounded-[0.55rem] border border-[rgba(234,217,199,0.96)] bg-[rgba(255,250,244,0.9)] px-3 py-2 text-sm font-semibold text-[rgba(90,58,39,0.88)] transition-colors hover:bg-white"
+          >
+            <ArrowLeft size={15} />
+            Home
+          </button>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onStartNewTrip}
+          className="inline-flex min-h-[38px] items-center gap-2 rounded-[0.55rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
+        >
+          <Plus size={15} />
+          New trip
+        </button>
+      </div>
+    </div>
+  </header>
+);
+
+interface HomePageProps {
+  isGenerating: boolean;
+  onDeleteTrip: (tripId: string) => void;
+  onOpenTrip: (tripId: string) => void;
+  onSearch: (prompt: string) => Promise<void>;
+  trips: TripSession[];
+}
+
+const HomePage: React.FC<HomePageProps> = ({
+  isGenerating,
+  onDeleteTrip,
+  onOpenTrip,
+  onSearch,
+  trips,
+}) => (
+  <div className="min-h-0 flex-1">
+    <SearchOverlay
+      onDeleteTrip={onDeleteTrip}
+      onOpenTrip={onOpenTrip}
+      onSearch={onSearch}
+      isGenerating={isGenerating}
+      trips={trips}
+    />
+  </div>
+);
+
 interface TripPageProps {
   tripId: string;
   trips: TripSession[];
@@ -115,142 +194,141 @@ interface TripPageProps {
   onNavigateHome: () => void;
 }
 
-const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNavigateHome }) => {
-  const trip = trips.find(t => t.id === tripId);
-  
-  const [inputValue, setInputValue] = useState("");
+const TripPage: React.FC<TripPageProps> = ({
+  tripId,
+  trips,
+  updateTrip,
+  onNavigateHome,
+}) => {
+  const trip = trips.find((candidate) => candidate.id === tripId);
+  const [inputValue, setInputValue] = useState('');
   const [isRefining, setIsRefining] = useState(false);
 
-  // Safety check: Redirect if trip is not found
   useEffect(() => {
-    // If the trip doesn't exist (and we aren't in a transient state), redirect home.
-    // This handles cases where the URL hash points to a deleted or non-existent trip.
     if (!trip && !isRefining) {
-        const timer = setTimeout(() => onNavigateHome(), 0);
-        return () => clearTimeout(timer);
+      const timer = setTimeout(() => onNavigateHome(), 0);
+      return () => clearTimeout(timer);
     }
   }, [trip, isRefining, onNavigateHome]);
 
-  if (!trip) return (
-      <div className="w-full h-full flex items-center justify-center bg-[rgba(255,250,245,0.9)] backdrop-blur-xl">
-          <Loader2 className="animate-spin text-[rgba(217,102,58,0.92)]" size={32} />
+  if (!trip) {
+    return (
+      <div className="flex h-full min-h-0 items-center justify-center bg-[rgba(255,250,245,0.66)] backdrop-blur-xl">
+        <Loader2 className="animate-spin text-[rgba(217,102,58,0.92)]" size={32} />
       </div>
-  );
+    );
+  }
 
   const handleManualItineraryUpdate = (newItinerary: TravelItinerary) => {
     updateTrip({
       ...trip,
       updatedAt: Date.now(),
-      currentItinerary: newItinerary
+      currentItinerary: newItinerary,
     });
   };
 
   const handleRefine = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isRefining) return;
+    if (!inputValue.trim() || isRefining) {
+      return;
+    }
 
-    const userMsg: ChatMessage = { role: 'user', text: inputValue, timestamp: Date.now() };
+    const userMsg: ChatMessage = {
+      role: 'user',
+      text: inputValue,
+      timestamp: Date.now(),
+    };
     const updatedMessages = [...trip.messages, userMsg];
-    
-    // Optimistic update of messages
-    const intermediateTrip = { ...trip, messages: updatedMessages };
-    updateTrip(intermediateTrip);
-    setInputValue("");
+
+    updateTrip({ ...trip, messages: updatedMessages });
+    setInputValue('');
     setIsRefining(true);
 
     try {
-        const newItinerary = await generateOrRefineItinerary(userMsg.text, updatedMessages, trip.currentItinerary);
-        
-        updateTrip({
-            ...trip,
-            updatedAt: Date.now(),
-            messages: updatedMessages,
-            currentItinerary: newItinerary
-        });
+      const newItinerary = await generateOrRefineItinerary(
+        userMsg.text,
+        updatedMessages,
+        trip.currentItinerary,
+      );
 
+      updateTrip({
+        ...trip,
+        updatedAt: Date.now(),
+        messages: updatedMessages,
+        currentItinerary: newItinerary,
+      });
     } catch (error) {
-        console.error(error);
-        alert(getErrorMessage(error, "Failed to update itinerary."));
+      console.error(error);
+      alert(getErrorMessage(error, 'Failed to update itinerary.'));
     } finally {
-        setIsRefining(false);
+      setIsRefining(false);
     }
   };
 
   return (
-    <div className="w-full h-full flex flex-col pointer-events-auto">
-      {/* Mobile: Top spacing handled by sidebar overlay usually, but here we just need content area */}
-      
-      {/* Main Itinerary View */}
-      <div className="flex-1 h-full relative overflow-hidden flex flex-col">
-         {trip.currentItinerary ? (
-            <Suspense
-              fallback={
-                <SurfaceFallback
-                  className="h-full"
-                  label="Loading itinerary workspace..."
-                />
-              }
-            >
-              <ItineraryResult
-                itinerary={trip.currentItinerary}
-                onUpdate={handleManualItineraryUpdate}
-                className="h-full w-full shadow-none xl:border-l xl:border-[rgba(214,181,154,0.9)] xl:bg-[rgba(255,251,246,0.82)]"
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-[rgba(255,250,245,0.22)]">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {trip.currentItinerary ? (
+          <Suspense
+            fallback={
+              <SurfaceFallback
+                className="h-full"
+                label="Loading itinerary workspace..."
               />
-            </Suspense>
-         ) : (
-            <SurfaceFallback className="h-full" label="Planning your trip..." />
-         )}
+            }
+          >
+            <ItineraryResult
+              itinerary={trip.currentItinerary}
+              onUpdate={handleManualItineraryUpdate}
+              className="h-full w-full bg-transparent shadow-none"
+            />
+          </Suspense>
+        ) : (
+          <SurfaceFallback className="h-full" label="Planning your trip..." />
+        )}
       </div>
 
-      {/* Refinement Interface */}
-      <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-50 flex justify-center px-3 md:bottom-6 md:px-4">
-         <div className="w-full max-w-full pointer-events-auto md:max-w-2xl">
-             <form onSubmit={handleRefine} className="relative group">
-                 <div className="absolute inset-0 rounded-[1.75rem] border border-white/70 bg-[rgba(255,248,241,0.94)] shadow-[0_24px_70px_rgba(108,62,26,0.14)] backdrop-blur-xl" />
-                 <div className="relative flex items-center p-2">
-                    <div className="pl-3 pr-2 text-[rgba(217,102,58,0.92)]">
-                        {isRefining ? <Sparkles className="animate-spin-slow" size={20} /> : <Sparkles size={20} />}
-                    </div>
-                    <label htmlFor="trip-refine-input" className="sr-only">
-                      Refine your itinerary
-                    </label>
-                    <input
-                        id="trip-refine-input"
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        placeholder="Refine this trip (e.g., 'Add a dinner spot on Day 2')"
-                        className="w-full h-12 bg-transparent border-none outline-none text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(118,77,54,0.58)] text-sm md:text-base font-medium"
-                        disabled={isRefining}
-                    />
-                    <button 
-                        type="submit"
-                        disabled={!inputValue.trim() || isRefining}
-                        className="min-h-[44px] min-w-[44px] rounded-2xl border border-[rgba(214,98,54,0.2)] bg-[rgba(230,106,63,0.96)] p-2.5 text-white shadow-[0_12px_28px_rgba(210,96,47,0.18)] transition-all hover:bg-[rgba(217,98,56,1)] disabled:opacity-50"
-                    >
-                        <SendHorizontal size={18} />
-                    </button>
-                 </div>
-                 {isRefining && (
-                    <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-[rgba(230,106,63,0.72)] animate-progress rounded-full" />
-                 )}
-             </form>
-         </div>
+      <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-20 flex justify-center px-3 md:bottom-5 md:px-4">
+        <div className="w-full max-w-full pointer-events-auto md:max-w-2xl">
+          <form onSubmit={handleRefine} className="relative group">
+            <div className="absolute inset-0 rounded-[0.7rem] border border-[rgba(228,215,201,0.95)] bg-[rgba(255,250,245,0.97)] shadow-[0_14px_36px_rgba(108,62,26,0.12)]" />
+            <div className="relative flex items-center p-1.5">
+              <div className="pl-2.5 pr-2 text-[rgba(217,102,58,0.92)]">
+                {isRefining ? <Sparkles className="animate-spin-slow" size={18} /> : <LayoutList size={18} />}
+              </div>
+              <label htmlFor="trip-refine-input" className="sr-only">
+                Refine your itinerary
+              </label>
+              <input
+                id="trip-refine-input"
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Refine this trip (e.g., 'Add a dinner spot on Day 2')"
+                className="h-11 w-full border-none bg-transparent text-sm font-medium text-[rgba(74,43,26,0.96)] outline-none placeholder:text-[rgba(118,77,54,0.58)] md:text-base"
+                disabled={isRefining}
+              />
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || isRefining}
+                className="min-h-[40px] min-w-[40px] rounded-[0.55rem] border border-[rgba(214,98,54,0.2)] bg-[rgba(230,106,63,0.96)] p-2 text-white transition-all hover:bg-[rgba(217,98,56,1)] disabled:opacity-50"
+              >
+                <SendHorizontal size={16} />
+              </button>
+            </div>
+            {isRefining ? (
+              <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-[rgba(230,106,63,0.72)] animate-progress" />
+            ) : null}
+          </form>
+        </div>
       </div>
     </div>
   );
 };
 
-// --- Main App Component ---
 export default function App() {
   const [trips, setTrips] = useState<TripSession[]>(loadTrips);
-  const [sidebarOpen, setSidebarOpen] = useState(() =>
-    typeof window === 'undefined' ? true : window.innerWidth >= 768,
-  );
-  const [activePin, setActivePin] = useState<MapPinData | null>(null);
   const [isGeneratingTrip, setIsGeneratingTrip] = useState(false);
-
-  // Custom Routing State (Hash based for Blob compatibility)
   const [currentPath, setCurrentPath] = useState<string>(() =>
     typeof window === 'undefined' ? '/' : window.location.hash || '/',
   );
@@ -260,36 +338,14 @@ export default function App() {
   }, [trips]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(min-width: 768px)');
-    const syncSidebarMode = (event: MediaQueryList | MediaQueryListEvent) => {
-      setSidebarOpen(event.matches);
-    };
-
-    syncSidebarMode(mediaQuery);
-
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', syncSidebarMode);
-      return () => mediaQuery.removeEventListener('change', syncSidebarMode);
-    }
-
-    mediaQuery.addListener(syncSidebarMode);
-    return () => mediaQuery.removeListener(syncSidebarMode);
-  }, []);
-
-  // Handle hash changes
-  useEffect(() => {
     const handleHashChange = () => {
       setCurrentPath(window.location.hash || '/');
     };
+
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Custom navigation
   const navigate = useCallback((path: string) => {
     const hashPath = path.startsWith('/') ? `#${path}` : `#/${path}`;
     if (window.location.hash !== hashPath) {
@@ -308,136 +364,103 @@ export default function App() {
   };
 
   const currentTripId = getTripIdFromPath(currentPath);
+  const currentTrip = useMemo(
+    () => trips.find((trip) => trip.id === currentTripId) ?? null,
+    [currentTripId, trips],
+  );
   const isHomePage = !currentTripId;
 
-  const handleCreateTrip = useCallback(async (prompt: string) => {
-    setIsGeneratingTrip(true);
-    const newId = uuidv4();
-    const timestamp = Date.now();
-    
-    try {
-        const itinerary = await generateOrRefineItinerary(prompt);
-        
-        const newTrip: TripSession = {
-            id: newId,
-            title: itinerary.destination || prompt,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-            messages: [
-                { role: 'user', text: prompt, timestamp }
-            ],
-            currentItinerary: itinerary
-        };
-        
-        setTrips(prev => [newTrip, ...prev]);
-        navigate(`/t/${newId}`);
+  const handleCreateTrip = useCallback(
+    async (prompt: string) => {
+      setIsGeneratingTrip(true);
+      const newId = uuidv4();
+      const timestamp = Date.now();
 
-    } catch (e) {
+      try {
+        const itinerary = await generateOrRefineItinerary(prompt);
+
+        const newTrip: TripSession = {
+          id: newId,
+          title: itinerary.destination || prompt,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          messages: [{ role: 'user', text: prompt, timestamp }],
+          currentItinerary: itinerary,
+        };
+
+        setTrips((prev) => [newTrip, ...prev]);
+        navigate(`/t/${newId}`);
+      } catch (e) {
         console.error(e);
-        alert(getErrorMessage(e, "Failed to plan trip. Please try again."));
-    } finally {
+        alert(getErrorMessage(e, 'Failed to plan trip. Please try again.'));
+      } finally {
         setIsGeneratingTrip(false);
-    }
-  }, [navigate]);
+      }
+    },
+    [navigate],
+  );
 
   const updateTrip = useCallback((updatedTrip: TripSession) => {
-    setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
+    setTrips((prev) => prev.map((trip) => (trip.id === updatedTrip.id ? updatedTrip : trip)));
   }, []);
 
-  const deleteTrip = useCallback((id: string) => {
-      setTrips(prev => prev.filter(t => t.id !== id));
+  const deleteTrip = useCallback(
+    (id: string) => {
+      setTrips((prev) => prev.filter((trip) => trip.id !== id));
       if (currentTripId === id) {
-          navigate('/');
-      }
-  }, [currentTripId, navigate]);
-
-  const handlePinClick = useCallback((pin: MapPinData) => {
-    setActivePin(pin);
-    const prompt = `Plan a 3-day itinerary for ${pin.name} featuring ${pin.description}`;
-    void handleCreateTrip(prompt);
-  }, [handleCreateTrip]);
-
-  const navigateToTrip = useCallback((id: string | null) => {
-    if (id) {
-        navigate(`/t/${id}`);
-    } else {
         navigate('/');
-    }
-  }, [navigate]);
+      }
+    },
+    [currentTripId, navigate],
+  );
 
-  const handleSidebarToggle = useCallback(() => {
-    setSidebarOpen((isOpen) => !isOpen);
-  }, []);
+  const navigateToTrip = useCallback(
+    (id: string | null) => {
+      if (id) {
+        navigate(`/t/${id}`);
+        return;
+      }
+
+      navigate('/');
+    },
+    [navigate],
+  );
 
   return (
-    <div className="app-summer relative flex h-[100dvh] w-full flex-row overflow-hidden bg-[rgb(251,245,237)] font-sans text-slate-900">
-      {sidebarOpen ? (
-        <button
-          aria-label="Close navigation"
-          className="fixed inset-0 z-40 bg-[rgba(74,43,26,0.18)] backdrop-blur-[1px] md:hidden"
-          onClick={handleSidebarToggle}
+    <div className="app-summer relative h-[100dvh] w-full overflow-hidden bg-[rgb(248,245,240)] font-sans text-slate-900">
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
+        <AppHeader
+          currentTrip={currentTrip}
+          isHomePage={isHomePage}
+          onNavigateHome={() => navigate('/')}
+          onStartNewTrip={() => navigate('/')}
+          tripCount={trips.length}
         />
-      ) : null}
-      
-      {/* Sidebar - Now a relative flex item (on desktop) */}
-      <Sidebar 
-        trips={trips} 
-        isOpen={sidebarOpen} 
-        onToggle={handleSidebarToggle}
-        onDeleteTrip={deleteTrip}
-        activeTripId={currentTripId}
-        onNavigate={navigateToTrip}
-      />
 
-      <div className="flex-1 relative h-full flex flex-col min-w-0">
-        {!sidebarOpen ? (
-          <button
-            aria-label="Open navigation"
-            className="absolute left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/70 bg-[rgba(255,250,245,0.94)] text-[rgba(102,70,49,0.88)] shadow-[0_12px_24px_rgba(118,75,39,0.12)] backdrop-blur-xl transition-colors hover:bg-white hover:text-[rgba(217,102,58,0.92)] md:hidden"
-            onClick={handleSidebarToggle}
-          >
-            <PanelLeftOpen size={19} />
-          </button>
-        ) : null}
-
-        {isHomePage ? (
-          <div className="absolute inset-0 z-0 bg-[rgb(251,245,237)]" />
-        ) : (
-          <>
-            <div className="absolute inset-0 z-0 bg-[rgb(243,237,228)]">
-              <Suspense fallback={<div className="h-full w-full bg-[rgb(243,237,228)]" />}>
-                <WorldMap
-                  pins={INITIAL_PINS}
-                  onPinClick={handlePinClick}
-                  selectedPinId={activePin?.id}
+        <main className="relative flex min-h-0 flex-1 flex-col">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+            {currentTripId ? (
+              <div className="min-h-0 flex-1">
+                <TripPage
+                  tripId={currentTripId}
+                  trips={trips}
+                  updateTrip={updateTrip}
+                  onNavigateHome={() => navigate('/')}
                 />
-              </Suspense>
-            </div>
-
-            <div className="pointer-events-none absolute inset-0 z-[1] bg-[rgba(255,250,245,0.08)]" />
-          </>
-        )}
-
-        {/* Global Loading Overlay - REMOVED */}
-
-        {/* Main Content Area */}
-        <div className="relative z-10 w-full h-full">
-           {currentTripId ? (
-             <TripPage 
-                tripId={currentTripId} 
-                trips={trips} 
-                updateTrip={updateTrip} 
-                onNavigateHome={() => navigate('/')} 
-             />
-           ) : (
-             <HomePage 
+              </div>
+            ) : (
+              <HomePage
+                isGenerating={isGeneratingTrip}
+                onDeleteTrip={deleteTrip}
+                onOpenTrip={(tripId) => navigateToTrip(tripId)}
                 onSearch={handleCreateTrip}
-                isGenerating={isGeneratingTrip} 
-             />
-           )}
-        </div>
+                trips={trips}
+              />
+            )}
+          </div>
+        </main>
       </div>
-      
+
       <style>{`
         @keyframes progress {
           0% { width: 0%; opacity: 1; }

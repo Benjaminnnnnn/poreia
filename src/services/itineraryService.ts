@@ -213,6 +213,8 @@ function normalizeItinerary(raw: unknown): TravelItinerary {
       return {
         day: ensureNumber(dayRecord.day, `days[${index}].day`),
         theme: ensureString(dayRecord.theme, `days[${index}].theme`),
+        mood: typeof dayRecord.mood === 'string' ? dayRecord.mood : undefined,
+        notes: typeof dayRecord.notes === 'string' ? dayRecord.notes : undefined,
         activities: activities.map((activity, activityIndex) => {
           if (!activity || typeof activity !== 'object') {
             throw new Error(`Invalid activity at day ${index + 1}, activity ${activityIndex + 1}`);
@@ -248,6 +250,35 @@ function normalizeItinerary(raw: unknown): TravelItinerary {
       return {
         category: ensureString(budgetRecord.category, `budgetBreakdown[${index}].category`),
         amount: ensureNumber(budgetRecord.amount, `budgetBreakdown[${index}].amount`),
+      };
+    }),
+  };
+}
+
+function preserveDayJournalEntries(
+  nextItinerary: TravelItinerary,
+  currentItinerary?: TravelItinerary | null,
+): TravelItinerary {
+  if (!currentItinerary) {
+    return nextItinerary;
+  }
+
+  const currentDayLookup = new Map(
+    currentItinerary.days.map((day) => [day.day, { mood: day.mood, notes: day.notes }]),
+  );
+
+  return {
+    ...nextItinerary,
+    days: nextItinerary.days.map((day) => {
+      const existing = currentDayLookup.get(day.day);
+      if (!existing) {
+        return day;
+      }
+
+      return {
+        ...day,
+        mood: existing.mood ?? day.mood,
+        notes: existing.notes ?? day.notes,
       };
     }),
   };
@@ -385,7 +416,7 @@ export async function generateOrRefineItinerary(
       : await requestAnonymousText(fullPrompt);
 
     const parsed = JSON.parse(extractJsonObject(text));
-    return normalizeItinerary(parsed);
+    return preserveDayJournalEntries(normalizeItinerary(parsed), currentItinerary);
   } catch (error) {
     console.error('Failed to generate itinerary', error);
     throw toProviderError(error);
