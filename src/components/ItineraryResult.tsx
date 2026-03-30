@@ -31,6 +31,7 @@ interface ItineraryResultProps {
   itinerary: TravelItinerary;
   className?: string;
   onUpdate?: (updatedItinerary: TravelItinerary) => void;
+  onWorkspaceTabChange?: (tab: WorkspaceTab) => void;
 }
 
 const COLORS = ['#e66a3f', '#ffbf69', '#4ba9a8', '#c85b53', '#f3a65d', '#7bb0a6'];
@@ -397,13 +398,22 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
 };
 
 // --- Main Itinerary Component ---
-const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className = "", onUpdate }) => {
+const ItineraryResult: React.FC<ItineraryResultProps> = ({
+  itinerary,
+  className = "",
+  onUpdate,
+  onWorkspaceTabChange,
+}) => {
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('itinerary');
   const [selectedActivityId, setSelectedActivityId] = useState<string | undefined>();
   const [localItinerary, setLocalItinerary] = useState<TravelItinerary>(itinerary);
   const [activityImages, setActivityImages] = useState<Record<string, ResolvedActivityImage>>({});
   const deferredSelectedActivityId = useDeferredValue(selectedActivityId);
+
+  useEffect(() => {
+    onWorkspaceTabChange?.(activeTab);
+  }, [activeTab, onWorkspaceTabChange]);
 
   useEffect(() => {
     if (!activeDragId) {
@@ -951,7 +961,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                   className="w-full h-full"
               />
             ) : (
-              <div className="flex h-full flex-col justify-between bg-[linear-gradient(180deg,rgba(244,238,229,0.92)_0%,rgba(239,233,223,0.98)_100%)] p-6">
+              <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto bg-[linear-gradient(180deg,rgba(244,238,229,0.92)_0%,rgba(239,233,223,0.98)_100%)] p-6">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[rgba(200,97,55,0.82)]">
                     Trip journal
@@ -964,7 +974,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                   </p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 pb-6">
                   {localItinerary.days.map((day) => {
                     const moodOption = day.mood ? MOOD_OPTION_LOOKUP.get(day.mood) : null;
                     return (

@@ -177,11 +177,12 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
           </div>
 
           {trips.length ? (
-            <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-2">
+            <div className="max-h-[30rem] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
               {trips.map((trip) => (
                 <article
                   key={trip.id}
-                  className="group relative flex min-h-[11.75rem] min-w-[16rem] max-w-[17.5rem] snap-start flex-col justify-between border border-[rgba(226,214,200,0.95)] bg-[rgba(255,251,246,0.96)] p-4 text-left transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 sm:min-w-[17rem]"
+                  className="group relative flex min-h-[10.25rem] w-full flex-col justify-between border border-[rgba(226,214,200,0.95)] bg-[rgba(255,251,246,0.96)] p-4 text-left transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 xl:min-h-[9.75rem]"
                 >
                   <button
                     type="button"
@@ -206,7 +207,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                           ? `${trip.currentItinerary.totalDays} days`
                           : "Draft"}
                       </div>
-                      <h3 className="mt-4 font-display text-[1.7rem] leading-[1.02] tracking-[-0.04em] text-[rgba(72,43,27,0.96)]">
+                      <h3 className="mt-4 font-display text-[1.45rem] leading-[1.02] tracking-[-0.04em] text-[rgba(72,43,27,0.96)] lg:text-[1.55rem]">
                         {trip.currentItinerary?.destination || trip.title}
                       </h3>
                       <p className="mt-2 line-clamp-3 text-sm leading-6 text-[rgba(105,69,48,0.78)]">
@@ -227,6 +228,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                   </button>
                 </article>
               ))}
+              </div>
             </div>
           ) : (
             <div className="border border-dashed border-[rgba(228,204,188,0.95)] bg-[rgba(255,250,245,0.74)] px-5 py-10 text-center">
