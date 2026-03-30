@@ -37,14 +37,72 @@ const COLORS = ['#e66a3f', '#ffbf69', '#4ba9a8', '#c85b53', '#f3a65d', '#7bb0a6'
 const DAY_MARKER_COLORS = ['#e66a3f', '#4ba9a8', '#c85b53', '#d49a2a', '#7d8fcb', '#7bb0a6'];
 const DAY_CONTAINER_PATTERN = /^day-(\d+)$/;
 const MOOD_OPTIONS = [
-  { value: 'rested', label: 'Rested' },
-  { value: 'curious', label: 'Curious' },
-  { value: 'energized', label: 'Energized' },
-  { value: 'overwhelmed', label: 'Overwhelmed' },
-  { value: 'romantic', label: 'Romantic' },
-  { value: 'reflective', label: 'Reflective' },
+  {
+    value: 'rested',
+    label: 'Rested',
+    activeClassName:
+      'border-[rgba(112,168,120,0.34)] bg-[rgba(123,176,130,0.95)] text-white',
+    idleClassName:
+      'border-[rgba(170,202,175,0.72)] bg-[rgba(241,248,242,0.96)] text-[rgba(70,113,76,0.92)] hover:border-[rgba(123,176,130,0.72)]',
+    pillClassName:
+      'border-[rgba(170,202,175,0.72)] bg-[rgba(241,248,242,0.96)] text-[rgba(70,113,76,0.92)]',
+  },
+  {
+    value: 'curious',
+    label: 'Curious',
+    activeClassName:
+      'border-[rgba(95,156,151,0.34)] bg-[rgba(74,149,144,0.95)] text-white',
+    idleClassName:
+      'border-[rgba(157,209,204,0.72)] bg-[rgba(236,248,247,0.96)] text-[rgba(52,112,109,0.94)] hover:border-[rgba(74,149,144,0.72)]',
+    pillClassName:
+      'border-[rgba(157,209,204,0.72)] bg-[rgba(236,248,247,0.96)] text-[rgba(52,112,109,0.94)]',
+  },
+  {
+    value: 'energized',
+    label: 'Energized',
+    activeClassName:
+      'border-[rgba(221,151,80,0.34)] bg-[rgba(226,147,64,0.95)] text-white',
+    idleClassName:
+      'border-[rgba(242,201,150,0.74)] bg-[rgba(255,245,231,0.96)] text-[rgba(159,94,29,0.94)] hover:border-[rgba(226,147,64,0.72)]',
+    pillClassName:
+      'border-[rgba(242,201,150,0.74)] bg-[rgba(255,245,231,0.96)] text-[rgba(159,94,29,0.94)]',
+  },
+  {
+    value: 'overwhelmed',
+    label: 'Overwhelmed',
+    activeClassName:
+      'border-[rgba(181,118,105,0.34)] bg-[rgba(188,112,93,0.95)] text-white',
+    idleClassName:
+      'border-[rgba(226,185,175,0.74)] bg-[rgba(252,241,238,0.96)] text-[rgba(138,81,69,0.94)] hover:border-[rgba(188,112,93,0.72)]',
+    pillClassName:
+      'border-[rgba(226,185,175,0.74)] bg-[rgba(252,241,238,0.96)] text-[rgba(138,81,69,0.94)]',
+  },
+  {
+    value: 'romantic',
+    label: 'Romantic',
+    activeClassName:
+      'border-[rgba(189,121,149,0.34)] bg-[rgba(194,115,148,0.95)] text-white',
+    idleClassName:
+      'border-[rgba(233,191,209,0.74)] bg-[rgba(253,241,246,0.96)] text-[rgba(145,79,104,0.94)] hover:border-[rgba(194,115,148,0.72)]',
+    pillClassName:
+      'border-[rgba(233,191,209,0.74)] bg-[rgba(253,241,246,0.96)] text-[rgba(145,79,104,0.94)]',
+  },
+  {
+    value: 'reflective',
+    label: 'Reflective',
+    activeClassName:
+      'border-[rgba(127,131,177,0.34)] bg-[rgba(116,124,181,0.95)] text-white',
+    idleClassName:
+      'border-[rgba(191,195,230,0.74)] bg-[rgba(241,242,252,0.96)] text-[rgba(79,86,137,0.94)] hover:border-[rgba(116,124,181,0.72)]',
+    pillClassName:
+      'border-[rgba(191,195,230,0.74)] bg-[rgba(241,242,252,0.96)] text-[rgba(79,86,137,0.94)]',
+  },
 ] as const;
 type WorkspaceTab = 'itinerary' | 'notes';
+
+const MOOD_OPTION_LOOKUP = new Map(
+  MOOD_OPTIONS.map((option) => [option.value, option]),
+);
 
 // --- Activity Card Component (Shared for Sortable & Overlay) ---
 interface ActivityCardLayoutProps {
@@ -844,8 +902,8 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                                       }
                                       className={`border px-3 py-2 text-sm font-medium transition-colors ${
                                         isActive
-                                          ? 'border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] text-white'
-                                          : 'border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.92)] text-[rgba(102,68,47,0.86)] hover:border-[rgba(234,160,100,0.78)]'
+                                          ? option.activeClassName
+                                          : option.idleClassName
                                       }`}
                                     >
                                       {option.label}
@@ -907,26 +965,35 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                 </div>
 
                 <div className="space-y-3">
-                  {localItinerary.days.map((day) => (
-                    <div
-                      key={`journal-summary-${day.day}`}
-                      className="border border-[rgba(230,217,203,0.92)] bg-[rgba(255,251,246,0.78)] px-4 py-3"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
-                            Day {day.day}
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-[rgba(74,43,26,0.96)]">
-                            {day.theme}
-                          </p>
+                  {localItinerary.days.map((day) => {
+                    const moodOption = day.mood ? MOOD_OPTION_LOOKUP.get(day.mood) : null;
+                    return (
+                      <div
+                        key={`journal-summary-${day.day}`}
+                        className="border border-[rgba(230,217,203,0.92)] bg-[rgba(255,251,246,0.78)] px-4 py-3"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
+                              Day {day.day}
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-[rgba(74,43,26,0.96)]">
+                              {day.theme}
+                            </p>
+                          </div>
+                          <span
+                            className={`border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+                              moodOption
+                                ? moodOption.pillClassName
+                                : 'border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.92)] text-[rgba(102,68,47,0.82)]'
+                            }`}
+                          >
+                            {day.mood || 'No mood yet'}
+                          </span>
                         </div>
-                        <span className="border border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.92)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-[rgba(102,68,47,0.82)]">
-                          {day.mood || 'No mood yet'}
-                        </span>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
