@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { startTransition, useState, useEffect, useMemo } from 'react';
 import { TravelItinerary, DayPlan, Activity, MapPinData } from '../types';
 import { Calendar, Clock, MapPin, DollarSign, Wallet, GripVertical, Trash2, Pencil, X, Check, Plus, ImageIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import WorldMap from './WorldMap';
+import { getActivityImage, ResolvedActivityImage } from '../services/activityImageService';
 import {
   DndContext,
   closestCorners,
@@ -34,19 +35,11 @@ interface ItineraryResultProps {
 
 const COLORS = ['#0ea5e9', '#22d3ee', '#f97316', '#facc15', '#14b8a6', '#fb7185'];
 
-// --- Helper to get image URL ---
-const getActivityImageUrl = (prompt?: string, seed?: string) => {
-    if (!prompt) return null;
-    const encodedPrompt = encodeURIComponent(prompt);
-    // Using pollinations.ai for dynamic AI images based on the prompt
-    // Adding nologo and limiting size for performance
-    return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=300&height=300&nologo=true&seed=${seed || '1'}`;
-};
-
 // --- Activity Card Component (Shared for Sortable & Overlay) ---
 interface ActivityCardProps {
     activity: Activity;
     currency: string;
+    imageUrl?: string;
     isOverlay?: boolean;
     dragProps?: any;
     onEdit?: () => void;
@@ -58,6 +51,7 @@ interface ActivityCardProps {
 const ActivityCard: React.FC<ActivityCardProps> = ({ 
     activity, 
     currency, 
+    imageUrl,
     isOverlay, 
     dragProps, 
     onEdit, 
@@ -65,8 +59,6 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
     onClick,
     isActive
 }) => {
-    const imageUrl = useMemo(() => getActivityImageUrl(activity.img_prompt, activity.id), [activity.img_prompt, activity.id]);
-
     return (
         <div 
             {...dragProps}
@@ -145,13 +137,14 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
 interface SortableActivityItemProps {
   activity: Activity;
   currency: string;
+  imageUrl?: string;
   onDelete: () => void;
   onSave: (newActivity: Activity) => void;
   onClick: () => void;
   isActive: boolean;
 }
 
-const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, currency, onDelete, onSave, onClick, isActive }) => {
+const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, currency, imageUrl, onDelete, onSave, onClick, isActive }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Activity>({ ...activity });
 
@@ -223,9 +216,9 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
               onChange={e => setEditForm({...editForm, location: e.target.value})}
             />
         </div>
-        {/* Img Prompt Edit - Optional but good to see */}
+        {/* Optional search hint for image resolution */}
         <div>
-           <label className="text-xs font-semibold text-slate-500">Image Description (AI)</label>
+           <label className="text-xs font-semibold text-slate-500">Image Search Hint</label>
            <input 
               className="w-full rounded-xl border bg-slate-50 p-1.5 text-sm outline-none focus:ring-2 focus:ring-sky-200" 
               value={editForm.img_prompt || ''}
@@ -246,6 +239,7 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
         <ActivityCard 
             activity={activity} 
             currency={currency} 
+            imageUrl={imageUrl}
             onEdit={() => setIsEditing(true)}
             onDelete={onDelete}
             onClick={onClick}
@@ -261,12 +255,61 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [selectedActivityId, setSelectedActivityId] = useState<string | undefined>();
   const [localItinerary, setLocalItinerary] = useState<TravelItinerary>(itinerary);
+  const [activityImages, setActivityImages] = useState<Record<string, ResolvedActivityImage>>({});
 
   useEffect(() => {
     if (!activeDragId) {
         setLocalItinerary(itinerary);
     }
   }, [itinerary, activeDragId]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const activities = localItinerary.days.flatMap((day) => day.activities);
+
+    startTransition(() => {
+      setActivityImages((current) => {
+        const next: Record<string, ResolvedActivityImage> = {};
+        activities.forEach((activity) => {
+          const existing = current[activity.id];
+          if (existing) {
+            next[activity.id] = existing;
+          }
+        });
+        return next;
+      });
+    });
+
+    void Promise.all(
+      activities.map(async (activity) => {
+        const image = await getActivityImage(activity, localItinerary.destination);
+        return image ? [activity.id, image] as const : null;
+      }),
+    ).then((results) => {
+      if (isCancelled) {
+        return;
+      }
+
+      const resolvedImages = results.filter((result): result is readonly [string, ResolvedActivityImage] => Boolean(result));
+      if (!resolvedImages.length) {
+        return;
+      }
+
+      startTransition(() => {
+        setActivityImages((current) => {
+          const next = { ...current };
+          resolvedImages.forEach(([activityId, image]) => {
+            next[activityId] = image;
+          });
+          return next;
+        });
+      });
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [localItinerary]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -285,13 +328,13 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                     description: act.description,
                     lat: act.lat,
                     lng: act.lng,
-                    image: getActivityImageUrl(act.img_prompt, act.id) || undefined
+                    image: activityImages[act.id]?.url
                 });
             }
         });
     });
     return pins;
-  }, [localItinerary]);
+  }, [activityImages, localItinerary]);
 
   const findDayContainer = (id: string, currentItin: TravelItinerary): number | undefined => {
     const day = currentItin.days.find(d => d.activities.some(a => a.id === id));
@@ -422,6 +465,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
   const activeActivity = activeDragId 
     ? localItinerary.days.flatMap(d => d.activities).find(a => a.id === activeDragId) 
     : null;
+  const activeActivityImage = activeActivity ? activityImages[activeActivity.id]?.url : undefined;
 
   return (
     <div className={`w-full bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(240,249,255,0.9))] flex flex-col lg:flex-row overflow-hidden ${className}`}>
@@ -520,6 +564,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                                         key={activity.id} 
                                         activity={activity} 
                                         currency={localItinerary.currency}
+                                        imageUrl={activityImages[activity.id]?.url}
                                         onDelete={() => handleDeleteActivity(dayIndex, activity.id)}
                                         onSave={(newAct) => handleSaveActivity(dayIndex, newAct)}
                                         onClick={() => setSelectedActivityId(activity.id)}
@@ -543,6 +588,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                             <ActivityCard 
                                 activity={activeActivity}
                                 currency={localItinerary.currency}
+                                imageUrl={activeActivityImage}
                                 isOverlay
                             />
                         ) : null}

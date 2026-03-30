@@ -7,6 +7,11 @@ export default defineConfig({
     port: 3000,
     host: '0.0.0.0',
     proxy: {
+      '/api/google-places': {
+        target: 'https://places.googleapis.com',
+        changeOrigin: true,
+        rewrite: (requestPath) => requestPath.replace(/^\/api\/google-places/, ''),
+      },
       '/api/pollinations/text': {
         target: 'https://gen.pollinations.ai',
         changeOrigin: true,

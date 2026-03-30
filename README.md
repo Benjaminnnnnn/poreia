@@ -41,6 +41,7 @@ This repo includes a shared Linux-based VS Code dev container in `.devcontainer/
 - `node_modules` is stored in a Docker volume inside the container workflow so host OS differences do not leak into dependencies.
 - `.env.local` stays on your local checkout and is available inside the mounted workspace, so each contributor can keep their own local secrets.
 - In development, itinerary API calls are proxied through the Vite dev server at `/api/pollinations/...` to avoid browser-side CORS issues, including when running in a dev container.
+- In development, Google Places photo requests are proxied through the Vite dev server at `/api/google-places/...`.
 - Contributors can still run the project directly on their host OS if they prefer, but the dev container is the recommended shared setup.
 
 ## AI Provider
@@ -53,6 +54,12 @@ The app now uses Pollinations' browser-callable text endpoint at `https://gen.po
 - Do not expose a secret `sk_...` key in any deployed client or public repository.
 - Requests are sent directly from the browser with `fetch`.
 - If generation fails in-browser, the most likely causes are provider availability, rate limiting, or CORS/network restrictions.
+
+## Activity Images
+
+- Itinerary activity cards now support real place photos via the Google Places API.
+- Set `VITE_GOOGLE_PLACES_API_KEY` in `.env.local` with a browser-restricted Google Maps Platform key that has Places API access.
+- Without that key, the app falls back to an empty image placeholder for itinerary activities.
 
 ## Structure
 
