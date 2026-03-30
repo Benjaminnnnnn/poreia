@@ -1,7 +1,6 @@
-
-import React, { startTransition, useState, useEffect, useMemo } from 'react';
-import { TravelItinerary, DayPlan, Activity, MapPinData } from '../types';
-import { Calendar, Clock, MapPin, DollarSign, Wallet, GripVertical, Trash2, Pencil, X, Check, Plus, ImageIcon } from 'lucide-react';
+import React, { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { TravelItinerary, Activity, MapPinData } from '../types';
+import { Calendar, Clock, MapPin, DollarSign, Wallet, GripVertical, Trash2, Pencil, X, Check, ImageIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import WorldMap from './WorldMap';
 import { getActivityImage, ResolvedActivityImage } from '../services/activityImageService';
@@ -34,6 +33,7 @@ interface ItineraryResultProps {
 }
 
 const COLORS = ['#0ea5e9', '#22d3ee', '#f97316', '#facc15', '#14b8a6', '#fb7185'];
+const DAY_CONTAINER_PATTERN = /^day-(\d+)$/;
 
 // --- Activity Card Component (Shared for Sortable & Overlay) ---
 interface ActivityCardProps {
@@ -256,6 +256,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
   const [selectedActivityId, setSelectedActivityId] = useState<string | undefined>();
   const [localItinerary, setLocalItinerary] = useState<TravelItinerary>(itinerary);
   const [activityImages, setActivityImages] = useState<Record<string, ResolvedActivityImage>>({});
+  const deferredSelectedActivityId = useDeferredValue(selectedActivityId);
 
   useEffect(() => {
     if (!activeDragId) {
@@ -263,25 +264,75 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     }
   }, [itinerary, activeDragId]);
 
-  useEffect(() => {
-    let isCancelled = false;
-    const activities = localItinerary.days.flatMap((day) => day.activities);
+  const itineraryActivityEntries = useMemo(
+    () =>
+      localItinerary.days.flatMap((day) =>
+        day.activities.map((activity, activityIndex) => ({
+          activity,
+          activityIndex,
+          dayNumber: day.day,
+        })),
+      ),
+    [localItinerary.days],
+  );
 
-    startTransition(() => {
-      setActivityImages((current) => {
-        const next: Record<string, ResolvedActivityImage> = {};
-        activities.forEach((activity) => {
-          const existing = current[activity.id];
-          if (existing) {
-            next[activity.id] = existing;
-          }
-        });
-        return next;
-      });
+  const activityLookup = useMemo(() => {
+    const lookup = new Map<
+      string,
+      {
+        activity: Activity;
+        activityIndex: number;
+        dayNumber: number;
+      }
+    >();
+
+    itineraryActivityEntries.forEach((entry) => {
+      lookup.set(entry.activity.id, entry);
     });
 
+    return lookup;
+  }, [itineraryActivityEntries]);
+
+  const activeActivityIds = useMemo(
+    () => new Set(itineraryActivityEntries.map(({ activity }) => activity.id)),
+    [itineraryActivityEntries],
+  );
+
+  const missingImageActivities = useMemo(
+    () =>
+      itineraryActivityEntries.filter(({ activity }) => !activityImages[activity.id]),
+    [activityImages, itineraryActivityEntries],
+  );
+
+  useEffect(() => {
+    startTransition(() => {
+      setActivityImages((current) => {
+        let removedStaleImages = false;
+        const next: Record<string, ResolvedActivityImage> = {};
+
+        Object.entries(current).forEach(([activityId, image]) => {
+          if (activeActivityIds.has(activityId)) {
+            next[activityId] = image;
+            return;
+          }
+
+          removedStaleImages = true;
+        });
+
+        return removedStaleImages ? next : current;
+      });
+    });
+  }, [activeActivityIds]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!missingImageActivities.length) {
+      return;
+    }
+
     void Promise.all(
-      activities.map(async (activity) => {
+      missingImageActivities.map(async ({ activity }) => {
         const image = await getActivityImage(activity, localItinerary.destination);
         return image ? [activity.id, image] as const : null;
       }),
@@ -309,7 +360,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     return () => {
       isCancelled = true;
     };
-  }, [localItinerary]);
+  }, [localItinerary.destination, missingImageActivities]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -318,28 +369,23 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
 
   // Generate pins for the map
   const mapPins = useMemo(() => {
-    const pins: MapPinData[] = [];
-    localItinerary.days.forEach(day => {
-        day.activities.forEach(act => {
-            if (act.lat && act.lng) {
-                pins.push({
-                    id: act.id,
-                    name: act.location,
-                    description: act.description,
-                    lat: act.lat,
-                    lng: act.lng,
-                    image: activityImages[act.id]?.url
-                });
-            }
-        });
-    });
-    return pins;
-  }, [activityImages, localItinerary]);
+    return itineraryActivityEntries.flatMap(({ activity }) => {
+      if (activity.lat === undefined || activity.lng === undefined) {
+        return [];
+      }
 
-  const findDayContainer = (id: string, currentItin: TravelItinerary): number | undefined => {
-    const day = currentItin.days.find(d => d.activities.some(a => a.id === id));
-    return day?.day;
-  };
+      return [
+        {
+          id: activity.id,
+          name: activity.location,
+          description: activity.description,
+          lat: activity.lat,
+          lng: activity.lng,
+          image: activityImages[activity.id]?.url,
+        } satisfies MapPinData,
+      ];
+    });
+  }, [activityImages, itineraryActivityEntries]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
@@ -352,11 +398,11 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeDayNum = findDayContainer(activeId, localItinerary);
-    let overDayNum = findDayContainer(overId, localItinerary);
+    const activeDayNum = activityLookup.get(activeId)?.dayNumber;
+    let overDayNum = activityLookup.get(overId)?.dayNumber;
 
     if (!overDayNum) {
-        const match = overId.match(/^day-(\d+)$/);
+        const match = overId.match(DAY_CONTAINER_PATTERN);
         if (match) {
             overDayNum = parseInt(match[1]);
         }
@@ -402,19 +448,21 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     const activeIdVal = active.id as string;
     const overIdVal = over.id as string;
 
-    const activeDayNum = findDayContainer(activeIdVal, localItinerary);
-    let overDayNum = findDayContainer(overIdVal, localItinerary);
+    const activeEntry = activityLookup.get(activeIdVal);
+    const overEntry = activityLookup.get(overIdVal);
+    const activeDayNum = activeEntry?.dayNumber;
+    let overDayNum = overEntry?.dayNumber;
     
-    if (!overDayNum && overIdVal.match(/^day-(\d+)$/)) {
-        overDayNum = parseInt(overIdVal.match(/^day-(\d+)$/)![1]);
+    if (!overDayNum && overIdVal.match(DAY_CONTAINER_PATTERN)) {
+        overDayNum = parseInt(overIdVal.match(DAY_CONTAINER_PATTERN)![1]);
     }
 
     if (activeDayNum && overDayNum) {
         const activeDayIdx = localItinerary.days.findIndex(d => d.day === activeDayNum);
         const overDayIdx = localItinerary.days.findIndex(d => d.day === overDayNum);
 
-        const activeIndex = localItinerary.days[activeDayIdx].activities.findIndex(a => a.id === activeIdVal);
-        const overIndex = localItinerary.days[overDayIdx].activities.findIndex(a => a.id === overIdVal);
+        const activeIndex = activeEntry?.activityIndex ?? -1;
+        const overIndex = overEntry?.activityIndex ?? -1;
 
         let finalItinerary = localItinerary;
 
@@ -462,9 +510,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
       if (onUpdate) onUpdate(newItinerary);
   };
 
-  const activeActivity = activeDragId 
-    ? localItinerary.days.flatMap(d => d.activities).find(a => a.id === activeDragId) 
-    : null;
+  const activeActivity = activeDragId ? activityLookup.get(activeDragId)?.activity ?? null : null;
   const activeActivityImage = activeActivity ? activityImages[activeActivity.id]?.url : undefined;
 
   return (
@@ -603,7 +649,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
             <WorldMap 
                 pins={mapPins} 
                 onPinClick={(pin) => setSelectedActivityId(pin.id)} 
-                selectedPinId={selectedActivityId}
+                selectedPinId={deferredSelectedActivityId}
                 className="w-full h-full"
             />
         </div>
