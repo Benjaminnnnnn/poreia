@@ -14,6 +14,8 @@ export interface DayPlan {
   day: number;
   theme: string;
   activities: Activity[];
+  mood?: string;
+  notes?: string;
 }
 
 export interface BudgetBreakdown {
@@ -39,6 +41,8 @@ export interface MapPinData {
   lng: number;
   image?: string;
   description: string;
+  dayNumber?: number;
+  dayColor?: string;
 }
 
 export interface ChatMessage {

@@ -1,94 +1,247 @@
-import React, { useState } from 'react';
-import { Search, Sparkles, SendHorizontal } from 'lucide-react';
-import { SUGGESTED_PROMPTS } from '../constants';
+import { ArrowUpRight, Clock3, Search, Sparkles, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { SUGGESTED_PROMPTS } from "../constants";
+import { TripSession } from "../types";
+
+const SEARCH_OVERLAY_IMAGE =
+  "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
 interface SearchOverlayProps {
-  onSearch: (prompt: string) => void;
+  onDeleteTrip: (tripId: string) => void;
+  onOpenTrip: (tripId: string) => void;
+  onSearch: (prompt: string) => void | Promise<void>;
   isGenerating: boolean;
+  trips: TripSession[];
 }
 
-const SearchOverlay: React.FC<SearchOverlayProps> = ({ onSearch, isGenerating }) => {
-  const [query, setQuery] = useState('');
+const formatTripDate = (timestamp: number) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(timestamp);
+
+const SearchOverlay: React.FC<SearchOverlayProps> = ({
+  onDeleteTrip,
+  onOpenTrip,
+  onSearch,
+  isGenerating,
+  trips,
+}) => {
+  const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (query.trim()) {
-      onSearch(query);
-      setIsFocused(false);
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      return;
     }
+
+    void onSearch(trimmedQuery);
+    setIsFocused(false);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion);
-    onSearch(suggestion);
+    void onSearch(suggestion);
     setIsFocused(false);
   };
 
   return (
-    <div className={`absolute inset-0 z-40 flex flex-col items-center justify-end pointer-events-none px-6 pb-6 pt-24 transition-all duration-500 ${isFocused ? 'bg-sky-950/12 backdrop-blur-sm' : ''}`}>
-      <div className={`w-full max-w-3xl transition-all duration-300 pointer-events-auto ${isFocused ? 'mb-[18vh]' : 'mb-[5vh]'}`}>
-        <div 
-          className={`
-            relative group overflow-hidden
-            rounded-[2rem] transition-all duration-300
-            ${isFocused ? 'scale-[1.02]' : 'hover:-translate-y-0.5'}
-          `}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-sky-500/30 via-cyan-400/20 to-orange-400/30 blur-xl" />
-          <div className="absolute inset-0 rounded-[2rem] border border-white/60 bg-white/82 backdrop-blur-2xl shadow-[0_28px_80px_rgba(8,47,73,0.22)]" />
-          <form onSubmit={handleSubmit} className="relative flex items-center gap-2 p-2">
-            <div className="pl-4 pr-3 text-sky-600">
-               {isGenerating ? <Sparkles className="animate-spin-slow" size={24} /> : <Search size={24} />}
-            </div>
+    <div className="h-full overflow-y-auto bg-[rgb(248,245,240)]">
+      <div className="flex w-full flex-col">
+        <section className="relative overflow-hidden border-b border-[rgba(233,221,207,0.96)] bg-[rgba(250,246,240,0.96)]">
+          <img
+            aria-hidden="true"
+            alt=""
+            src={SEARCH_OVERLAY_IMAGE}
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[rgba(248,243,236,0.28)]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute left-[max(1rem,4vw)] top-[max(1.5rem,5vw)] h-[16rem] w-[min(44rem,78vw)] bg-[rgba(251,247,241,0.62)] blur-2xl"
+          />
 
-            <label htmlFor="trip-search-input" className="sr-only">
-              Describe the trip you want to plan
-            </label>
-            <input
-              id="trip-search-input"
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-              placeholder="Plan a 5-day foodie trip to Tokyo on a $2,000 budget..."
-              className="h-16 flex-1 bg-transparent border-none outline-none text-base font-medium text-sky-950 placeholder-sky-800/45 sm:text-lg"
-              disabled={isGenerating}
-            />
+          <div
+            className={`relative transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isFocused ? "scale-[1.005]" : ""
+            }`}
+          >
+            <form onSubmit={handleSubmit} className="flex flex-col">
+              <div className="px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
+                <div className="mx-auto max-w-5xl">
+                  <div className="max-w-3xl">
+                    {/* <p className="inline-flex border border-[rgba(228,194,166,0.94)] bg-[rgba(251,247,241,0.9)] px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[rgba(191,89,46,0.98)] shadow-[0_6px_18px_rgba(118,74,36,0.06)]">
+                      Plan a trip
+                    </p> */}
+                    <h1 className="font-display mt-4 text-[clamp(2.1rem,6vw,4.1rem)] leading-[0.95] tracking-[-0.05em] text-[rgba(63,36,22,0.98)] [text-shadow:0_1px_0_rgba(255,250,244,0.35)]">
+                      Start with one clear idea.
+                    </h1>
+                    <p className="mt-3 max-w-xl text-[0.98rem] leading-7 text-[rgba(79,52,35,0.92)]">
+                      Tell Poreia where you want to go, what kind of trip you
+                      want, or how much you want to spend.
+                    </p>
+                  </div>
 
-            <button 
-              type="submit"
-              disabled={!query.trim() || isGenerating}
-              className="shrink-0 rounded-2xl bg-orange-500 p-3.5 text-white shadow-lg shadow-orange-500/25 transition-all hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <SendHorizontal size={20} />
-            </button>
-          </form>
+                  <div className="mt-8 max-w-4xl rounded-[0.55rem] border border-[rgba(230,214,197,0.96)] bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]">
+                    <div className="flex items-center gap-3 border-b border-[rgba(240,226,210,0.94)] px-4 py-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.45rem] border border-[rgba(235,196,158,0.95)] bg-[rgba(255,241,222,0.96)] text-[rgba(211,98,57,0.96)]">
+                        {isGenerating ? (
+                          <Sparkles className="animate-spin-slow" size={18} />
+                        ) : (
+                          <Search size={18} />
+                        )}
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="trip-search-input"
+                          className="block text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(127,86,58,0.7)]"
+                        >
+                          Where should we start?
+                        </label>
+                        <p className="mt-1 text-sm text-[rgba(117,81,58,0.72)]">
+                          One sentence is enough.
+                        </p>
+                      </div>
+                    </div>
 
-          {/* Loading Progress Bar */}
-          {isGenerating && (
-            <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-sky-400 via-cyan-400 to-orange-400 w-full animate-progress" />
-          )}
-        </div>
+                    <div className="px-4 py-4">
+                      <input
+                        id="trip-search-input"
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() =>
+                          setTimeout(() => setIsFocused(false), 200)
+                        }
+                        placeholder="3 relaxed days in Lisbon with ocean views and late dinners"
+                        className="h-14 w-full rounded-[0.55rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 text-lg font-semibold text-[rgba(74,43,26,0.97)] outline-none transition-colors placeholder:text-[rgba(150,112,82,0.52)] focus:border-[rgba(223,147,93,0.92)]"
+                        disabled={isGenerating}
+                      />
 
-        {/* Suggestions */}
-        <div className={`
-          mt-4 grid gap-3 transition-all duration-300 overflow-hidden
-          ${isFocused ? 'opacity-100 max-h-60' : 'opacity-100 max-h-60'}
-        `}>
-          <div className="flex flex-wrap gap-2 justify-center">
-             {SUGGESTED_PROMPTS.map((prompt, idx) => (
-               <button
-                 key={idx}
-                 onClick={() => handleSuggestionClick(prompt)}
-                 className="cursor-pointer rounded-full border border-white/50 bg-white/72 px-4 py-2 text-sm font-medium text-sky-900 shadow-sm backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-orange-200 hover:bg-white hover:text-orange-600"
-               >
-                 {prompt}
-               </button>
-             ))}
+                      <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-2xl">
+                          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(126,82,54,0.72)]">
+                            Try one of these
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2.5">
+                            {SUGGESTED_PROMPTS.slice(0, 4).map((prompt) => (
+                              <button
+                                key={prompt}
+                                type="button"
+                                onClick={() => handleSuggestionClick(prompt)}
+                                className="rounded-[0.55rem] border border-[rgba(239,215,193,0.96)] bg-[rgba(255,252,247,0.95)] px-4 py-2.5 text-left text-sm font-medium text-[rgba(89,58,38,0.94)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,160,100,0.78)] hover:text-[rgba(208,95,54,0.96)]"
+                              >
+                                {prompt}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={!query.trim() || isGenerating}
+                          className="flex min-h-[3.25rem] w-full shrink-0 items-center justify-center gap-2 rounded-[0.55rem] border border-[rgba(214,98,54,0.16)] bg-[rgba(230,106,63,0.96)] px-4 py-3 text-sm font-semibold text-white transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:bg-[rgba(217,98,56,1)] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[10.5rem]"
+                        >
+                          Start planning
+                          <ArrowUpRight size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
           </div>
-        </div>
+        </section>
+
+        <section className="bg-[rgba(248,245,240,0.98)] px-4 py-5 sm:px-6 lg:px-8">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(126,82,54,0.72)]">
+                Saved trips
+              </p>
+              <h2 className="font-display mt-2 text-[clamp(1.45rem,3vw,2.1rem)] leading-[0.98] tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
+                Pick up where you left off.
+              </h2>
+            </div>
+            <p className="max-w-xl text-sm leading-6 text-[rgba(112,75,52,0.76)]">
+              Keep multiple trips in progress without burying navigation in a
+              permanent sidebar.
+            </p>
+          </div>
+
+          {trips.length ? (
+            <div className="max-h-[30rem] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {trips.map((trip) => (
+                <article
+                  key={trip.id}
+                  className="group relative flex min-h-[10.25rem] w-full flex-col justify-between border border-[rgba(226,214,200,0.95)] bg-[rgba(255,251,246,0.96)] p-4 text-left transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 xl:min-h-[9.75rem]"
+                >
+                  <button
+                    type="button"
+                    aria-label={`Delete ${trip.title}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteTrip(trip.id);
+                    }}
+                    className="absolute right-3 top-3 rounded-[0.5rem] p-2 text-[rgba(121,84,60,0.58)] transition-colors hover:bg-[rgba(255,250,246,0.85)] hover:text-[rgba(207,80,71,0.96)]"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onOpenTrip(trip.id)}
+                    className="flex h-full flex-col justify-between text-left"
+                  >
+                    <div>
+                      <div className="inline-flex rounded-[0.45rem] border border-[rgba(255,255,255,0.82)] bg-[rgba(255,252,247,0.8)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(72,131,126,0.92)]">
+                        {trip.currentItinerary
+                          ? `${trip.currentItinerary.totalDays} days`
+                          : "Draft"}
+                      </div>
+                      <h3 className="mt-4 font-display text-[1.45rem] leading-[1.02] tracking-[-0.04em] text-[rgba(72,43,27,0.96)] lg:text-[1.55rem]">
+                        {trip.currentItinerary?.destination || trip.title}
+                      </h3>
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-[rgba(105,69,48,0.78)]">
+                        {trip.currentItinerary?.overview ||
+                          "Open this trip to keep refining the itinerary."}
+                      </p>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between text-[0.8rem] font-medium text-[rgba(118,80,57,0.78)]">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock3 size={14} />
+                        Updated {formatTripDate(trip.updatedAt)}
+                      </span>
+                      <span className="text-[rgba(206,95,55,0.94)] transition-transform duration-200 group-hover:translate-x-0.5">
+                        Open
+                      </span>
+                    </div>
+                  </button>
+                </article>
+              ))}
+              </div>
+            </div>
+          ) : (
+            <div className="border border-dashed border-[rgba(228,204,188,0.95)] bg-[rgba(255,250,245,0.74)] px-5 py-10 text-center">
+              <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
+                Your trip shelf is empty.
+              </p>
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
+                The first itinerary you generate will stay here so you can jump
+                back in without reopening a menu.
+              </p>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
