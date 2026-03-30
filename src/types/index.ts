@@ -39,6 +39,8 @@ export interface MapPinData {
   lng: number;
   image?: string;
   description: string;
+  dayNumber?: number;
+  dayColor?: string;
 }
 
 export interface ChatMessage {

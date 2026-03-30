@@ -12,7 +12,7 @@ import Sidebar from './components/Sidebar';
 import { INITIAL_PINS } from './constants';
 import { MapPinData, TripSession, ChatMessage, TravelItinerary } from './types';
 import { generateOrRefineItinerary } from './services/itineraryService';
-import { SendHorizontal, Sparkles, Loader2 } from 'lucide-react';
+import { SendHorizontal, Sparkles, Loader2, PanelLeftOpen } from 'lucide-react';
 
 const WorldMap = lazy(() => import('./components/WorldMap'));
 const ItineraryResult = lazy(() => import('./components/ItineraryResult'));
@@ -82,9 +82,9 @@ interface SurfaceFallbackProps {
 }
 
 const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({ className = '', label }) => (
-  <div className={`flex items-center justify-center bg-white/40 backdrop-blur-xl ${className}`}>
-    <div className="flex flex-col items-center gap-3 text-sky-900">
-      <Loader2 className="animate-spin text-sky-600" size={32} />
+  <div className={`flex items-center justify-center bg-[rgba(255,250,245,0.9)] backdrop-blur-xl ${className}`}>
+    <div className="flex flex-col items-center gap-3 text-[rgba(92,58,36,0.96)]">
+      <Loader2 className="animate-spin text-[rgba(217,102,58,0.92)]" size={32} />
       <p className="font-medium">{label}</p>
     </div>
   </div>
@@ -98,7 +98,7 @@ interface HomePageProps {
 
 const HomePage: React.FC<HomePageProps> = ({ onSearch, isGenerating }) => {
   return (
-    <div className="w-full h-full flex flex-col justify-end pointer-events-none">
+    <div className="w-full h-full">
       <SearchOverlay 
         onSearch={onSearch} 
         isGenerating={isGenerating} 
@@ -132,8 +132,8 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
   }, [trip, isRefining, onNavigateHome]);
 
   if (!trip) return (
-      <div className="w-full h-full flex items-center justify-center bg-white/40 backdrop-blur-xl">
-          <Loader2 className="animate-spin text-sky-600" size={32} />
+      <div className="w-full h-full flex items-center justify-center bg-[rgba(255,250,245,0.9)] backdrop-blur-xl">
+          <Loader2 className="animate-spin text-[rgba(217,102,58,0.92)]" size={32} />
       </div>
   );
 
@@ -186,7 +186,7 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
             <Suspense
               fallback={
                 <SurfaceFallback
-                  className="h-full rounded-[2rem] md:rounded-l-[2rem]"
+                  className="h-full"
                   label="Loading itinerary workspace..."
                 />
               }
@@ -194,22 +194,21 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
               <ItineraryResult
                 itinerary={trip.currentItinerary}
                 onUpdate={handleManualItineraryUpdate}
-                className="w-full h-full shadow-none md:shadow-2xl md:rounded-l-[2rem] md:border-l md:border-white/40 md:bg-white/70"
+                className="h-full w-full shadow-none xl:border-l xl:border-[rgba(214,181,154,0.9)] xl:bg-[rgba(255,251,246,0.82)]"
               />
             </Suspense>
          ) : (
-            <SurfaceFallback className="h-full rounded-[2rem]" label="Planning your trip..." />
+            <SurfaceFallback className="h-full" label="Planning your trip..." />
          )}
       </div>
 
       {/* Refinement Interface */}
-      <div className="absolute bottom-6 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
-         <div className="w-full max-w-2xl pointer-events-auto">
+      <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-50 flex justify-center px-3 md:bottom-6 md:px-4">
+         <div className="w-full max-w-full pointer-events-auto md:max-w-2xl">
              <form onSubmit={handleRefine} className="relative group">
-                 <div className="absolute inset-0 rounded-[1.75rem] bg-gradient-to-r from-sky-500/20 via-cyan-400/15 to-orange-400/20 blur-xl transition-opacity duration-300 group-hover:opacity-100" />
-                 <div className="absolute inset-0 bg-white/82 backdrop-blur-xl rounded-[1.75rem] shadow-[0_24px_70px_rgba(8,47,73,0.18)] border border-white/60" />
+                 <div className="absolute inset-0 rounded-[1.75rem] border border-white/70 bg-[rgba(255,248,241,0.94)] shadow-[0_24px_70px_rgba(108,62,26,0.14)] backdrop-blur-xl" />
                  <div className="relative flex items-center p-2">
-                    <div className="pl-3 pr-2 text-sky-600">
+                    <div className="pl-3 pr-2 text-[rgba(217,102,58,0.92)]">
                         {isRefining ? <Sparkles className="animate-spin-slow" size={20} /> : <Sparkles size={20} />}
                     </div>
                     <label htmlFor="trip-refine-input" className="sr-only">
@@ -221,19 +220,19 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         placeholder="Refine this trip (e.g., 'Add a dinner spot on Day 2')"
-                        className="w-full h-12 bg-transparent border-none outline-none text-sky-950 placeholder-sky-700/60 text-sm md:text-base font-medium"
+                        className="w-full h-12 bg-transparent border-none outline-none text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(118,77,54,0.58)] text-sm md:text-base font-medium"
                         disabled={isRefining}
                     />
                     <button 
                         type="submit"
                         disabled={!inputValue.trim() || isRefining}
-                        className="p-2.5 bg-gradient-to-r from-orange-500 to-amber-400 rounded-2xl text-white shadow-lg shadow-orange-500/30 hover:brightness-105 disabled:opacity-50 transition-all"
+                        className="min-h-[44px] min-w-[44px] rounded-2xl border border-[rgba(214,98,54,0.2)] bg-[rgba(230,106,63,0.96)] p-2.5 text-white shadow-[0_12px_28px_rgba(210,96,47,0.18)] transition-all hover:bg-[rgba(217,98,56,1)] disabled:opacity-50"
                     >
                         <SendHorizontal size={18} />
                     </button>
                  </div>
                  {isRefining && (
-                    <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-gradient-to-r from-sky-400 via-cyan-400 to-orange-400 animate-progress rounded-full" />
+                    <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-[rgba(230,106,63,0.72)] animate-progress rounded-full" />
                  )}
              </form>
          </div>
@@ -245,7 +244,9 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
 // --- Main App Component ---
 export default function App() {
   const [trips, setTrips] = useState<TripSession[]>(loadTrips);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() =>
+    typeof window === 'undefined' ? true : window.innerWidth >= 768,
+  );
   const [activePin, setActivePin] = useState<MapPinData | null>(null);
   const [isGeneratingTrip, setIsGeneratingTrip] = useState(false);
 
@@ -257,6 +258,27 @@ export default function App() {
   useEffect(() => {
     saveTrips(trips);
   }, [trips]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(min-width: 768px)');
+    const syncSidebarMode = (event: MediaQueryList | MediaQueryListEvent) => {
+      setSidebarOpen(event.matches);
+    };
+
+    syncSidebarMode(mediaQuery);
+
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', syncSidebarMode);
+      return () => mediaQuery.removeEventListener('change', syncSidebarMode);
+    }
+
+    mediaQuery.addListener(syncSidebarMode);
+    return () => mediaQuery.removeListener(syncSidebarMode);
+  }, []);
 
   // Handle hash changes
   useEffect(() => {
@@ -286,6 +308,7 @@ export default function App() {
   };
 
   const currentTripId = getTripIdFromPath(currentPath);
+  const isHomePage = !currentTripId;
 
   const handleCreateTrip = useCallback(async (prompt: string) => {
     setIsGeneratingTrip(true);
@@ -347,7 +370,14 @@ export default function App() {
   }, []);
 
   return (
-    <div className="app-aurora relative w-screen h-screen overflow-hidden bg-slate-50 font-sans text-slate-900 flex flex-row">
+    <div className="app-summer relative flex h-[100dvh] w-full flex-row overflow-hidden bg-[rgb(251,245,237)] font-sans text-slate-900">
+      {sidebarOpen ? (
+        <button
+          aria-label="Close navigation"
+          className="fixed inset-0 z-40 bg-[rgba(74,43,26,0.18)] backdrop-blur-[1px] md:hidden"
+          onClick={handleSidebarToggle}
+        />
+      ) : null}
       
       {/* Sidebar - Now a relative flex item (on desktop) */}
       <Sidebar 
@@ -360,23 +390,38 @@ export default function App() {
       />
 
       <div className="flex-1 relative h-full flex flex-col min-w-0">
-        {/* Background Map - Always present but z-0 */}
-        <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.35),transparent_35%),linear-gradient(180deg,#d8f1ff_0%,#c4ebff_100%)]" />}>
-            <WorldMap
-              pins={INITIAL_PINS}
-              onPinClick={handlePinClick}
-              selectedPinId={activePin?.id}
-            />
-          </Suspense>
-        </div>
+        {!sidebarOpen ? (
+          <button
+            aria-label="Open navigation"
+            className="absolute left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-2xl border border-white/70 bg-[rgba(255,250,245,0.94)] text-[rgba(102,70,49,0.88)] shadow-[0_12px_24px_rgba(118,75,39,0.12)] backdrop-blur-xl transition-colors hover:bg-white hover:text-[rgba(217,102,58,0.92)] md:hidden"
+            onClick={handleSidebarToggle}
+          >
+            <PanelLeftOpen size={19} />
+          </button>
+        ) : null}
 
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_32%),linear-gradient(180deg,rgba(8,47,73,0.06),rgba(255,255,255,0.08))]" />
+        {isHomePage ? (
+          <div className="absolute inset-0 z-0 bg-[rgb(251,245,237)]" />
+        ) : (
+          <>
+            <div className="absolute inset-0 z-0 bg-[rgb(243,237,228)]">
+              <Suspense fallback={<div className="h-full w-full bg-[rgb(243,237,228)]" />}>
+                <WorldMap
+                  pins={INITIAL_PINS}
+                  onPinClick={handlePinClick}
+                  selectedPinId={activePin?.id}
+                />
+              </Suspense>
+            </div>
+
+            <div className="pointer-events-none absolute inset-0 z-[1] bg-[rgba(255,250,245,0.08)]" />
+          </>
+        )}
 
         {/* Global Loading Overlay - REMOVED */}
 
         {/* Main Content Area */}
-        <div className="relative z-10 w-full h-full pointer-events-none">
+        <div className="relative z-10 w-full h-full">
            {currentTripId ? (
              <TripPage 
                 tripId={currentTripId} 

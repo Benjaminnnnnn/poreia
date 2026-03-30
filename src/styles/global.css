@@ -8,15 +8,17 @@ body,
 
 :root {
   color-scheme: light;
-  --bg-base: #e0f2fe;
-  --bg-surface: rgba(255, 255, 255, 0.72);
-  --bg-surface-strong: rgba(255, 255, 255, 0.9);
-  --text-primary: #082f49;
-  --text-secondary: #0c4a6e;
-  --brand-sky: #0ea5e9;
-  --brand-cyan: #22d3ee;
-  --brand-orange: #f97316;
-  --brand-amber: #facc15;
+  --bg-base: oklch(0.97 0.03 84);
+  --bg-surface: color-mix(in oklab, white 76%, oklch(0.9 0.04 75) 24%);
+  --bg-surface-strong: color-mix(in oklab, white 90%, oklch(0.88 0.06 62) 10%);
+  --text-primary: oklch(0.33 0.05 39);
+  --text-secondary: oklch(0.48 0.06 42);
+  --text-muted: oklch(0.61 0.04 45);
+  --brand-coral: oklch(0.69 0.19 38);
+  --brand-amber: oklch(0.84 0.16 82);
+  --brand-peach: oklch(0.87 0.1 58);
+  --brand-teal: oklch(0.69 0.11 188);
+  --brand-sea: oklch(0.57 0.1 213);
 }
 
 * {
@@ -24,12 +26,8 @@ body,
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
-  background:
-    radial-gradient(circle at top left, rgba(34, 211, 238, 0.42), transparent 28%),
-    radial-gradient(circle at top right, rgba(249, 115, 22, 0.32), transparent 32%),
-    radial-gradient(circle at bottom left, rgba(14, 165, 233, 0.26), transparent 30%),
-    linear-gradient(160deg, #f0f9ff 0%, #e0f2fe 45%, #fff7ed 100%);
+  font-family: 'Manrope', sans-serif;
+  background: rgb(251 245 237);
   color: var(--text-primary);
   overflow: hidden;
 }
@@ -39,40 +37,11 @@ a {
 }
 
 ::selection {
-  background: rgba(249, 115, 22, 0.24);
+  background: rgba(255, 123, 82, 0.22);
 }
 
 .font-display {
-  font-family: 'Space Grotesk', sans-serif;
-}
-
-.app-aurora::before,
-.app-aurora::after {
-  content: "";
-  position: absolute;
-  inset: auto;
-  border-radius: 9999px;
-  filter: blur(60px);
-  opacity: 0.7;
-  pointer-events: none;
-}
-
-.app-aurora::before {
-  width: 28rem;
-  height: 28rem;
-  top: -8rem;
-  right: -8rem;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.45), rgba(34, 211, 238, 0));
-  animation: auroraFloat 16s ease-in-out infinite alternate;
-}
-
-.app-aurora::after {
-  width: 24rem;
-  height: 24rem;
-  bottom: -10rem;
-  left: -6rem;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.35), rgba(249, 115, 22, 0));
-  animation: auroraFloat 18s ease-in-out infinite alternate-reverse;
+  font-family: 'Fraunces', serif;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -85,22 +54,11 @@ a {
 }
 
 .leaflet-container {
-  background:
-    radial-gradient(circle at top, rgba(125, 211, 252, 0.45), transparent 35%),
-    linear-gradient(180deg, #d8f1ff 0%, #c4ebff 100%);
-  font-family: 'DM Sans', sans-serif;
+  background: rgb(243 237 228);
+  font-family: 'Manrope', sans-serif;
 }
 
 .custom-pin-icon {
   background: transparent;
   border: none;
-}
-
-@keyframes auroraFloat {
-  from {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  to {
-    transform: translate3d(1.25rem, -1rem, 0) scale(1.08);
-  }
 }

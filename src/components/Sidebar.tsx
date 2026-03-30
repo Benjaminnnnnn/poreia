@@ -66,12 +66,16 @@ function SidebarRoot({ children }: React.PropsWithChildren) {
   return (
     <div
       className={`
-        fixed inset-y-0 left-0 z-50 flex flex-col bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(240,249,255,0.88)_58%,rgba(255,247,237,0.88))] backdrop-blur-2xl border-r border-white/55 shadow-2xl shadow-sky-950/10 transition-all duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[rgba(214,181,154,0.9)] bg-[rgba(255,250,245,0.96)] backdrop-blur-2xl shadow-2xl shadow-[rgba(120,74,36,0.08)] transition-all duration-300 ease-in-out
         md:relative md:shadow-none
-        ${isOpen ? "w-72 translate-x-0" : "w-0 -translate-x-full md:w-20 md:translate-x-0"}
+        ${isOpen ? "w-[min(22rem,88vw)] translate-x-0 md:w-72" : "w-0 -translate-x-full md:w-20 md:translate-x-0"}
       `}
     >
       {children}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 right-0 w-px bg-[rgba(255,255,255,0.62)]"
+      />
     </div>
   );
 }
@@ -86,7 +90,7 @@ function SidebarHeader() {
       <div className="flex items-center gap-3 overflow-hidden">
         <div className="relative w-10 h-10 shrink-0">
           <div
-            className={`absolute inset-0 bg-gradient-to-br from-sky-500 via-cyan-400 to-orange-400 rounded-2xl flex items-center justify-center text-white transition-all duration-300
+            className={`absolute inset-0 rounded-2xl border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] flex items-center justify-center text-white shadow-[0_10px_24px_rgba(210,96,47,0.16)] transition-all duration-300
               ${!isOpen ? "group-hover/header:opacity-0 group-hover/header:scale-90" : ""}
             `}
           >
@@ -98,9 +102,9 @@ function SidebarHeader() {
 
         {isOpen ? (
           <div className="flex flex-col transition-opacity duration-200">
-            <h1 className="text-lg font-bold text-slate-900 leading-none">Poreia</h1>
-            <span className="text-[10px] font-semibold text-orange-500 uppercase tracking-[0.24em]">
-              Travel Atelier
+            <h1 className="font-display text-[1.35rem] font-semibold leading-none text-[rgba(72,42,27,0.96)]">Poreia</h1>
+            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[rgba(215,101,58,0.9)]">
+              Summer Atelier
             </span>
           </div>
         ) : null}
@@ -109,7 +113,7 @@ function SidebarHeader() {
       {isOpen ? (
         <button
           onClick={onToggle}
-          className="p-2 text-slate-400 hover:text-sky-700 hover:bg-white rounded-xl transition-colors"
+          className="rounded-xl p-2 text-[rgba(133,95,66,0.56)] transition-colors hover:bg-white hover:text-[rgba(217,102,58,0.92)]"
           title="Close sidebar"
         >
           <PanelLeftClose size={20} />
@@ -125,7 +129,7 @@ function SidebarCollapsedToggle() {
   return (
     <button
       onClick={onToggle}
-      className="absolute inset-0 flex items-center justify-center bg-white text-sky-700 rounded-2xl opacity-0 scale-90 group-hover/header:opacity-100 group-hover/header:scale-100 transition-all duration-300"
+      className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white text-[rgba(217,102,58,0.92)] opacity-0 scale-90 transition-all duration-300 group-hover/header:opacity-100 group-hover/header:scale-100"
       title="Open Sidebar"
     >
       <PanelLeftOpen size={20} />
@@ -149,7 +153,7 @@ function SidebarNewTripButton() {
       <button
         onClick={handleNewTrip}
         className={`
-          flex items-center gap-3 rounded-2xl bg-slate-950 text-white transition-all shadow-lg shadow-slate-950/20 hover:bg-slate-800
+          flex items-center gap-3 rounded-2xl border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] text-white shadow-lg shadow-[rgba(224,104,49,0.16)] transition-all hover:-translate-y-0.5 hover:bg-[rgba(217,98,56,1)]
           ${isOpen ? "w-full px-4 py-3" : "w-12 h-12 justify-center mx-auto"}
         `}
         title="New Trip"
@@ -167,8 +171,8 @@ function SidebarTripHistory() {
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-2 space-y-2">
       {isOpen ? (
-        <div className="text-xs font-bold text-slate-500 px-3 py-2 uppercase tracking-wider flex items-center gap-2">
-          <History size={12} className="text-sky-600" /> Recent Trips
+        <div className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-[rgba(135,96,69,0.72)]">
+          <History size={12} className="text-[rgba(217,102,58,0.92)]" /> Recent Trips
         </div>
       ) : null}
 
@@ -177,7 +181,7 @@ function SidebarTripHistory() {
       ))}
 
       {trips.length === 0 && isOpen ? (
-        <div className="px-3 py-4 text-sm text-slate-500 italic text-center">
+        <div className="px-3 py-4 text-center text-sm italic text-[rgba(135,96,69,0.74)]">
           No history yet.
         </div>
       ) : null}
@@ -213,13 +217,17 @@ function SidebarTripHistoryItem({ trip }: { trip: TripSession }) {
         className={`
           flex items-center gap-3 rounded-lg transition-all
           ${isOpen ? "w-full px-3 py-2.5 text-left" : "w-12 h-12 justify-center mx-auto"}
-          ${isActive ? "bg-gradient-to-r from-sky-100 to-orange-50 text-sky-950 shadow-sm ring-1 ring-sky-200" : "hover:bg-white/90 text-slate-700"}
+          ${
+            isActive
+              ? "bg-[rgba(255,240,222,0.92)] text-[rgba(78,47,29,0.96)] shadow-sm ring-1 ring-[rgba(237,170,118,0.45)]"
+              : "text-[rgba(102,70,49,0.88)] hover:bg-white/90"
+          }
         `}
         title={!isOpen ? trip.title : ""}
       >
         <MessageSquare
           size={18}
-          className={`shrink-0 ${isActive ? "text-orange-500" : "text-slate-500"}`}
+          className={`shrink-0 ${isActive ? "text-[rgba(217,102,58,0.96)]" : "text-[rgba(153,118,93,0.78)]"}`}
         />
 
         {isOpen ? <span className="text-sm font-medium truncate">{trip.title}</span> : null}
@@ -228,7 +236,7 @@ function SidebarTripHistoryItem({ trip }: { trip: TripSession }) {
       {isOpen ? (
         <button
           onClick={handleDeleteClick}
-          className="absolute right-2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-white rounded-xl opacity-0 group-hover:opacity-100 transition-all"
+          className="absolute right-2 rounded-xl p-1.5 text-[rgba(153,118,93,0.74)] opacity-100 transition-all hover:bg-white hover:text-red-500 md:opacity-0 md:group-hover:opacity-100"
           title="Delete trip"
         >
           <Trash2 size={14} />
@@ -242,18 +250,18 @@ function SidebarFooter() {
   const { isOpen } = useSidebarContext();
 
   return (
-    <div className="p-4 border-t border-white/60 bg-white/55 shrink-0">
+    <div className="shrink-0 border-t border-white/60 bg-white/55 p-4">
       <div className={`flex items-center ${isOpen ? "gap-3" : "justify-center"}`}>
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-sky-500 via-cyan-400 to-orange-400 flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 ring-2 ring-white/80">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[rgba(214,98,54,0.14)] bg-[rgba(230,106,63,0.14)] text-xs font-bold text-[rgba(217,102,58,0.96)] shadow-sm ring-2 ring-white/80">
           AI
         </div>
 
         {isOpen ? (
           <div className="flex flex-col overflow-hidden">
-            <span className="text-sm font-semibold text-slate-900 truncate">
+            <span className="truncate text-sm font-semibold text-[rgba(72,42,27,0.96)]">
               Poreia Planner
             </span>
-            <span className="text-xs text-slate-600 truncate">Explore Plan</span>
+            <span className="truncate text-xs text-[rgba(116,79,56,0.8)]">Chasing sunrises</span>
           </div>
         ) : null}
       </div>
