@@ -1,7 +1,6 @@
-
-import React, { startTransition, useState, useEffect, useMemo } from 'react';
-import { TravelItinerary, DayPlan, Activity, MapPinData } from '../types';
-import { Calendar, Clock, MapPin, DollarSign, Wallet, GripVertical, Trash2, Pencil, X, Check, Plus, ImageIcon } from 'lucide-react';
+import React, { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { TravelItinerary, Activity, MapPinData } from '../types';
+import { Calendar, Clock, MapPin, DollarSign, Wallet, GripVertical, Trash2, Pencil, X, Check, ImageIcon } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import WorldMap from './WorldMap';
 import { getActivityImage, ResolvedActivityImage } from '../services/activityImageService';
@@ -34,102 +33,158 @@ interface ItineraryResultProps {
 }
 
 const COLORS = ['#0ea5e9', '#22d3ee', '#f97316', '#facc15', '#14b8a6', '#fb7185'];
+const DAY_CONTAINER_PATTERN = /^day-(\d+)$/;
 
 // --- Activity Card Component (Shared for Sortable & Overlay) ---
-interface ActivityCardProps {
-    activity: Activity;
-    currency: string;
-    imageUrl?: string;
-    isOverlay?: boolean;
-    dragProps?: any;
-    onEdit?: () => void;
-    onDelete?: () => void;
-    onClick?: () => void;
-    isActive?: boolean;
+interface ActivityCardLayoutProps {
+  activity: Activity;
+  children?: React.ReactNode;
+  className: string;
+  currency: string;
+  dragProps?: React.HTMLAttributes<HTMLDivElement>;
+  imageUrl?: string;
+  onClick?: () => void;
 }
 
-const ActivityCard: React.FC<ActivityCardProps> = ({ 
-    activity, 
-    currency, 
-    imageUrl,
-    isOverlay, 
-    dragProps, 
-    onEdit, 
-    onDelete,
-    onClick,
-    isActive
+const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
+  activity,
+  children,
+  className,
+  currency,
+  dragProps,
+  imageUrl,
+  onClick,
 }) => {
-    return (
-        <div 
-            {...dragProps}
-            onClick={onClick}
-            className={`
-            relative rounded-2xl bg-white/92 p-3 border transition-all group shadow-[0_18px_40px_rgba(8,47,73,0.06)]
-            ${isOverlay 
-                ? 'border-sky-400 shadow-2xl scale-105 rotate-2 cursor-grabbing' 
-                : isActive 
-                    ? 'border-sky-300 ring-2 ring-sky-200 shadow-lg cursor-grab active:cursor-grabbing touch-none'
-                    : 'border-white hover:border-orange-200 hover:shadow-lg cursor-grab active:cursor-grabbing touch-none'
-            }
-        `}>
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-sky-200 z-10 pointer-events-none">
-                <GripVertical size={18} />
+  return (
+    <div
+      {...dragProps}
+      onClick={onClick}
+      className={`relative rounded-2xl bg-white/92 p-3 border group shadow-[0_18px_40px_rgba(8,47,73,0.06)] ${className}`}
+    >
+      <div className="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-sky-200 z-10 pointer-events-none">
+        <GripVertical size={18} />
+      </div>
+
+      <div className="pl-10 pr-8 flex gap-3 items-start">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-sky-50 rounded-xl overflow-hidden border border-sky-100 relative">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={activity.description}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-slate-300">
+              <ImageIcon size={20} />
             </div>
-
-            {/* Content Container */}
-            <div className="pl-10 pr-8 flex gap-3 items-start">
-                
-                {/* Image Thumbnail */}
-                <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-sky-50 rounded-xl overflow-hidden border border-sky-100 relative">
-                   {imageUrl ? (
-                       <img 
-                            src={imageUrl} 
-                            alt={activity.description} 
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                       />
-                   ) : (
-                       <div className="w-full h-full flex items-center justify-center text-slate-300">
-                           <ImageIcon size={20} />
-                       </div>
-                   )}
-                </div>
-
-                {/* Text Content */}
-                <div className="flex-1 min-w-0 py-0.5">
-                    <div className="flex flex-wrap items-center justify-between gap-x-2 mb-1">
-                        <div className="flex items-center gap-1.5 text-sky-700 font-medium text-xs">
-                            <Clock size={12} />
-                            {activity.time}
-                        </div>
-                        {activity.costEstimate !== undefined && activity.costEstimate > 0 && (
-                            <div className="flex items-center gap-1 text-orange-600 font-bold text-[10px] bg-orange-50 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                <DollarSign size={10} />
-                                {currency}{activity.costEstimate}
-                            </div>
-                        )}
-                    </div>
-                    <p className="text-sky-950 font-semibold text-sm leading-snug mb-1.5 line-clamp-2">{activity.description}</p>
-                    <div className="flex items-center gap-1 text-sky-800/55 text-xs truncate">
-                        <MapPin size={12} className="shrink-0" />
-                        <span className="truncate">{activity.location}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Actions (Hidden in overlay) */}
-            {!isOverlay && onEdit && onDelete && (
-                <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 text-slate-400 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors" title="Edit">
-                        <Pencil size={14} />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors" title="Delete">
-                        <Trash2 size={14} />
-                    </button>
-                </div>
-            )}
+          )}
         </div>
-    );
+
+        <div className="flex-1 min-w-0 py-0.5">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 mb-1">
+            <div className="flex items-center gap-1.5 text-sky-700 font-medium text-xs">
+              <Clock size={12} />
+              {activity.time}
+            </div>
+            {activity.costEstimate !== undefined && activity.costEstimate > 0 ? (
+              <div className="flex items-center gap-1 text-orange-600 font-bold text-[10px] bg-orange-50 px-2 py-0.5 rounded-full whitespace-nowrap">
+                <DollarSign size={10} />
+                {currency}
+                {activity.costEstimate}
+              </div>
+            ) : null}
+          </div>
+          <p className="text-sky-950 font-semibold text-sm leading-snug mb-1.5 line-clamp-2">
+            {activity.description}
+          </p>
+          <div className="flex items-center gap-1 text-sky-800/55 text-xs truncate">
+            <MapPin size={12} className="shrink-0" />
+            <span className="truncate">{activity.location}</span>
+          </div>
+        </div>
+      </div>
+
+      {children}
+    </div>
+  );
+};
+
+interface SortableActivityCardProps {
+  activity: Activity;
+  currency: string;
+  imageUrl?: string;
+  isSelected: boolean;
+  onClick: () => void;
+  onDelete: () => void;
+  onEdit: () => void;
+  dragProps: React.HTMLAttributes<HTMLDivElement>;
+}
+
+const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
+  activity,
+  currency,
+  dragProps,
+  imageUrl,
+  isSelected,
+  onClick,
+  onDelete,
+  onEdit,
+}) => {
+  return (
+    <ActivityCardLayout
+      activity={activity}
+      currency={currency}
+      dragProps={dragProps}
+      imageUrl={imageUrl}
+      onClick={onClick}
+      className={`transition-all ${isSelected ? 'border-sky-300 ring-2 ring-sky-200 shadow-lg cursor-grab active:cursor-grabbing touch-none' : 'border-white hover:border-orange-200 hover:shadow-lg cursor-grab active:cursor-grabbing touch-none'}`}
+    >
+      <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={(event) => {
+            event.stopPropagation();
+            onEdit();
+          }}
+          className="p-1.5 text-slate-400 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-colors"
+          title="Edit"
+        >
+          <Pencil size={14} />
+        </button>
+        <button
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete();
+          }}
+          className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+          title="Delete"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+    </ActivityCardLayout>
+  );
+};
+
+interface ActivityDragOverlayCardProps {
+  activity: Activity;
+  currency: string;
+  imageUrl?: string;
+}
+
+const ActivityDragOverlayCard: React.FC<ActivityDragOverlayCardProps> = ({
+  activity,
+  currency,
+  imageUrl,
+}) => {
+  return (
+    <ActivityCardLayout
+      activity={activity}
+      currency={currency}
+      imageUrl={imageUrl}
+      className="border-sky-400 shadow-2xl scale-105 rotate-2 cursor-grabbing"
+    />
+  );
 };
 
 
@@ -141,10 +196,10 @@ interface SortableActivityItemProps {
   onDelete: () => void;
   onSave: (newActivity: Activity) => void;
   onClick: () => void;
-  isActive: boolean;
+  isSelected: boolean;
 }
 
-const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, currency, imageUrl, onDelete, onSave, onClick, isActive }) => {
+const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, currency, imageUrl, onDelete, onSave, onClick, isSelected }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Activity>({ ...activity });
 
@@ -236,14 +291,14 @@ const SortableActivityItem: React.FC<SortableActivityItemProps> = ({ activity, c
 
   return (
     <div ref={setNodeRef} style={style}>
-        <ActivityCard 
+        <SortableActivityCard
             activity={activity} 
             currency={currency} 
             imageUrl={imageUrl}
+            isSelected={isSelected}
             onEdit={() => setIsEditing(true)}
             onDelete={onDelete}
             onClick={onClick}
-            isActive={isActive}
             dragProps={{...attributes, ...listeners}}
         />
     </div>
@@ -256,6 +311,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
   const [selectedActivityId, setSelectedActivityId] = useState<string | undefined>();
   const [localItinerary, setLocalItinerary] = useState<TravelItinerary>(itinerary);
   const [activityImages, setActivityImages] = useState<Record<string, ResolvedActivityImage>>({});
+  const deferredSelectedActivityId = useDeferredValue(selectedActivityId);
 
   useEffect(() => {
     if (!activeDragId) {
@@ -263,25 +319,75 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     }
   }, [itinerary, activeDragId]);
 
-  useEffect(() => {
-    let isCancelled = false;
-    const activities = localItinerary.days.flatMap((day) => day.activities);
+  const itineraryActivityEntries = useMemo(
+    () =>
+      localItinerary.days.flatMap((day) =>
+        day.activities.map((activity, activityIndex) => ({
+          activity,
+          activityIndex,
+          dayNumber: day.day,
+        })),
+      ),
+    [localItinerary.days],
+  );
 
-    startTransition(() => {
-      setActivityImages((current) => {
-        const next: Record<string, ResolvedActivityImage> = {};
-        activities.forEach((activity) => {
-          const existing = current[activity.id];
-          if (existing) {
-            next[activity.id] = existing;
-          }
-        });
-        return next;
-      });
+  const activityLookup = useMemo(() => {
+    const lookup = new Map<
+      string,
+      {
+        activity: Activity;
+        activityIndex: number;
+        dayNumber: number;
+      }
+    >();
+
+    itineraryActivityEntries.forEach((entry) => {
+      lookup.set(entry.activity.id, entry);
     });
 
+    return lookup;
+  }, [itineraryActivityEntries]);
+
+  const activeActivityIds = useMemo(
+    () => new Set(itineraryActivityEntries.map(({ activity }) => activity.id)),
+    [itineraryActivityEntries],
+  );
+
+  const missingImageActivities = useMemo(
+    () =>
+      itineraryActivityEntries.filter(({ activity }) => !activityImages[activity.id]),
+    [activityImages, itineraryActivityEntries],
+  );
+
+  useEffect(() => {
+    startTransition(() => {
+      setActivityImages((current) => {
+        let removedStaleImages = false;
+        const next: Record<string, ResolvedActivityImage> = {};
+
+        Object.entries(current).forEach(([activityId, image]) => {
+          if (activeActivityIds.has(activityId)) {
+            next[activityId] = image;
+            return;
+          }
+
+          removedStaleImages = true;
+        });
+
+        return removedStaleImages ? next : current;
+      });
+    });
+  }, [activeActivityIds]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    if (!missingImageActivities.length) {
+      return;
+    }
+
     void Promise.all(
-      activities.map(async (activity) => {
+      missingImageActivities.map(async ({ activity }) => {
         const image = await getActivityImage(activity, localItinerary.destination);
         return image ? [activity.id, image] as const : null;
       }),
@@ -309,7 +415,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     return () => {
       isCancelled = true;
     };
-  }, [localItinerary]);
+  }, [localItinerary.destination, missingImageActivities]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -318,28 +424,23 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
 
   // Generate pins for the map
   const mapPins = useMemo(() => {
-    const pins: MapPinData[] = [];
-    localItinerary.days.forEach(day => {
-        day.activities.forEach(act => {
-            if (act.lat && act.lng) {
-                pins.push({
-                    id: act.id,
-                    name: act.location,
-                    description: act.description,
-                    lat: act.lat,
-                    lng: act.lng,
-                    image: activityImages[act.id]?.url
-                });
-            }
-        });
-    });
-    return pins;
-  }, [activityImages, localItinerary]);
+    return itineraryActivityEntries.flatMap(({ activity }) => {
+      if (activity.lat === undefined || activity.lng === undefined) {
+        return [];
+      }
 
-  const findDayContainer = (id: string, currentItin: TravelItinerary): number | undefined => {
-    const day = currentItin.days.find(d => d.activities.some(a => a.id === id));
-    return day?.day;
-  };
+      return [
+        {
+          id: activity.id,
+          name: activity.location,
+          description: activity.description,
+          lat: activity.lat,
+          lng: activity.lng,
+          image: activityImages[activity.id]?.url,
+        } satisfies MapPinData,
+      ];
+    });
+  }, [activityImages, itineraryActivityEntries]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
@@ -352,11 +453,11 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeDayNum = findDayContainer(activeId, localItinerary);
-    let overDayNum = findDayContainer(overId, localItinerary);
+    const activeDayNum = activityLookup.get(activeId)?.dayNumber;
+    let overDayNum = activityLookup.get(overId)?.dayNumber;
 
     if (!overDayNum) {
-        const match = overId.match(/^day-(\d+)$/);
+        const match = overId.match(DAY_CONTAINER_PATTERN);
         if (match) {
             overDayNum = parseInt(match[1]);
         }
@@ -402,19 +503,21 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
     const activeIdVal = active.id as string;
     const overIdVal = over.id as string;
 
-    const activeDayNum = findDayContainer(activeIdVal, localItinerary);
-    let overDayNum = findDayContainer(overIdVal, localItinerary);
+    const activeEntry = activityLookup.get(activeIdVal);
+    const overEntry = activityLookup.get(overIdVal);
+    const activeDayNum = activeEntry?.dayNumber;
+    let overDayNum = overEntry?.dayNumber;
     
-    if (!overDayNum && overIdVal.match(/^day-(\d+)$/)) {
-        overDayNum = parseInt(overIdVal.match(/^day-(\d+)$/)![1]);
+    if (!overDayNum && overIdVal.match(DAY_CONTAINER_PATTERN)) {
+        overDayNum = parseInt(overIdVal.match(DAY_CONTAINER_PATTERN)![1]);
     }
 
     if (activeDayNum && overDayNum) {
         const activeDayIdx = localItinerary.days.findIndex(d => d.day === activeDayNum);
         const overDayIdx = localItinerary.days.findIndex(d => d.day === overDayNum);
 
-        const activeIndex = localItinerary.days[activeDayIdx].activities.findIndex(a => a.id === activeIdVal);
-        const overIndex = localItinerary.days[overDayIdx].activities.findIndex(a => a.id === overIdVal);
+        const activeIndex = activeEntry?.activityIndex ?? -1;
+        const overIndex = overEntry?.activityIndex ?? -1;
 
         let finalItinerary = localItinerary;
 
@@ -462,9 +565,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
       if (onUpdate) onUpdate(newItinerary);
   };
 
-  const activeActivity = activeDragId 
-    ? localItinerary.days.flatMap(d => d.activities).find(a => a.id === activeDragId) 
-    : null;
+  const activeActivity = activeDragId ? activityLookup.get(activeDragId)?.activity ?? null : null;
   const activeActivityImage = activeActivity ? activityImages[activeActivity.id]?.url : undefined;
 
   return (
@@ -568,7 +669,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                                         onDelete={() => handleDeleteActivity(dayIndex, activity.id)}
                                         onSave={(newAct) => handleSaveActivity(dayIndex, newAct)}
                                         onClick={() => setSelectedActivityId(activity.id)}
-                                        isActive={selectedActivityId === activity.id}
+                                        isSelected={selectedActivityId === activity.id}
                                     />
                                     ))}
                                     {dayPlan.activities.length === 0 && (
@@ -585,11 +686,10 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
                         {/* Drag Overlay for smooth visual */}
                         <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.5' } } }) }}>
                         {activeActivity ? (
-                            <ActivityCard 
+                            <ActivityDragOverlayCard
                                 activity={activeActivity}
                                 currency={localItinerary.currency}
                                 imageUrl={activeActivityImage}
-                                isOverlay
                             />
                         ) : null}
                         </DragOverlay>
@@ -603,7 +703,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({ itinerary, className 
             <WorldMap 
                 pins={mapPins} 
                 onPinClick={(pin) => setSelectedActivityId(pin.id)} 
-                selectedPinId={selectedActivityId}
+                selectedPinId={deferredSelectedActivityId}
                 className="w-full h-full"
             />
         </div>

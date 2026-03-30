@@ -1,13 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {
+  Suspense,
+  lazy,
+  startTransition,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import WorldMap from './components/WorldMap';
 import SearchOverlay from './components/SearchOverlay';
-import ItineraryResult from './components/ItineraryResult';
 import Sidebar from './components/Sidebar';
 import { INITIAL_PINS } from './constants';
 import { MapPinData, TripSession, ChatMessage, TravelItinerary } from './types';
 import { generateOrRefineItinerary } from './services/itineraryService';
 import { SendHorizontal, Sparkles, Loader2 } from 'lucide-react';
+
+const WorldMap = lazy(() => import('./components/WorldMap'));
+const ItineraryResult = lazy(() => import('./components/ItineraryResult'));
+const TRIPS_STORAGE_KEY = 'poreia_trips';
+const TRIPS_STORAGE_VERSION = 1;
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message.trim()) {
@@ -17,19 +27,68 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
+interface PersistedTripsPayload {
+  version: number;
+  trips: TripSession[];
+}
+
 // --- Local Storage Helper ---
 const loadTrips = (): TripSession[] => {
-  try {
-    const stored = localStorage.getItem('poreia_trips');
-    return stored ? JSON.parse(stored) : [];
-  } catch (e) {
+  if (typeof window === 'undefined') {
     return [];
   }
+
+  try {
+    const stored = window.localStorage.getItem(TRIPS_STORAGE_KEY);
+    if (!stored) {
+      return [];
+    }
+
+    const parsed = JSON.parse(stored) as unknown;
+    if (Array.isArray(parsed)) {
+      return parsed as TripSession[];
+    }
+
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      Array.isArray((parsed as PersistedTripsPayload).trips)
+    ) {
+      return (parsed as PersistedTripsPayload).trips;
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
 };
 
 const saveTrips = (trips: TripSession[]) => {
-  localStorage.setItem('poreia_trips', JSON.stringify(trips));
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const payload: PersistedTripsPayload = {
+    version: TRIPS_STORAGE_VERSION,
+    trips,
+  };
+
+  window.localStorage.setItem(TRIPS_STORAGE_KEY, JSON.stringify(payload));
 };
+
+interface SurfaceFallbackProps {
+  className?: string;
+  label: string;
+}
+
+const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({ className = '', label }) => (
+  <div className={`flex items-center justify-center bg-white/40 backdrop-blur-xl ${className}`}>
+    <div className="flex flex-col items-center gap-3 text-sky-900">
+      <Loader2 className="animate-spin text-sky-600" size={32} />
+      <p className="font-medium">{label}</p>
+    </div>
+  </div>
+);
 
 // --- Home Page Component ---
 interface HomePageProps {
@@ -124,19 +183,22 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
       {/* Main Itinerary View */}
       <div className="flex-1 h-full relative overflow-hidden flex flex-col">
          {trip.currentItinerary ? (
-            // Changed max-w-4xl to w-full to use full size as requested
-            <ItineraryResult 
-                itinerary={trip.currentItinerary} 
+            <Suspense
+              fallback={
+                <SurfaceFallback
+                  className="h-full rounded-[2rem] md:rounded-l-[2rem]"
+                  label="Loading itinerary workspace..."
+                />
+              }
+            >
+              <ItineraryResult
+                itinerary={trip.currentItinerary}
                 onUpdate={handleManualItineraryUpdate}
-                className="w-full h-full shadow-none md:shadow-2xl md:rounded-l-[2rem] md:border-l md:border-white/40 md:bg-white/70" 
-            />
+                className="w-full h-full shadow-none md:shadow-2xl md:rounded-l-[2rem] md:border-l md:border-white/40 md:bg-white/70"
+              />
+            </Suspense>
          ) : (
-            <div className="flex items-center justify-center h-full bg-white/45 backdrop-blur-xl rounded-[2rem]">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="animate-spin text-sky-600" size={32} />
-                    <p className="text-sky-900 font-medium">Planning your trip...</p>
-                </div>
-            </div>
+            <SurfaceFallback className="h-full rounded-[2rem]" label="Planning your trip..." />
          )}
       </div>
 
@@ -182,13 +244,15 @@ const TripPage: React.FC<TripPageProps> = ({ tripId, trips, updateTrip, onNaviga
 
 // --- Main App Component ---
 export default function App() {
-  const [trips, setTrips] = useState<TripSession[]>(loadTrips());
+  const [trips, setTrips] = useState<TripSession[]>(loadTrips);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePin, setActivePin] = useState<MapPinData | null>(null);
   const [isGeneratingTrip, setIsGeneratingTrip] = useState(false);
 
   // Custom Routing State (Hash based for Blob compatibility)
-  const [currentPath, setCurrentPath] = useState(window.location.hash || '/');
+  const [currentPath, setCurrentPath] = useState<string>(() =>
+    typeof window === 'undefined' ? '/' : window.location.hash || '/',
+  );
 
   useEffect(() => {
     saveTrips(trips);
@@ -206,8 +270,13 @@ export default function App() {
   // Custom navigation
   const navigate = useCallback((path: string) => {
     const hashPath = path.startsWith('/') ? `#${path}` : `#/${path}`;
-    window.location.hash = hashPath;
-    setCurrentPath(hashPath);
+    if (window.location.hash !== hashPath) {
+      window.location.hash = hashPath;
+    }
+
+    startTransition(() => {
+      setCurrentPath(hashPath);
+    });
   }, []);
 
   const getTripIdFromPath = (path: string): string | null => {
@@ -218,7 +287,7 @@ export default function App() {
 
   const currentTripId = getTripIdFromPath(currentPath);
 
-  const handleCreateTrip = async (prompt: string) => {
+  const handleCreateTrip = useCallback(async (prompt: string) => {
     setIsGeneratingTrip(true);
     const newId = uuidv4();
     const timestamp = Date.now();
@@ -246,32 +315,36 @@ export default function App() {
     } finally {
         setIsGeneratingTrip(false);
     }
-  };
+  }, [navigate]);
 
-  const updateTrip = (updatedTrip: TripSession) => {
+  const updateTrip = useCallback((updatedTrip: TripSession) => {
     setTrips(prev => prev.map(t => t.id === updatedTrip.id ? updatedTrip : t));
-  };
+  }, []);
 
-  const deleteTrip = (id: string) => {
+  const deleteTrip = useCallback((id: string) => {
       setTrips(prev => prev.filter(t => t.id !== id));
       if (currentTripId === id) {
           navigate('/');
       }
-  };
+  }, [currentTripId, navigate]);
 
-  const handlePinClick = (pin: MapPinData) => {
+  const handlePinClick = useCallback((pin: MapPinData) => {
     setActivePin(pin);
     const prompt = `Plan a 3-day itinerary for ${pin.name} featuring ${pin.description}`;
-    handleCreateTrip(prompt);
-  };
+    void handleCreateTrip(prompt);
+  }, [handleCreateTrip]);
 
-  const navigateToTrip = (id: string | null) => {
+  const navigateToTrip = useCallback((id: string | null) => {
     if (id) {
         navigate(`/t/${id}`);
     } else {
         navigate('/');
     }
-  };
+  }, [navigate]);
+
+  const handleSidebarToggle = useCallback(() => {
+    setSidebarOpen((isOpen) => !isOpen);
+  }, []);
 
   return (
     <div className="app-aurora relative w-screen h-screen overflow-hidden bg-slate-50 font-sans text-slate-900 flex flex-row">
@@ -280,7 +353,7 @@ export default function App() {
       <Sidebar 
         trips={trips} 
         isOpen={sidebarOpen} 
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
+        onToggle={handleSidebarToggle}
         onDeleteTrip={deleteTrip}
         activeTripId={currentTripId}
         onNavigate={navigateToTrip}
@@ -289,11 +362,13 @@ export default function App() {
       <div className="flex-1 relative h-full flex flex-col min-w-0">
         {/* Background Map - Always present but z-0 */}
         <div className="absolute inset-0 z-0">
-          <WorldMap 
-            pins={INITIAL_PINS} 
-            onPinClick={handlePinClick} 
-            selectedPinId={activePin?.id}
-          />
+          <Suspense fallback={<div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.35),transparent_35%),linear-gradient(180deg,#d8f1ff_0%,#c4ebff_100%)]" />}>
+            <WorldMap
+              pins={INITIAL_PINS}
+              onPinClick={handlePinClick}
+              selectedPinId={activePin?.id}
+            />
+          </Suspense>
         </div>
 
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.1),transparent_32%),linear-gradient(180deg,rgba(8,47,73,0.06),rgba(255,255,255,0.08))]" />
