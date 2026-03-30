@@ -1,6 +1,6 @@
 import React, { startTransition, useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { TravelItinerary, Activity, MapPinData, DayPlan } from '../types';
+import { TravelItinerary, Activity, MapPinData, DayPlan, BudgetBreakdown } from '../types';
 import { Calendar, Clock, MapPin, DollarSign, Wallet, GripVertical, Trash2, Pencil, X, Check, ImageIcon, BookText, NotebookPen } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import WorldMap from './WorldMap';
@@ -675,6 +675,32 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     () => localItinerary.days.filter((day) => Boolean(day.mood || day.notes?.trim())).length,
     [localItinerary.days],
   );
+  const hasRecordedCosts = useMemo(
+    () =>
+      localItinerary.days.some((day) =>
+        day.activities.some((activity) => activity.costEstimate !== undefined),
+      ),
+    [localItinerary.days],
+  );
+  const recordedSpendByDay = useMemo<BudgetBreakdown[]>(
+    () =>
+      localItinerary.days
+        .map((day) => ({
+          category: `Day ${day.day}`,
+          amount: day.activities.reduce(
+            (sum, activity) => sum + (activity.costEstimate ?? 0),
+            0,
+          ),
+        }))
+        .filter((entry) => entry.amount > 0),
+    [localItinerary.days],
+  );
+  const displayedBudgetBreakdown = hasRecordedCosts
+    ? recordedSpendByDay
+    : localItinerary.budgetBreakdown;
+  const displayedTotalBudget = hasRecordedCosts
+    ? recordedSpendByDay.reduce((sum, entry) => sum + entry.amount, 0)
+    : localItinerary.totalBudget;
 
   const updateDayReflection = (dayIndex: number, patch: Pick<DayPlan, 'mood' | 'notes'>) => {
     const newDays = localItinerary.days.map((day, index) =>
@@ -709,7 +735,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
                             {localItinerary.totalDays} Days
                             </span>
                             <span className="rounded-[0.35rem] border border-[rgba(237,170,118,0.38)] bg-[rgba(255,249,243,0.92)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[rgba(217,102,58,0.96)]">
-                            {localItinerary.currency}{localItinerary.totalBudget.toLocaleString()} Total
+                            {localItinerary.currency}{displayedTotalBudget.toLocaleString()} Total
                             </span>
                             {journaledDaysCount ? (
                               <span className="rounded-[0.35rem] border border-[rgba(110,160,154,0.32)] bg-[rgba(233,245,242,0.96)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[rgba(55,128,121,0.96)]">
@@ -762,13 +788,13 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
                     <section className="rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,251,246,0.96)] p-4 shadow-[0_12px_24px_rgba(108,62,26,0.04)]">
                         <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
-                            <Wallet size={16} /> Budget Allocation
+                            <Wallet size={16} /> {hasRecordedCosts ? 'Recorded Spend by Day' : 'Budget Allocation'}
                         </h3>
                         <div className="h-48 w-full sm:h-56">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={localItinerary.budgetBreakdown}
+                                        data={displayedBudgetBreakdown}
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={50}
@@ -776,7 +802,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
                                         paddingAngle={5}
                                         dataKey="amount"
                                     >
-                                        {localItinerary.budgetBreakdown.map((entry, index) => (
+                                        {displayedBudgetBreakdown.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                         ))}
                                     </Pie>

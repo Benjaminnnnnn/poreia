@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MapPinData } from '../types';
 import { Locate, Plus, Minus } from 'lucide-react';
@@ -27,6 +27,92 @@ function hexToRgba(color: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+const CLUSTER_DISTANCE_KM = 35;
+
+function getDistanceInKm(first: MapPinData, second: MapPinData) {
+  const toRadians = (value: number) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const latitudeDelta = toRadians(second.lat - first.lat);
+  const longitudeDelta = toRadians(second.lng - first.lng);
+  const firstLatitude = toRadians(first.lat);
+  const secondLatitude = toRadians(second.lat);
+
+  const haversine =
+    Math.sin(latitudeDelta / 2) * Math.sin(latitudeDelta / 2) +
+    Math.cos(firstLatitude) *
+      Math.cos(secondLatitude) *
+      Math.sin(longitudeDelta / 2) *
+      Math.sin(longitudeDelta / 2);
+
+  return 2 * earthRadiusKm * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+}
+
+function getPinBoundsArea(pins: MapPinData[]) {
+  if (!pins.length) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const latitudes = pins.map((pin) => pin.lat);
+  const longitudes = pins.map((pin) => pin.lng);
+
+  return (Math.max(...latitudes) - Math.min(...latitudes)) * (Math.max(...longitudes) - Math.min(...longitudes));
+}
+
+function getPrimaryPinCluster(pins: MapPinData[]) {
+  if (pins.length <= 2) {
+    return pins;
+  }
+
+  const visited = new Set<string>();
+  const clusters: MapPinData[][] = [];
+
+  pins.forEach((pin) => {
+    if (visited.has(pin.id)) {
+      return;
+    }
+
+    const cluster: MapPinData[] = [];
+    const queue = [pin];
+    visited.add(pin.id);
+
+    while (queue.length) {
+      const current = queue.shift();
+      if (!current) {
+        continue;
+      }
+
+      cluster.push(current);
+
+      pins.forEach((candidate) => {
+        if (visited.has(candidate.id)) {
+          return;
+        }
+
+        if (getDistanceInKm(current, candidate) <= CLUSTER_DISTANCE_KM) {
+          visited.add(candidate.id);
+          queue.push(candidate);
+        }
+      });
+    }
+
+    clusters.push(cluster);
+  });
+
+  const [largestCluster] = [...clusters].sort((left, right) => {
+    if (right.length !== left.length) {
+      return right.length - left.length;
+    }
+
+    return getPinBoundsArea(left) - getPinBoundsArea(right);
+  });
+
+  if (!largestCluster || largestCluster.length === 1) {
+    return pins;
+  }
+
+  return largestCluster;
+}
+
 const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, className = "w-full h-full", showControls = true }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -34,6 +120,14 @@ const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, cl
   const userLocationMarkerRef = useRef<L.CircleMarker | null>(null);
   const userPulseRef = useRef<L.Layer | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const pinViewportKey = useMemo(
+    () =>
+      pins
+        .map((pin) => `${pin.id}:${pin.lat.toFixed(4)}:${pin.lng.toFixed(4)}`)
+        .sort()
+        .join('|'),
+    [pins],
+  );
 
   // Initialize Map
   useEffect(() => {
@@ -146,6 +240,41 @@ const WorldMap: React.FC<WorldMapProps> = ({ pins, onPinClick, selectedPinId, cl
       markersRef.current[pin.id] = marker;
     });
   }, [pins, onPinClick, selectedPinId]);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !pins.length || selectedPinId) {
+      return;
+    }
+
+    const map = mapInstanceRef.current;
+    const primaryPins = getPrimaryPinCluster(pins);
+
+    if (primaryPins.length === 1) {
+      map.flyTo([primaryPins[0].lat, primaryPins[0].lng], 12, {
+        duration: 1.2,
+        easeLinearity: 0.25,
+      });
+      return;
+    }
+
+    const bounds = L.latLngBounds(primaryPins.map((pin) => [pin.lat, pin.lng] as [number, number]));
+    const southWest = bounds.getSouthWest();
+    const northEast = bounds.getNorthEast();
+
+    if (southWest.lat === northEast.lat && southWest.lng === northEast.lng) {
+      map.flyTo([southWest.lat, southWest.lng], 12, {
+        duration: 1.2,
+        easeLinearity: 0.25,
+      });
+      return;
+    }
+
+    map.flyToBounds(bounds.pad(0.28), {
+      duration: 1.2,
+      easeLinearity: 0.25,
+      maxZoom: 13,
+    });
+  }, [pinViewportKey, pins, selectedPinId]);
 
   // Handle Selection/FlyTo
   useEffect(() => {
