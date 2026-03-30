@@ -7,7 +7,7 @@ export interface Activity {
   lat?: number;
   lng?: number;
   costEstimate?: number;
-  img_prompt?: string; // Short visual description for image generation
+  img_prompt?: string; // Optional search hint for the activity image
 }
 
 export interface DayPlan {
