@@ -1,7 +1,8 @@
 import { ArrowUpRight, Clock3, Search, Sparkles, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { SUGGESTED_PROMPTS } from "../constants";
-import { TripSession } from "../types";
+import { useAppNavigation } from "../context/AppNavigation";
+import { useTrips } from "../context/TripsContext";
 import Badge from "./ui/Badge";
 import Button from "./ui/Button";
 import Surface from "./ui/Surface";
@@ -9,30 +10,31 @@ import Surface from "./ui/Surface";
 const SEARCH_OVERLAY_IMAGE =
   "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
-interface SearchOverlayProps {
-  onDeleteTrip: (tripId: string) => void;
-  onOpenTrip: (tripId: string) => void;
-  onSearch: (prompt: string) => void | Promise<void>;
-  isGenerating: boolean;
-  trips: TripSession[];
-}
-
 const formatTripDate = (timestamp: number) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
   }).format(timestamp);
 
-const SearchOverlay: React.FC<SearchOverlayProps> = ({
-  onDeleteTrip,
-  onOpenTrip,
-  onSearch,
-  isGenerating,
-  trips,
-}) => {
+const SearchOverlay: React.FC = () => {
+  const {
+    actions: { openTrip },
+  } = useAppNavigation();
+  const {
+    actions: { createTrip, deleteTrip },
+    state: { isCreatingTrip, trips },
+  } = useTrips();
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const searchHintId = "trip-search-input-hint";
+  const isGenerating = isCreatingTrip;
+
+  const handleSearch = async (prompt: string) => {
+    const trip = await createTrip(prompt);
+    if (trip) {
+      openTrip(trip.id);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +43,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
       return;
     }
 
-    void onSearch(trimmedQuery);
+    void handleSearch(trimmedQuery);
     setIsFocused(false);
   };
 
@@ -51,7 +53,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
     }
 
     setQuery(suggestion);
-    void onSearch(suggestion);
+    void handleSearch(suggestion);
     setIsFocused(false);
   };
 
@@ -232,7 +234,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                       aria-label={`Delete ${trip.title}`}
                       onClick={(event) => {
                         event.stopPropagation();
-                        onDeleteTrip(trip.id);
+                        deleteTrip(trip.id);
                       }}
                       className="focus-ring absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-[0.8rem] border border-[rgba(236,220,204,0.86)] bg-[rgba(255,252,248,0.9)] text-[rgba(121,84,60,0.62)] shadow-[0_8px_18px_rgba(108,62,26,0.06)] transition-[background-color,color,border-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,193,169,0.92)] hover:bg-[rgba(255,250,246,0.98)] hover:text-[rgba(207,80,71,0.96)]"
                     >
@@ -241,7 +243,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => onOpenTrip(trip.id)}
+                      onClick={() => openTrip(trip.id)}
                       className="focus-ring flex h-full flex-col justify-between rounded-[1.25rem] text-left"
                     >
                       <div className="pr-9">

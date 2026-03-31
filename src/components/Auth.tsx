@@ -10,6 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useAppNavigation } from "../context/AppNavigation";
 import { auth, signInWithGoogle, signOutUser } from "../lib/firebase";
 import Button from "./ui/Button";
 import Surface from "./ui/Surface";
@@ -410,23 +411,13 @@ export const useAppAuth = () => {
   return context;
 };
 
-interface AppAuthShellProps {
-  children: React.ReactNode;
-  isHomePage: boolean;
-  onNavigateHome: () => void;
-  onOpenProfile: () => void;
-  onSignedOut: () => void;
-  onStartNewTrip: () => void;
-}
-
-const AppAuthShell: React.FC<AppAuthShellProps> = ({
+const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
   children,
-  isHomePage,
-  onNavigateHome,
-  onOpenProfile,
-  onSignedOut,
-  onStartNewTrip,
 }) => {
+  const {
+    actions: { goHome, openProfile },
+    state: { isHomePage },
+  } = useAppNavigation();
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [travelerName, setTravelerName] = useState("Traveler");
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -441,12 +432,12 @@ const AppAuthShell: React.FC<AppAuthShellProps> = ({
       setAuthError(null);
 
       if (!user) {
-        onSignedOut();
+        goHome();
       }
     });
 
     return unsubscribe;
-  }, [onSignedOut]);
+  }, [goHome]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !authUser?.uid) {
@@ -514,10 +505,10 @@ const AppAuthShell: React.FC<AppAuthShellProps> = ({
         isAuthBusy={isAuthBusy}
         isHomePage={isHomePage}
         travelerName={travelerName}
-        onNavigateHome={onNavigateHome}
-        onOpenProfile={onOpenProfile}
+        onNavigateHome={goHome}
+        onOpenProfile={openProfile}
         onSignOut={handleSignOut}
-        onStartNewTrip={onStartNewTrip}
+        onStartNewTrip={goHome}
       />
 
       <main className="relative flex min-h-0 flex-1 flex-col">

@@ -1,4 +1,3 @@
-import type { User } from "firebase/auth";
 import {
   ArrowUpRight,
   Check,
@@ -17,6 +16,9 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { useAppAuth } from "./Auth";
+import { useAppNavigation } from "../context/AppNavigation";
+import { useTrips } from "../context/TripsContext";
 import { hasFiniteCoordinates } from "../lib/coordinates";
 import {
   getActivityImage,
@@ -108,14 +110,6 @@ const BLOCKED_REGION_TOKENS = new Set([
 ]);
 
 const PROFILE_MAP_LABEL = "Traveler atlas";
-
-interface ProfilePageProps {
-  authUser: User;
-  travelerName: string;
-  trips: TripSession[];
-  onOpenTrip: (tripId: string) => void;
-  onTravelerNameChange: (nextName: string) => void;
-}
 
 interface CountryVisit {
   country: string;
@@ -314,13 +308,17 @@ function buildCountryPins(trips: TripSession[]): MapPinData[] {
     }));
 }
 
-const ProfilePage: React.FC<ProfilePageProps> = ({
-  authUser,
-  travelerName,
-  trips,
-  onOpenTrip,
-  onTravelerNameChange,
-}) => {
+const ProfilePage: React.FC = () => {
+  const {
+    actions: { openTrip },
+  } = useAppNavigation();
+  const {
+    actions: { setTravelerName },
+    state: { authUser, travelerName },
+  } = useAppAuth();
+  const {
+    state: { trips },
+  } = useTrips();
   const [tripImages, setTripImages] = useState<
     Record<string, ResolvedActivityImage>
   >({});
@@ -425,7 +423,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
       return;
     }
 
-    onTravelerNameChange(nextTravelerName);
+    setTravelerName(nextTravelerName);
     setIsEditingTravelerName(false);
   };
 
@@ -694,7 +692,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                       >
                         <button
                           type="button"
-                          onClick={() => onOpenTrip(trip.id)}
+                          onClick={() => openTrip(trip.id)}
                           className="focus-ring flex h-full w-full flex-col rounded-[1.25rem] text-left"
                         >
                           <div className="relative h-52 overflow-hidden">

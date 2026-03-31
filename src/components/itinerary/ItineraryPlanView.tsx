@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { createPortal } from "react-dom";
 import { Calendar, Wallet } from "lucide-react";
 import {
@@ -20,7 +20,6 @@ import {
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import {
   Cell,
-  Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -34,6 +33,7 @@ import {
   SortableActivityItem,
 } from "./ActivityItem";
 import Surface from "../ui/Surface";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 
 const DRAG_HANDLE_SELECTOR = "[data-drag-handle='true']";
 const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
@@ -78,39 +78,6 @@ class HandleOnlyTouchSensor extends TouchSensor {
     },
   ];
 }
-
-const useIsMobileViewport = () => {
-  const [isMobileViewport, setIsMobileViewport] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia(MOBILE_MEDIA_QUERY);
-    const updateViewport = () => {
-      setIsMobileViewport(mediaQuery.matches);
-    };
-
-    updateViewport();
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", updateViewport);
-
-      return () => {
-        mediaQuery.removeEventListener("change", updateViewport);
-      };
-    }
-
-    mediaQuery.addListener(updateViewport);
-
-    return () => {
-      mediaQuery.removeListener(updateViewport);
-    };
-  }, []);
-
-  return isMobileViewport;
-};
 
 const BudgetChartCard: React.FC<{
   breakdown: BudgetBreakdown[];
@@ -234,7 +201,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
   onSelectActivity,
   selectedActivityId,
 }) => {
-  const isMobileViewport = useIsMobileViewport();
+  const isMobileViewport = useMediaQuery(MOBILE_MEDIA_QUERY);
   const sensors = useSensors(
     isMobileViewport
       ? useSensor(HandleOnlyMouseSensor, {
