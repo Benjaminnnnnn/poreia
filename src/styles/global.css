@@ -69,6 +69,14 @@ a {
   color: inherit;
 }
 
+a[href],
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+label[for],
+summary {
+  cursor: pointer;
+}
+
 button,
 input,
 textarea,
