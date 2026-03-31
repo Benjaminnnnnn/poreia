@@ -322,26 +322,44 @@ const AuthGate: React.FC<AuthGateProps> = ({
       >
         <source src={SIGN_IN_BACKGROUND_VIDEO_URL} type="video/mp4" />
       </video>
-      {/* <div className="absolute inset-0 bg-[rgba(246,238,228,0.10)]" /> */}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,240,231,0.16)_0%,rgba(247,240,231,0.38)_100%)]" />
     </div>
 
-    <div className="relative z-10 w-full max-w-[34rem] rounded-[1.8rem] border border-[rgba(230,216,200,0.72)] bg-[rgba(255,251,246,0.58)] px-5 py-6 shadow-[0_26px_70px_rgba(134,83,37,0.14)] backdrop-blur-[10px] sm:px-7 sm:py-8">
-      <div>
-        <h1 className="font-display text-[clamp(2.2rem,5vw,3.8rem)] leading-[0.94] tracking-[-0.055em] text-[rgba(74,43,26,0.98)]">
-          Sign in to continue.
-        </h1>
-        <p className="mt-3 max-w-md text-[0.98rem] leading-7 text-[rgba(104,69,47,0.78)]">
-          Use Google to open your AI travel planner.
-        </p>
-      </div>
+    <div className="relative z-10 w-full max-w-[35rem] overflow-hidden rounded-[1.9rem] border border-[rgba(230,216,200,0.76)] bg-[rgba(255,251,246,0.62)] shadow-[0_28px_80px_rgba(134,83,37,0.16)] backdrop-blur-[12px]">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.78)_50%,rgba(255,255,255,0)_100%)]"
+      />
 
-      <div className="mt-8">
-        <div className="flex flex-col gap-3">
+      <div className="px-5 py-6 sm:px-7 sm:py-8">
+        <div className="mt-5 max-w-[28rem]">
+          <h1 className="font-display text-[clamp(2.4rem,5vw,4.15rem)] leading-[0.9] tracking-[-0.06em] text-[rgba(74,43,26,0.98)]">
+            Build your travel plan in a single tap.
+          </h1>
+          <p className="mt-4 max-w-lg text-[1rem] leading-7 text-[rgba(104,69,47,0.8)] sm:text-[1.02rem]">
+            Sign in with Google to open Poreia and turn a rough trip idea into a
+            warm, editable itinerary in seconds.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-3 text-[0.82rem] font-medium text-[rgba(116,79,56,0.74)] sm:grid-cols-3">
+          <div className="rounded-[0.95rem] border border-[rgba(233,220,206,0.92)] bg-[rgba(255,252,248,0.72)] px-3.5 py-3">
+            Start from one sentence
+          </div>
+          <div className="rounded-[0.95rem] border border-[rgba(233,220,206,0.92)] bg-[rgba(255,252,248,0.72)] px-3.5 py-3">
+            Refine plans on the go
+          </div>
+          <div className="rounded-[0.95rem] border border-[rgba(233,220,206,0.92)] bg-[rgba(255,252,248,0.72)] px-3.5 py-3">
+            Keep every trip in reach
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-[1.15rem] border border-[rgba(229,214,198,0.94)] bg-[rgba(255,252,248,0.78)] p-3 shadow-[0_14px_36px_rgba(129,84,46,0.08)]">
           <button
             type="button"
             onClick={onSignIn}
             disabled={isSigningIn}
-            className="inline-flex min-h-[52px] items-center justify-center gap-3 rounded-[1rem] border border-[rgba(225,207,188,0.96)] bg-[rgba(255,252,248,0.98)] px-5 py-3 text-base font-semibold text-[rgba(84,54,37,0.94)] shadow-[0_16px_40px_rgba(129,84,46,0.12)] transition-all hover:-translate-y-[1px] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-[54px] w-full items-center justify-center gap-3 rounded-[0.95rem] border border-[rgba(225,207,188,0.96)] bg-[rgba(255,252,248,0.98)] px-5 py-3 text-base font-semibold text-[rgba(84,54,37,0.94)] transition-all hover:-translate-y-[1px] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSigningIn ? (
               <Loader2
@@ -353,6 +371,10 @@ const AuthGate: React.FC<AuthGateProps> = ({
             )}
             Continue with Google
           </button>
+
+          <p className="px-2 pb-1 pt-3 text-center text-[0.8rem] leading-6 text-[rgba(118,80,57,0.72)]">
+            No setup flow. Just sign in and start shaping the trip.
+          </p>
         </div>
 
         {errorMessage ? (
