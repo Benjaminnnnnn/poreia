@@ -54,7 +54,7 @@ body,
 }
 
 body {
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
   background: rgb(251 245 237);
   color: var(--text-primary);
   overflow: hidden;
@@ -79,7 +79,7 @@ select {
 }
 
 .font-display {
-  font-family: 'Fraunces', serif;
+  font-family: "Fraunces", serif;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -93,7 +93,7 @@ select {
 
 .leaflet-container {
   background: rgb(243 237 228);
-  font-family: 'Manrope', sans-serif;
+  font-family: "Manrope", sans-serif;
 }
 
 .custom-pin-icon {
@@ -137,11 +137,11 @@ select {
     transition-duration: 0.01ms !important;
   }
 
-  .auth-motion-video {
+  /* .auth-motion-video {
     display: none;
   }
 
   .auth-motion-fallback {
     display: block;
-  }
+  } */
 }

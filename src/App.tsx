@@ -33,8 +33,7 @@ const ItineraryResult = lazy(() => import("./components/ItineraryResult"));
 const TRIPS_STORAGE_KEY = "poreia_trips";
 const TRAVELER_NAME_STORAGE_KEY = "poreia_traveler_name";
 const TRIPS_STORAGE_VERSION = 1;
-const SIGN_IN_BACKGROUND_VIDEO_URL =
-  "https://www.pexels.com/download/video/31491830/";
+const SIGN_IN_BACKGROUND_VIDEO_URL = "/background-web.mp4";
 
 type WorkspaceTab = "itinerary" | "notes";
 
