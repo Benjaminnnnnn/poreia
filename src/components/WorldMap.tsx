@@ -138,8 +138,9 @@ function createMarkerIcon(pin: MapPinData, isSelected: boolean) {
   const pinColor = pin.dayColor || DEFAULT_PIN_COLOR;
   const pinGlow = hexToRgba(pinColor, 0.22);
   const pinBadge = hexToRgba(pinColor, 0.14);
-  const pinLabel = pin.dayNumber ? `Day ${pin.dayNumber}` : "Featured";
+  const pinLabel = pin.badgeLabel || (pin.dayNumber ? `Day ${pin.dayNumber}` : "Featured");
   const pinImage = getPinImage(pin);
+  const markerValue = pin.markerValue || (pin.dayNumber ? String(pin.dayNumber) : null);
 
   return L.divIcon({
     className: "custom-pin-icon",
@@ -159,8 +160,8 @@ function createMarkerIcon(pin: MapPinData, isSelected: boolean) {
         <div class="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform duration-300 group-hover:scale-110 ${isSelected ? "scale-110 ring-2 ring-white/75" : ""}" style="background: ${pinColor}">
           <div class="absolute inset-[5px] rounded-full border border-white/25"></div>
           ${
-            pin.dayNumber
-              ? `<span class="relative text-[11px] font-black leading-none text-white">${pin.dayNumber}</span>`
+            markerValue
+              ? `<span class="relative text-[11px] font-black leading-none text-white">${markerValue}</span>`
               : '<div class="relative h-3 w-3 rounded-full bg-white"></div>'
           }
         </div>
@@ -183,7 +184,9 @@ function shouldRefreshMarker(nextPin: MapPinData, previousPin?: MapPinData) {
     previousPin.description !== nextPin.description ||
     previousPin.dayNumber !== nextPin.dayNumber ||
     previousPin.dayColor !== nextPin.dayColor ||
-    previousPin.image !== nextPin.image
+    previousPin.image !== nextPin.image ||
+    previousPin.badgeLabel !== nextPin.badgeLabel ||
+    previousPin.markerValue !== nextPin.markerValue
   );
 }
 

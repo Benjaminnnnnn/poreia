@@ -8,6 +8,7 @@ import {
   Plus,
   SendHorizontal,
   Sparkles,
+  UserRound,
 } from "lucide-react";
 import React, {
   Suspense,
@@ -21,12 +22,14 @@ import React, {
 } from "react";
 import { v4 as uuidv4 } from "uuid";
 import SearchOverlay from "./components/SearchOverlay";
+import ProfilePage from "./components/ProfilePage";
 import { auth, signInWithGoogle, signOutUser } from "./lib/firebase";
 import { generateOrRefineItinerary } from "./services/itineraryService";
 import { ChatMessage, TravelItinerary, TripSession } from "./types";
 
 const ItineraryResult = lazy(() => import("./components/ItineraryResult"));
 const TRIPS_STORAGE_KEY = "poreia_trips";
+const TRAVELER_NAME_STORAGE_KEY = "poreia_traveler_name";
 const TRIPS_STORAGE_VERSION = 1;
 const SIGN_IN_BACKGROUND_VIDEO_URL =
   "https://www.pexels.com/download/video/31491830/";
@@ -47,6 +50,11 @@ interface PersistedTripsPayload {
 }
 
 const getTripsStorageKey = (userId: string) => `${TRIPS_STORAGE_KEY}:${userId}`;
+const getTravelerNameStorageKey = (userId: string) =>
+  `${TRAVELER_NAME_STORAGE_KEY}:${userId}`;
+
+const getDefaultTravelerName = (user: User | null) =>
+  user?.displayName?.trim() || user?.email?.split("@")[0] || "Traveler";
 
 const parseTripsPayload = (stored: string): TripSession[] => {
   const parsed = JSON.parse(stored) as unknown;
@@ -85,6 +93,19 @@ const loadTrips = (userId: string | null): TripSession[] => {
   }
 
   return [];
+};
+
+const loadTravelerName = (user: User | null): string => {
+  if (typeof window === "undefined" || !user?.uid) {
+    return getDefaultTravelerName(user);
+  }
+
+  try {
+    const stored = window.localStorage.getItem(getTravelerNameStorageKey(user.uid));
+    return stored?.trim() || getDefaultTravelerName(user);
+  } catch {
+    return getDefaultTravelerName(user);
+  }
 };
 
 const saveTrips = (userId: string | null, trips: TripSession[]) => {
@@ -156,7 +177,9 @@ interface AppHeaderProps {
   authUser: User | null;
   isAuthBusy: boolean;
   isHomePage: boolean;
+  travelerName: string;
   onNavigateHome: () => void;
+  onOpenProfile: () => void;
   onSignOut: () => Promise<void>;
   onStartNewTrip: () => void;
 }
@@ -165,14 +188,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   authUser,
   isAuthBusy,
   isHomePage,
+  travelerName,
   onNavigateHome,
+  onOpenProfile,
   onSignOut,
   onStartNewTrip,
 }) => {
-  const travelerName =
-    authUser?.displayName?.trim() ||
-    authUser?.email?.split("@")[0] ||
-    "Traveler";
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const fallbackInitial = travelerName.charAt(0).toUpperCase();
@@ -277,12 +298,24 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
                     <button
                       type="button"
+                      onClick={() => {
+                        setIsAccountMenuOpen(false);
+                        onOpenProfile();
+                      }}
+                      className="mt-2 inline-flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)]"
+                    >
+                      <UserRound size={15} />
+                      Profile
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={async () => {
                         setIsAccountMenuOpen(false);
                         await onSignOut();
                       }}
                       disabled={isAuthBusy}
-                      className="mt-2 inline-flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="mt-1 inline-flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <LogOut size={15} />
                       Sign out
@@ -571,6 +604,7 @@ const TripPage: React.FC<TripPageProps> = ({
 export default function App() {
   const [trips, setTrips] = useState<TripSession[]>([]);
   const [authUser, setAuthUser] = useState<User | null>(null);
+  const [travelerName, setTravelerName] = useState("Traveler");
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isAuthBusy, setIsAuthBusy] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -594,6 +628,7 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setAuthUser(user);
       setTrips(loadTrips(user?.uid ?? null));
+      setTravelerName(loadTravelerName(user));
       setIsAuthReady(true);
       setAuthError(null);
 
@@ -614,6 +649,17 @@ export default function App() {
   }, [authUser, isAuthReady, trips]);
 
   useEffect(() => {
+    if (typeof window === "undefined" || !authUser?.uid) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      getTravelerNameStorageKey(authUser.uid),
+      travelerName.trim() || getDefaultTravelerName(authUser),
+    );
+  }, [authUser, travelerName]);
+
+  useEffect(() => {
     const handleHashChange = () => {
       setCurrentPath(window.location.hash || "/");
     };
@@ -628,12 +674,12 @@ export default function App() {
     return match ? match[1] : null;
   };
 
+  const cleanPath = currentPath.startsWith("#")
+    ? currentPath.substring(1)
+    : currentPath;
   const currentTripId = getTripIdFromPath(currentPath);
-  const currentTrip = useMemo(
-    () => trips.find((trip) => trip.id === currentTripId) ?? null,
-    [currentTripId, trips],
-  );
-  const isHomePage = !currentTripId;
+  const isProfilePage = cleanPath === "/profile";
+  const isHomePage = !currentTripId && !isProfilePage;
 
   const handleSignIn = useCallback(async () => {
     setAuthError(null);
@@ -741,7 +787,9 @@ export default function App() {
           authUser={authUser}
           isAuthBusy={isAuthBusy}
           isHomePage={isHomePage}
+          travelerName={travelerName}
           onNavigateHome={() => navigate("/")}
+          onOpenProfile={() => navigate("/profile")}
           onSignOut={handleSignOut}
           onStartNewTrip={() => navigate("/")}
         />
@@ -768,6 +816,14 @@ export default function App() {
                   onNavigateHome={() => navigate("/")}
                 />
               </div>
+            ) : isProfilePage ? (
+              <ProfilePage
+                authUser={authUser}
+                onOpenTrip={(tripId) => navigateToTrip(tripId)}
+                onTravelerNameChange={setTravelerName}
+                travelerName={travelerName}
+                trips={trips}
+              />
             ) : (
               <HomePage
                 isGenerating={isGeneratingTrip}
