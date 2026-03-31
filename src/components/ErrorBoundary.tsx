@@ -1,21 +1,21 @@
-import React from "react";
 import { RotateCcw } from "lucide-react";
+import React from "react";
 import Button from "./ui/Button";
 import Surface from "./ui/Surface";
 
-interface AppErrorBoundaryState {
+interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class AppErrorBoundary extends React.Component<
+class ErrorBoundary extends React.Component<
   React.PropsWithChildren,
-  AppErrorBoundaryState
+  ErrorBoundaryState
 > {
-  state: AppErrorBoundaryState = {
+  state: ErrorBoundaryState = {
     error: null,
   };
 
-  static getDerivedStateFromError(error: Error): AppErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { error };
   }
 
@@ -43,9 +43,7 @@ class AppErrorBoundary extends React.Component<
 
     return (
       <section className="flex min-h-screen items-center justify-center bg-[rgb(248,245,240)] px-4 py-6 sm:px-6 lg:px-8">
-        <div
-          className="w-full max-w-[31rem]"
-        >
+        <div className="w-full max-w-[31rem]">
           <Surface variant="card" radius="2xl" padding="xl">
             <div className="max-w-[25rem]">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(196,102,60,0.8)]">
@@ -83,4 +81,4 @@ class AppErrorBoundary extends React.Component<
   }
 }
 
-export default AppErrorBoundary;
+export default ErrorBoundary;
