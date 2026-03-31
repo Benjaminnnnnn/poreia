@@ -32,7 +32,7 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
 }) => (
   <div className="relative shrink-0 border-b border-[rgba(232,221,207,0.92)] bg-[rgba(252,248,242,0.96)] px-4 py-4 sm:px-6 md:px-7 md:py-4">
     <div className="flex flex-col gap-4 pr-4 lg:flex-row lg:items-end lg:justify-between">
-      <div>
+      <div className="max-w-2xl">
         <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[rgba(200,97,55,0.82)]">
           Trip plan
         </p>
@@ -53,18 +53,23 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <h2 className="font-display text-[1.8rem] font-bold leading-none text-[rgba(74,43,26,0.96)] md:text-[2.4rem]">
           {destination}
         </h2>
-        <p className="mt-1 max-w-md line-clamp-2 text-sm text-[rgba(105,70,48,0.82)]">
+        <p className="mt-1 max-w-lg line-clamp-2 text-sm leading-6 text-[rgba(105,70,48,0.82)]">
           {title}
         </p>
       </div>
 
-      <div className="inline-flex w-full border border-[rgba(232,219,205,0.94)] bg-[rgba(255,252,248,0.92)] p-1 lg:w-auto">
+      <div
+        className="inline-flex w-full rounded-[1rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,252,248,0.92)] p-1 lg:w-auto"
+        role="tablist"
+        aria-label="Trip workspace views"
+      >
         <button
           type="button"
           onClick={() => onTabChange("itinerary")}
-          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.7rem] px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
+          aria-pressed={activeTab === "itinerary"}
+          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.8rem] px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] lg:min-w-[8rem] ${
             activeTab === "itinerary"
-              ? "bg-[rgba(230,106,63,0.96)] text-white"
+              ? "bg-[rgba(230,106,63,0.96)] text-white shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
               : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
           }`}
         >
@@ -74,9 +79,10 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <button
           type="button"
           onClick={() => onTabChange("notes")}
-          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.7rem] px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
+          aria-pressed={activeTab === "notes"}
+          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.8rem] px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] lg:min-w-[8rem] ${
             activeTab === "notes"
-              ? "bg-[rgba(230,106,63,0.96)] text-white"
+              ? "bg-[rgba(230,106,63,0.96)] text-white shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
               : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
           }`}
         >

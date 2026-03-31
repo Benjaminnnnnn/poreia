@@ -79,14 +79,15 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
               isFocused ? "scale-[1.005]" : ""
             }`}
           >
-            <form onSubmit={handleSubmit} className="flex flex-col">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col"
+              aria-busy={isGenerating}
+            >
               <div className="px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
                 <div className="mx-auto max-w-5xl">
                   <div className="max-w-3xl">
-                    {/* <p className="inline-flex border border-[rgba(228,194,166,0.94)] bg-[rgba(251,247,241,0.9)] px-3 py-1.5 text-[0.7rem] font-semibold uppercase tracking-[0.28em] text-[rgba(191,89,46,0.98)] shadow-[0_6px_18px_rgba(118,74,36,0.06)]">
-                      Plan a trip
-                    </p> */}
-                    <h1 className="font-display mt-4 text-[clamp(2.25rem,6vw,4.35rem)] leading-[0.92] tracking-[-0.055em] text-[rgba(63,36,22,0.98)] [text-shadow:0_1px_0_rgba(255,250,244,0.35)]">
+                    <h1 className="font-display mt-5 text-[clamp(2.25rem,6vw,4.35rem)] leading-[0.92] tracking-[-0.055em] text-[rgba(63,36,22,0.98)] [text-shadow:0_1px_0_rgba(255,250,244,0.35)]">
                       Start with one clear idea.
                     </h1>
                     <p className="mt-4 max-w-[52ch] text-base leading-7 text-[rgba(79,52,35,0.88)]">
@@ -99,10 +100,10 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                     as="div"
                     variant="glass"
                     padding="none"
-                    radius="md"
-                    className="mt-8 max-w-4xl bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]"
+                    radius="xl"
+                    className="mt-8 max-w-4xl overflow-hidden border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]"
                   >
-                    <div className="border-b border-[rgba(240,226,210,0.94)] px-4 py-3">
+                    <div className="border-b border-[rgba(240,226,210,0.94)] bg-[rgba(255,249,243,0.7)] px-4 py-3 sm:px-5">
                       <div>
                         <label
                           htmlFor="trip-search-input"
@@ -116,7 +117,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                       </div>
                     </div>
 
-                    <div className="px-4 py-4">
+                    <div className="px-4 py-4 sm:px-5">
                       <div className="relative">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex w-14 items-center justify-center text-[rgba(211,98,57,0.96)]">
                           {isGenerating ? (
@@ -136,13 +137,15 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                             setTimeout(() => setIsFocused(false), 200)
                           }
                           placeholder="3 relaxed days in Lisbon with ocean views and late dinners"
-                          className="field-focus h-14 w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.55rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] pl-14 pr-4 text-base font-medium text-[rgba(74,43,26,0.97)] placeholder:text-base placeholder:font-medium placeholder:text-[rgba(150,112,82,0.52)] sm:text-[1.05rem] sm:placeholder:text-[1.05rem]"
+                          className="field-focus h-14 w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] pl-14 pr-4 text-base font-medium text-[rgba(74,43,26,0.97)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] placeholder:text-base placeholder:font-medium placeholder:text-[rgba(150,112,82,0.52)] sm:text-[1.05rem] sm:placeholder:text-[1.05rem]"
                           disabled={isGenerating}
                         />
                       </div>
                       {isGenerating ? (
                         <p
                           id={searchHintId}
+                          role="status"
+                          aria-live="polite"
                           className="mt-2 text-[0.9375rem] leading-6 text-[rgba(125,86,61,0.78)]"
                         >
                           Generation might take a while. Hang tight while Poreia
@@ -185,7 +188,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                             fullWidth
                             className="min-h-[3.25rem] shrink-0 hover:-translate-y-0.5 disabled:opacity-50 sm:w-auto sm:min-w-[10.5rem] lg:min-w-[11.5rem]"
                           >
-                            Start planning
+                            {isGenerating ? "Planning..." : "Start planning"}
                             <ArrowUpRight size={18} />
                           </Button>
                         </div>
@@ -214,7 +217,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
           </div>
 
           {trips.length ? (
-            <div className="max-h-[30rem] overflow-y-auto pr-1">
+            <div className="no-scrollbar max-h-[30rem] overflow-y-auto pr-1">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {trips.map((trip) => (
                   <Surface
@@ -222,7 +225,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                     key={trip.id}
                     variant="card"
                     radius="xl"
-                    className="group relative flex min-h-[10.25rem] w-full flex-col justify-between p-4 text-left transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 xl:min-h-[9.75rem]"
+                    className="group relative flex min-h-[10.75rem] w-full flex-col justify-between overflow-hidden p-4 text-left transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[rgba(237,170,118,0.42)] hover:shadow-[0_18px_32px_rgba(108,62,26,0.08)] xl:min-h-[10rem]"
                   >
                     <button
                       type="button"
@@ -231,7 +234,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                         event.stopPropagation();
                         onDeleteTrip(trip.id);
                       }}
-                      className="focus-ring absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-[0.7rem] text-[rgba(121,84,60,0.58)] transition-colors hover:bg-[rgba(255,250,246,0.92)] hover:text-[rgba(207,80,71,0.96)]"
+                      className="focus-ring absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-[rgba(236,220,204,0.86)] bg-[rgba(255,252,248,0.9)] text-[rgba(121,84,60,0.62)] shadow-[0_8px_18px_rgba(108,62,26,0.06)] transition-[background-color,color,border-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,193,169,0.92)] hover:bg-[rgba(255,250,246,0.98)] hover:text-[rgba(207,80,71,0.96)]"
                     >
                       <Trash2 size={15} />
                     </button>
@@ -239,7 +242,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenTrip(trip.id)}
-                      className="focus-ring flex h-full flex-col justify-between rounded-[1.25rem] text-left"
+                      className="focus-ring flex h-full flex-col justify-between rounded-[1.25rem] pr-11 text-left"
                     >
                       <div>
                         <Badge
@@ -249,9 +252,9 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                         >
                           {trip.currentItinerary
                             ? `${trip.currentItinerary.totalDays} days`
-                            : "Draft"}
+                            : "Draft trip"}
                         </Badge>
-                        <h3 className="mt-4 max-w-[16ch] font-display text-[1.55rem] leading-[0.98] tracking-[-0.045em] text-[rgba(72,43,27,0.96)] lg:text-[1.7rem]">
+                        <h3 className="line-clamp-2 max-w-[16ch] font-display text-[1.55rem] tracking-[-0.045em] text-[rgba(72,43,27,0.96)] lg:text-[1.7rem]">
                           {trip.currentItinerary?.destination || trip.title}
                         </h3>
                         <p className="mt-2 max-w-[34ch] line-clamp-3 text-[0.95rem] leading-6 text-[rgba(105,69,48,0.78)]">
@@ -265,8 +268,9 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                           <Clock3 size={14} />
                           Updated {formatTripDate(trip.updatedAt)}
                         </span>
-                        <span className="text-[rgba(206,95,55,0.94)] transition-transform duration-200 group-hover:translate-x-0.5">
+                        <span className="inline-flex items-center gap-1.5 text-[rgba(206,95,55,0.94)] transition-transform duration-200 group-hover:translate-x-0.5">
                           Open
+                          <ArrowUpRight size={14} />
                         </span>
                       </div>
                     </button>

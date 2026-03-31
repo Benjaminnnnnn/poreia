@@ -29,7 +29,9 @@ const loadTravelerName = (user: User | null): string => {
   }
 
   try {
-    const stored = window.localStorage.getItem(getTravelerNameStorageKey(user.uid));
+    const stored = window.localStorage.getItem(
+      getTravelerNameStorageKey(user.uid),
+    );
     return stored?.trim() || getDefaultTravelerName(user);
   } catch {
     return getDefaultTravelerName(user);
@@ -349,7 +351,7 @@ const AuthGate: React.FC<AuthGateProps> = ({
           </Button>
 
           <p className="px-2 pb-1 pt-3 text-center text-[0.8rem] leading-6 text-[rgba(118,80,57,0.72)]">
-            No setup flow. Just sign in and start shaping the trip.
+            No setup flow. Just sign in and start the trip.
           </p>
         </Surface>
 

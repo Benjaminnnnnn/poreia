@@ -123,38 +123,85 @@ const BudgetChartCard: React.FC<{
     radius="md"
     className="shadow-[0_12px_24px_rgba(108,62,26,0.04)]"
   >
-    <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
+    <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
       <Wallet size={16} />{" "}
       {hasRecordedCosts ? "Recorded Spend by Day" : "Budget Allocation"}
     </h3>
-    <div className="h-48 w-full sm:h-56">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Pie
-            data={breakdown}
-            cx="50%"
-            cy="50%"
-            innerRadius={50}
-            outerRadius={70}
-            paddingAngle={5}
-            dataKey="amount"
-          >
-            {breakdown.map((_, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value: number) => `${currency}${value}`}
-            contentStyle={{
-              borderRadius: "8px",
-              border: "none",
-              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-            }}
-          />
-          <Legend iconType="circle" verticalAlign="bottom" height={36} />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
+    <p className="text-sm leading-6 text-[rgba(108,72,49,0.78)]">
+      {breakdown.length
+        ? "Use this as a quick sense-check before you keep refining the route."
+        : "Add or adjust costs on activities to make the budget picture more useful."}
+    </p>
+
+    {breakdown.length ? (
+      <>
+        <div className="mt-4 h-48 w-full sm:h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={breakdown}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={70}
+                paddingAngle={5}
+                dataKey="amount"
+              >
+                {breakdown.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number) => `${currency}${value}`}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "1px solid rgba(234, 221, 207, 0.96)",
+                  background: "rgba(255, 251, 246, 0.96)",
+                  color: "rgba(74, 43, 26, 0.96)",
+                  boxShadow: "0 14px 30px rgba(108, 62, 26, 0.08)",
+                }}
+                cursor={{ fill: "rgba(255, 248, 240, 0.7)" }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {breakdown.map((entry, index) => (
+            <div
+              key={entry.category}
+              className="flex items-center justify-between rounded-[0.8rem] border border-[rgba(236,223,209,0.96)] bg-[rgba(255,252,248,0.9)] px-3 py-2.5"
+            >
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-[rgba(96,63,42,0.84)]">
+                <span
+                  aria-hidden="true"
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                />
+                {entry.category}
+              </span>
+              <span className="text-sm font-semibold text-[rgba(74,43,26,0.96)]">
+                {currency}
+                {entry.amount}
+              </span>
+            </div>
+          ))}
+        </div>
+      </>
+    ) : (
+      <Surface
+        as="div"
+        variant="dashed"
+        padding="none"
+        radius="md"
+        className="mt-4 px-4 py-6 text-center text-sm leading-6 text-[rgba(120,83,58,0.68)]"
+      >
+        No budget details yet.
+      </Surface>
+    )}
   </Surface>
 );
 
@@ -210,9 +257,15 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
 
   return (
     <section className="space-y-6">
-      <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
-        <Calendar size={16} /> Daily Plan
-      </h3>
+      <div className="max-w-2xl">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
+          <Calendar size={16} /> Daily Plan
+        </h3>
+        <p className="mt-2 text-sm leading-6 text-[rgba(108,72,49,0.78)]">
+          Drag activities into the right order, move them between days, and
+          tighten the route until it feels effortless.
+        </p>
+      </div>
 
       <DndContext
         sensors={sensors}
@@ -227,9 +280,16 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
               <div className="absolute -left-[18px] top-1 hidden h-2.5 w-2.5 rounded-full bg-[rgba(230,106,63,1)] ring-4 ring-white md:block" />
 
               <div className="mb-4 border-b border-[rgba(239,215,193,0.72)] pb-3 md:border-b-0 md:pb-0">
-                <h4 className="text-lg font-bold text-[rgba(74,43,26,0.96)]">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.68)]">
+                  Day {dayPlan.day}
+                </p>
+                <h4 className="mt-1 text-lg font-bold text-[rgba(74,43,26,0.96)]">
                   Day {dayPlan.day}: {dayPlan.theme}
                 </h4>
+                <p className="mt-1 text-sm text-[rgba(108,72,49,0.72)]">
+                  {dayPlan.activities.length} planned{" "}
+                  {dayPlan.activities.length === 1 ? "stop" : "stops"}
+                </p>
               </div>
 
               <SortableContext
@@ -259,9 +319,9 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                       variant="dashed"
                       padding="none"
                       radius="md"
-                      className="border-2 border-[rgba(239,215,193,0.92)] py-4 text-center text-sm text-[rgba(120,83,58,0.62)]"
+                      className="border-2 border-[rgba(239,215,193,0.92)] px-4 py-5 text-center text-sm leading-6 text-[rgba(120,83,58,0.68)]"
                     >
-                      Drop items here
+                      Drop a stop here to rebalance the day.
                     </Surface>
                   ) : null}
                 </div>
@@ -333,20 +393,22 @@ const ItineraryPlanView: React.FC<ItineraryPlanViewProps> = ({
   selectedActivityId,
 }) => (
   <>
-    <section>
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
-        Overview
-      </h3>
-      <p className="text-sm leading-relaxed text-[rgba(93,61,40,0.88)] md:text-base">
-        {overview}
-      </p>
-    </section>
+    <div className="flex flex-col gap-4">
+      <Surface as="section" variant="subtle" radius="md" className="h-full">
+        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
+          Overview
+        </h3>
+        <p className="max-w-[66ch] text-sm leading-7 text-[rgba(93,61,40,0.88)] md:text-base">
+          {overview}
+        </p>
+      </Surface>
 
-    <BudgetChartCard
-      breakdown={budgetBreakdown}
-      currency={currency}
-      hasRecordedCosts={hasRecordedCosts}
-    />
+      <BudgetChartCard
+        breakdown={budgetBreakdown}
+        currency={currency}
+        hasRecordedCosts={hasRecordedCosts}
+      />
+    </div>
 
     <DailyPlanSection
       activeActivity={activeActivity}

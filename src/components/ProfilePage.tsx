@@ -146,9 +146,9 @@ const ProfileStatCard: React.FC<ProfileStatCardProps> = ({
     variant="subtle"
     padding="none"
     radius="xl"
-    className="flex min-h-[8.4rem] flex-col justify-between px-4 py-3.5"
+    className="flex min-h-[8rem] flex-col justify-between px-4 py-3.5"
   >
-    <div className="flex flex-col items-start gap-3">
+    <div className="flex flex-col items-start gap-2.5">
       <div
         className={`flex h-9 w-9 items-center justify-center rounded-[1rem] ${iconBackgroundClassName} ${iconColorClassName}`}
       >
@@ -178,6 +178,10 @@ function getTripStopCount(itinerary: TravelItinerary | null) {
   return (
     itinerary?.days.reduce((sum, day) => sum + day.activities.length, 0) ?? 0
   );
+}
+
+function formatStopCountLabel(count: number) {
+  return `${count} ${count === 1 ? "stop" : "stops"}`;
 }
 
 function toTitleCase(value: string) {
@@ -439,7 +443,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
             <div className="relative overflow-hidden px-5 pb-5 pt-6">
               <div
                 aria-hidden="true"
-                className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(135deg,rgba(230,106,63,0.16),rgba(72,131,126,0.08),rgba(248,214,145,0.2))]"
+                className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(135deg,rgba(230,106,63,0.12),rgba(72,131,126,0.06),rgba(248,214,145,0.14))]"
               />
 
               <div className="relative flex flex-col">
@@ -523,6 +527,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                   <p className="mt-4 text-sm leading-6 text-[rgba(103,67,46,0.82)]">
                     A quiet record of where you have been, what you planned, and
                     the trips you can reopen anytime.
+                  </p>
+                  <p className="mt-3 text-[0.78rem] font-medium uppercase tracking-[0.14em] text-[rgba(126,82,54,0.6)]">
+                    {archivedTrips.length} saved{" "}
+                    {archivedTrips.length === 1 ? "trip" : "trips"} in archive
                   </p>
 
                   {!isEditingTravelerName ? (
@@ -658,6 +666,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                   </h2>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  <Badge tone="neutral" size="sm" className="rounded-full">
+                    {archivedTrips.length} saved
+                  </Badge>
                   <p className="max-w-xl text-sm leading-6 text-[rgba(112,75,52,0.76)]">
                     Open any trip to keep refining it where you left off.
                   </p>
@@ -679,7 +690,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                         variant="card"
                         padding="none"
                         radius="xl"
-                        className="group overflow-hidden transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1"
+                        className="group overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[rgba(237,170,118,0.42)] hover:shadow-[0_20px_36px_rgba(108,62,26,0.08)]"
                       >
                         <button
                           type="button"
@@ -707,9 +718,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                               >
                                 {country || "Saved trip"}
                               </Badge>
-                              {/* <Badge tone="glass" size="sm">
-                                {stopCount} places
-                              </Badge> */}
                             </div>
                           </div>
 
@@ -724,7 +732,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                               </span>
                             </div>
 
-                            <h3 className="font-display mt-3 text-[1.65rem] leading-[0.98] tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
+                            <h3 className="font-display mt-3 line-clamp-2 text-[1.65rem] leading-[0.98] tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
                               {itinerary?.destination || trip.title}
                             </h3>
                             <p className="mt-3 line-clamp-3 text-sm leading-6 text-[rgba(105,69,48,0.78)]">
@@ -735,7 +743,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                             <div className="mt-5 flex items-center justify-between text-sm font-medium text-[rgba(118,80,57,0.78)]">
                               <span className="inline-flex items-center gap-1.5">
                                 <Clock3 size={14} />
-                                {stopCount} planned stops
+                                {formatStopCountLabel(stopCount)}
                               </span>
                               <span className="inline-flex items-center gap-1.5 text-[rgba(206,95,55,0.94)] transition-transform duration-200 group-hover:translate-x-0.5">
                                 Open trip
@@ -756,11 +764,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                   className="px-5 py-10 text-center"
                 >
                   <p className="font-display text-[1.8rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
-                    No travel history yet.
+                    Nothing saved yet.
                   </p>
                   <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
                     Generate your first itinerary and it will land here as part
-                    of your personal archive.
+                    of your personal archive, ready to reopen anytime.
                   </p>
                 </Surface>
               )}

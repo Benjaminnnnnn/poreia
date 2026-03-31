@@ -198,11 +198,11 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       isHandleOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
     } ${
       isSelected
-        ? "border-[rgba(77,169,165,0.62)] ring-2 ring-[rgba(127,198,194,0.42)] shadow-lg"
-        : "border-white hover:border-[rgba(237,170,118,0.65)] hover:shadow-lg"
+        ? "border-[rgba(77,169,165,0.62)] ring-2 ring-[rgba(127,198,194,0.42)] shadow-[0_18px_28px_rgba(91,133,129,0.12)]"
+        : "border-white hover:border-[rgba(237,170,118,0.65)] hover:shadow-[0_16px_28px_rgba(108,62,26,0.08)]"
     }`}
   >
-    <div className="mt-3 flex items-center justify-end gap-2 border-t border-[rgba(239,215,193,0.72)] pt-2.5 md:absolute md:right-2 md:top-2 md:mt-0 md:flex-col md:gap-1 md:border-t-0 md:pt-0 md:opacity-0 md:transition-opacity md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+    <div className="mt-3 flex items-center justify-end gap-2 border-t border-[rgba(239,215,193,0.72)] pt-2.5 md:pointer-events-none md:absolute md:right-2 md:top-2 md:mt-0 md:flex-col md:gap-1 md:border-t-0 md:pt-0 md:opacity-0 md:transition-opacity md:group-hover:pointer-events-auto md:group-hover:opacity-100 md:group-focus-within:pointer-events-auto md:group-focus-within:opacity-100">
       <button
         type="button"
         onClick={(event) => {
