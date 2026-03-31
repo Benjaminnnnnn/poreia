@@ -1,7 +1,6 @@
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import {
-  ArrowLeft,
   Compass,
   LayoutList,
   Loader2,
@@ -233,22 +232,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               {!isHomePage ? (
                 <button
                   type="button"
-                  onClick={onNavigateHome}
-                  className="inline-flex min-h-[38px] items-center gap-2 rounded-[0.55rem] border border-[rgba(234,217,199,0.96)] bg-[rgba(255,250,244,0.9)] px-3 py-2 text-sm font-semibold text-[rgba(90,58,39,0.88)] transition-colors hover:bg-white"
+                  onClick={onStartNewTrip}
+                  className="inline-flex min-h-[38px] items-center gap-2 rounded-[0.55rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
                 >
-                  <ArrowLeft size={15} />
-                  Home
+                  <Plus size={15} />
+                  New trip
                 </button>
               ) : null}
-
-              <button
-                type="button"
-                onClick={onStartNewTrip}
-                className="inline-flex min-h-[38px] items-center gap-2 rounded-[0.55rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
-              >
-                <Plus size={15} />
-                New trip
-              </button>
 
               <div ref={accountMenuRef} className="relative ml-1 shrink-0">
                 <button

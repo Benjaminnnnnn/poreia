@@ -1,22 +1,15 @@
 import React, {
+  Suspense,
+  lazy,
   startTransition,
+  useCallback,
   useDeferredValue,
   useEffect,
   useMemo,
   useState,
 } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import WorldMap from "./WorldMap";
+import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import {
   getActivityImage,
   ResolvedActivityImage,
@@ -31,7 +24,6 @@ import {
 import {
   ItineraryHeader,
   ItineraryNotesView,
-  ItineraryPlanView,
   ItinerarySidePanel,
 } from "./itinerary/ItineraryContent";
 import {
@@ -40,12 +32,26 @@ import {
   WorkspaceTab,
 } from "./itinerary/constants";
 
+const ItineraryPlanView = lazy(() => import("./itinerary/ItineraryPlanView"));
+const WorldMap = lazy(() => import("./WorldMap"));
+
 interface ItineraryResultProps {
   itinerary: TravelItinerary;
   className?: string;
   onUpdate?: (updatedItinerary: TravelItinerary) => void;
   onWorkspaceTabChange?: (tab: WorkspaceTab) => void;
 }
+
+const PanelFallback: React.FC<{ className?: string; label: string }> = ({
+  className = "",
+  label,
+}) => (
+  <div
+    className={`flex items-center justify-center rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,251,246,0.9)] px-4 py-6 text-sm font-medium text-[rgba(105,70,48,0.78)] ${className}`}
+  >
+    {label}
+  </div>
+);
 
 const ItineraryResult: React.FC<ItineraryResultProps> = ({
   itinerary,
@@ -179,13 +185,6 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     };
   }, [localItinerary.destination, missingImageActivities]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
   const mapPins = useMemo(
     () =>
       itineraryActivityEntries.flatMap(({ activity, dayNumber }) => {
@@ -209,6 +208,14 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
       }),
     [activityImages, itineraryActivityEntries],
   );
+
+  const handleSelectActivity = useCallback((activityId: string) => {
+    setSelectedActivityId(activityId);
+  }, []);
+
+  const handleMapPinClick = useCallback((pin: MapPinData) => {
+    setSelectedActivityId(pin.id);
+  }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
@@ -439,24 +446,27 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
         <div className="space-y-7 p-4 pb-32 sm:px-5 md:p-6 md:pb-28">
           {activeTab === "itinerary" ? (
-            <ItineraryPlanView
-              activeActivity={activeActivity}
-              activeActivityImage={activeActivityImage}
-              activityImages={activityImages}
-              budgetBreakdown={displayedBudgetBreakdown}
-              currency={localItinerary.currency}
-              days={localItinerary.days}
-              hasRecordedCosts={hasRecordedCosts}
-              onDeleteActivity={handleDeleteActivity}
-              onDragEnd={handleDragEnd}
-              onDragOver={handleDragOver}
-              onDragStart={handleDragStart}
-              onSaveActivity={handleSaveActivity}
-              onSelectActivity={setSelectedActivityId}
-              overview={localItinerary.overview}
-              selectedActivityId={selectedActivityId}
-              sensors={sensors}
-            />
+            <Suspense
+              fallback={<PanelFallback label="Loading itinerary planner..." />}
+            >
+              <ItineraryPlanView
+                activeActivity={activeActivity}
+                activeActivityImage={activeActivityImage}
+                activityImages={activityImages}
+                budgetBreakdown={displayedBudgetBreakdown}
+                currency={localItinerary.currency}
+                days={localItinerary.days}
+                hasRecordedCosts={hasRecordedCosts}
+                onDeleteActivity={handleDeleteActivity}
+                onDragEnd={handleDragEnd}
+                onDragOver={handleDragOver}
+                onDragStart={handleDragStart}
+                onSaveActivity={handleSaveActivity}
+                onSelectActivity={handleSelectActivity}
+                overview={localItinerary.overview}
+                selectedActivityId={selectedActivityId}
+              />
+            </Suspense>
           ) : (
             <ItineraryNotesView
               days={localItinerary.days}
@@ -468,12 +478,21 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
       <div className="relative z-10 hidden h-[20rem] shrink-0 border-t border-[rgba(229,218,204,0.92)] bg-[rgba(243,237,228,0.65)] md:block xl:h-full xl:w-[52%] xl:border-l xl:border-t-0">
         <ItinerarySidePanel activeTab={activeTab} itinerary={localItinerary}>
-          <WorldMap
-            pins={mapPins}
-            onPinClick={(pin) => setSelectedActivityId(pin.id)}
-            selectedPinId={deferredSelectedActivityId}
-            className="h-full w-full"
-          />
+          <Suspense
+            fallback={
+              <PanelFallback
+                className="h-full rounded-none border-0"
+                label="Loading map..."
+              />
+            }
+          >
+            <WorldMap
+              pins={mapPins}
+              onPinClick={handleMapPinClick}
+              selectedPinId={deferredSelectedActivityId}
+              className="h-full w-full"
+            />
+          </Suspense>
         </ItinerarySidePanel>
       </div>
     </div>
