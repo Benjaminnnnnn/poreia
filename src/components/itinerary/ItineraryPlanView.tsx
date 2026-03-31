@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, Wallet } from "lucide-react";
 import {
+  type MouseSensorOptions,
+  type TouchSensorOptions,
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCorners,
   defaultDropAnimationSideEffects,
   useSensor,
@@ -31,6 +34,83 @@ import {
   SortableActivityItem,
 } from "./ActivityItem";
 import Surface from "../ui/Surface";
+
+const DRAG_HANDLE_SELECTOR = "[data-drag-handle='true']";
+const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
+
+const startedFromDragHandle = (target: EventTarget | null) =>
+  target instanceof Element && Boolean(target.closest(DRAG_HANDLE_SELECTOR));
+
+class HandleOnlyMouseSensor extends MouseSensor {
+  static activators = [
+    {
+      eventName: "onMouseDown" as const,
+      handler: (
+        { nativeEvent: event }: React.MouseEvent,
+        { onActivation }: MouseSensorOptions,
+      ) => {
+        if (event.button !== 0 || !startedFromDragHandle(event.target)) {
+          return false;
+        }
+
+        onActivation?.({ event });
+        return true;
+      },
+    },
+  ];
+}
+
+class HandleOnlyTouchSensor extends TouchSensor {
+  static activators = [
+    {
+      eventName: "onTouchStart" as const,
+      handler: (
+        { nativeEvent: event }: React.TouchEvent,
+        { onActivation }: TouchSensorOptions,
+      ) => {
+        if (event.touches.length > 1 || !startedFromDragHandle(event.target)) {
+          return false;
+        }
+
+        onActivation?.({ event });
+        return true;
+      },
+    },
+  ];
+}
+
+const useIsMobileViewport = () => {
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const updateViewport = () => {
+      setIsMobileViewport(mediaQuery.matches);
+    };
+
+    updateViewport();
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", updateViewport);
+
+      return () => {
+        mediaQuery.removeEventListener("change", updateViewport);
+      };
+    }
+
+    mediaQuery.addListener(updateViewport);
+
+    return () => {
+      mediaQuery.removeListener(updateViewport);
+    };
+  }, []);
+
+  return isMobileViewport;
+};
 
 const BudgetChartCard: React.FC<{
   breakdown: BudgetBreakdown[];
@@ -107,8 +187,22 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
   onSelectActivity,
   selectedActivityId,
 }) => {
+  const isMobileViewport = useIsMobileViewport();
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    isMobileViewport
+      ? useSensor(HandleOnlyMouseSensor, {
+          activationConstraint: { distance: 6 },
+        })
+      : useSensor(MouseSensor, {
+          activationConstraint: { distance: 8 },
+        }),
+    isMobileViewport
+      ? useSensor(HandleOnlyTouchSensor, {
+          activationConstraint: { delay: 140, tolerance: 12 },
+        })
+      : useSensor(TouchSensor, {
+          activationConstraint: { delay: 140, tolerance: 12 },
+        }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -150,6 +244,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                       activity={activity}
                       currency={currency}
                       image={activityImages[activity.id]}
+                      isHandleOnly={isMobileViewport}
                       onDelete={() => onDeleteActivity(dayIndex, activity.id)}
                       onSave={(newActivity) =>
                         onSaveActivity(dayIndex, newActivity)
