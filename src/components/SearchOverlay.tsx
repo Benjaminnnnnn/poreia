@@ -71,7 +71,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
           />
           <div
             aria-hidden="true"
-            className="absolute left-[max(1rem,4vw)] top-[max(1.5rem,5vw)] h-[16rem] w-[min(44rem,78vw)] bg-[rgba(251,247,241,0.62)] blur-2xl"
+            className="absolute left-[max(10rem,16vw)] top-[max(1rem,2vw)] h-[16rem] w-[min(50rem,78vw)] bg-[rgba(251,247,241,0.62)] blur-2xl"
           />
 
           <div
