@@ -155,11 +155,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               {!isHomePage ? (
                 <Button
                   onClick={onStartNewTrip}
-                  size="sm"
-                  className="px-2.5 sm:px-3"
+                  size="md"
+                  className="rounded-[0.7rem] border-transparent px-3.5 text-sm font-semibold shadow-none sm:px-4"
                 >
                   <Plus size={14} className="sm:h-[15px] sm:w-[15px]" />
-                  <span className="hidden md:inline">New trip</span>
+                  <span className="hidden md:inline">New Trip</span>
                 </Button>
               ) : null}
 
