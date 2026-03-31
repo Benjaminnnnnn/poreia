@@ -10,6 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { useAppNavigation } from "../context/AppNavigation";
 import { auth, signInWithGoogle, signOutUser } from "../lib/firebase";
 import Button from "./ui/Button";
 import Surface from "./ui/Surface";
@@ -29,7 +30,9 @@ const loadTravelerName = (user: User | null): string => {
   }
 
   try {
-    const stored = window.localStorage.getItem(getTravelerNameStorageKey(user.uid));
+    const stored = window.localStorage.getItem(
+      getTravelerNameStorageKey(user.uid),
+    );
     return stored?.trim() || getDefaultTravelerName(user);
   } catch {
     return getDefaultTravelerName(user);
@@ -155,11 +158,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               {!isHomePage ? (
                 <Button
                   onClick={onStartNewTrip}
-                  size="sm"
-                  className="px-2.5 sm:px-3"
+                  size="md"
+                  className="rounded-[0.7rem] border-transparent px-3.5 text-sm font-semibold shadow-none sm:px-4"
                 >
                   <Plus size={14} className="sm:h-[15px] sm:w-[15px]" />
-                  <span className="hidden md:inline">New trip</span>
+                  <span className="hidden md:inline">New Trip</span>
                 </Button>
               ) : null}
 
@@ -349,7 +352,7 @@ const AuthGate: React.FC<AuthGateProps> = ({
           </Button>
 
           <p className="px-2 pb-1 pt-3 text-center text-[0.8rem] leading-6 text-[rgba(118,80,57,0.72)]">
-            No setup flow. Just sign in and start shaping the trip.
+            No setup flow. Just sign in and start the trip.
           </p>
         </Surface>
 
@@ -408,23 +411,13 @@ export const useAppAuth = () => {
   return context;
 };
 
-interface AppAuthShellProps {
-  children: React.ReactNode;
-  isHomePage: boolean;
-  onNavigateHome: () => void;
-  onOpenProfile: () => void;
-  onSignedOut: () => void;
-  onStartNewTrip: () => void;
-}
-
-const AppAuthShell: React.FC<AppAuthShellProps> = ({
+const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
   children,
-  isHomePage,
-  onNavigateHome,
-  onOpenProfile,
-  onSignedOut,
-  onStartNewTrip,
 }) => {
+  const {
+    actions: { goHome, openProfile },
+    state: { isHomePage },
+  } = useAppNavigation();
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [travelerName, setTravelerName] = useState("Traveler");
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -439,12 +432,12 @@ const AppAuthShell: React.FC<AppAuthShellProps> = ({
       setAuthError(null);
 
       if (!user) {
-        onSignedOut();
+        goHome();
       }
     });
 
     return unsubscribe;
-  }, [onSignedOut]);
+  }, [goHome]);
 
   useEffect(() => {
     if (typeof window === "undefined" || !authUser?.uid) {
@@ -512,10 +505,10 @@ const AppAuthShell: React.FC<AppAuthShellProps> = ({
         isAuthBusy={isAuthBusy}
         isHomePage={isHomePage}
         travelerName={travelerName}
-        onNavigateHome={onNavigateHome}
-        onOpenProfile={onOpenProfile}
+        onNavigateHome={goHome}
+        onOpenProfile={openProfile}
         onSignOut={handleSignOut}
-        onStartNewTrip={onStartNewTrip}
+        onStartNewTrip={goHome}
       />
 
       <main className="relative flex min-h-0 flex-1 flex-col">

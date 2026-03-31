@@ -1,4 +1,4 @@
-import React, { useCallback, useId, useState } from "react";
+import React, { useId, useState } from "react";
 import {
   Check,
   Clock,
@@ -19,10 +19,12 @@ import Button from "../ui/Button";
 interface ActivityCardLayoutProps {
   activity: Activity;
   cardRef?: React.Ref<HTMLDivElement>;
+  cardProps?: React.HTMLAttributes<HTMLDivElement>;
   children?: React.ReactNode;
   className: string;
   currency: string;
-  dragProps?: React.HTMLAttributes<HTMLDivElement>;
+  dragHandleProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  dragHandleRef?: React.Ref<HTMLButtonElement>;
   image?: ResolvedActivityImage;
   onClick?: () => void;
   style?: React.CSSProperties;
@@ -31,24 +33,40 @@ interface ActivityCardLayoutProps {
 const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
   activity,
   cardRef,
+  cardProps,
   children,
   className,
   currency,
-  dragProps,
+  dragHandleProps,
+  dragHandleRef,
   image,
   onClick,
   style,
 }) => (
   <div
     ref={cardRef}
-    {...dragProps}
+    {...cardProps}
     onClick={onClick}
     style={style}
     className={`focus-ring group relative rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,255,253,0.98)] p-3 shadow-[0_8px_20px_rgba(108,62,26,0.04)] ${className}`}
   >
-    <div className="pointer-events-none absolute left-1.5 top-1/2 z-10 -translate-y-1/2 p-2 text-[rgba(227,175,139,0.72)] sm:left-2">
+    <button
+      ref={dragHandleRef}
+      type="button"
+      data-drag-handle="true"
+      {...dragHandleProps}
+      onClick={(event) => {
+        event.stopPropagation();
+        dragHandleProps?.onClick?.(event);
+      }}
+      className={`focus-ring absolute left-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 touch-none items-center justify-center rounded-[0.7rem] border border-[rgba(239,215,193,0.9)] bg-[rgba(255,246,239,0.96)] text-[rgba(204,139,99,0.9)] transition-[background-color,border-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:cursor-grabbing active:scale-[0.98] md:left-1.5 md:h-9 md:w-9 md:border-transparent md:bg-transparent ${
+        dragHandleProps?.className ?? ""
+      }`}
+      aria-label={`Reorder ${activity.description}`}
+      title="Drag to reorder"
+    >
       <GripVertical size={18} />
-    </div>
+    </button>
 
     <div className="flex items-start gap-2.5 pl-8 pr-3 sm:gap-3 sm:pl-10 sm:pr-8">
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[0.45rem] border border-[rgba(239,215,193,0.92)] bg-[rgba(255,242,227,0.86)] sm:h-20 sm:w-20">
@@ -88,7 +106,7 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
           <span className="truncate">{activity.location}</span>
         </div>
         {image?.sourceLabel ? (
-          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgba(134,101,77,0.58)]">
+          <div className="mt-2 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgba(134,101,77,0.58)]">
             {image.sourceUrl ? (
               <a
                 href={image.sourceUrl}
@@ -112,14 +130,14 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
                   target="_blank"
                   rel="noreferrer"
                   onClick={(event) => event.stopPropagation()}
-                  className="normal-case tracking-normal text-[rgba(116,79,56,0.72)] underline decoration-[rgba(191,153,126,0.45)] underline-offset-2 transition-colors hover:text-[rgba(88,58,38,0.84)]"
+                  className="block min-w-0 max-w-full truncate whitespace-nowrap normal-case tracking-normal text-[rgba(116,79,56,0.72)] underline decoration-[rgba(191,153,126,0.45)] underline-offset-2 transition-colors hover:text-[rgba(88,58,38,0.84)]"
                   title={image.attributionLabel}
                 >
                   {image.attributionLabel}
                 </a>
               ) : (
                 <span
-                  className="normal-case tracking-normal text-[rgba(116,79,56,0.72)]"
+                  className="block min-w-0 max-w-full truncate whitespace-nowrap normal-case tracking-normal text-[rgba(116,79,56,0.72)]"
                   title={image.attributionLabel}
                 >
                   {image.attributionLabel}
@@ -139,12 +157,15 @@ interface SortableActivityCardProps {
   activity: Activity;
   cardRef?: React.Ref<HTMLDivElement>;
   currency: string;
+  dragHandleProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  dragHandleRef?: React.Ref<HTMLButtonElement>;
   image?: ResolvedActivityImage;
+  isHandleOnly: boolean;
   isSelected: boolean;
   onClick: () => void;
   onDelete: () => void;
   onEdit: () => void;
-  dragProps: React.HTMLAttributes<HTMLDivElement>;
+  sortableCardProps?: React.HTMLAttributes<HTMLDivElement>;
   style?: React.CSSProperties;
 }
 
@@ -152,40 +173,50 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   activity,
   cardRef,
   currency,
-  dragProps,
+  dragHandleProps,
+  dragHandleRef,
   image,
+  isHandleOnly,
   isSelected,
   onClick,
   onDelete,
   onEdit,
+  sortableCardProps,
   style,
 }) => (
   <ActivityCardLayout
     activity={activity}
     cardRef={cardRef}
     currency={currency}
-    dragProps={dragProps}
+    cardProps={sortableCardProps}
+    dragHandleProps={isHandleOnly ? dragHandleProps : undefined}
+    dragHandleRef={isHandleOnly ? dragHandleRef : undefined}
     image={image}
     onClick={onClick}
     style={style}
-    className={`cursor-grab touch-none will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:cursor-grabbing ${
+    className={`will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+      isHandleOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+    } ${
       isSelected
-        ? "border-[rgba(77,169,165,0.62)] ring-2 ring-[rgba(127,198,194,0.42)] shadow-lg"
-        : "border-white hover:border-[rgba(237,170,118,0.65)] hover:shadow-lg"
+        ? "border-[rgba(77,169,165,0.62)] ring-2 ring-[rgba(127,198,194,0.42)] shadow-[0_18px_28px_rgba(91,133,129,0.12)]"
+        : "border-white hover:border-[rgba(237,170,118,0.65)] hover:shadow-[0_16px_28px_rgba(108,62,26,0.08)]"
     }`}
   >
-    <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
+    <div className="mt-3 flex items-center justify-end gap-2 border-t border-[rgba(239,215,193,0.72)] pt-2.5 md:pointer-events-none md:absolute md:right-2 md:top-2 md:mt-0 md:flex-col md:gap-1 md:border-t-0 md:pt-0 md:opacity-0 md:transition-opacity md:group-hover:pointer-events-auto md:group-hover:opacity-100 md:group-focus-within:pointer-events-auto md:group-focus-within:opacity-100">
       <button
         type="button"
         onClick={(event) => {
           event.stopPropagation();
           onEdit();
         }}
-        className="focus-ring flex h-10 w-10 items-center justify-center rounded-[0.6rem] text-[rgba(153,118,93,0.8)] transition-colors hover:bg-[rgba(227,242,239,0.86)] hover:text-[rgba(42,140,142,0.92)]"
+        className="focus-ring inline-flex min-h-[2.35rem] items-center gap-1.5 rounded-full border border-[rgba(229,216,202,0.94)] bg-[rgba(255,250,245,0.98)] px-3 text-[rgba(153,118,93,0.84)] transition-colors hover:bg-[rgba(227,242,239,0.86)] hover:text-[rgba(42,140,142,0.92)] md:h-10 md:w-10 md:justify-center md:rounded-[0.6rem] md:border-transparent md:bg-transparent md:px-0"
         title="Edit"
         aria-label={`Edit ${activity.description}`}
       >
         <Pencil size={14} />
+        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.08em] md:hidden">
+          Edit
+        </span>
       </button>
       <button
         type="button"
@@ -193,11 +224,14 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           event.stopPropagation();
           onDelete();
         }}
-        className="focus-ring flex h-10 w-10 items-center justify-center rounded-[0.6rem] text-[rgba(153,118,93,0.8)] transition-colors hover:bg-red-50 hover:text-red-500"
+        className="focus-ring inline-flex min-h-[2.35rem] items-center gap-1.5 rounded-full border border-[rgba(243,219,209,0.96)] bg-[rgba(255,248,244,0.98)] px-3 text-[rgba(177,108,78,0.9)] transition-colors hover:bg-red-50 hover:text-red-500 md:h-10 md:w-10 md:justify-center md:rounded-[0.6rem] md:border-transparent md:bg-transparent md:px-0"
         title="Delete"
         aria-label={`Delete ${activity.description}`}
       >
         <Trash2 size={14} />
+        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.08em] md:hidden">
+          Delete
+        </span>
       </button>
     </div>
   </ActivityCardLayout>
@@ -346,6 +380,7 @@ interface SortableActivityItemProps {
   activity: Activity;
   currency: string;
   image?: ResolvedActivityImage;
+  isHandleOnly: boolean;
   onDelete: () => void;
   onSave: (newActivity: Activity) => void;
   onClick: () => void;
@@ -356,6 +391,7 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
   activity,
   currency,
   image,
+  isHandleOnly,
   onDelete,
   onSave,
   onClick,
@@ -379,14 +415,6 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
     zIndex: isDragging ? 999 : "auto",
   };
 
-  const setCardRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      setNodeRef(node);
-      setActivatorNodeRef(node);
-    },
-    [setActivatorNodeRef, setNodeRef],
-  );
-
   if (isEditing) {
     return (
       <ActivityEditCard
@@ -406,14 +434,24 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
   return (
     <SortableActivityCard
       activity={activity}
-      cardRef={setCardRef}
+      cardRef={setNodeRef}
       currency={currency}
+      dragHandleProps={isHandleOnly ? { ...attributes, ...listeners } : undefined}
+      dragHandleRef={isHandleOnly ? setActivatorNodeRef : undefined}
       image={image}
+      isHandleOnly={isHandleOnly}
       isSelected={isSelected}
       onEdit={() => setIsEditing(true)}
       onDelete={onDelete}
       onClick={onClick}
-      dragProps={{ ...attributes, ...listeners }}
+      sortableCardProps={
+        isHandleOnly
+          ? undefined
+          : {
+              ...attributes,
+              ...listeners,
+            }
+      }
       style={style}
     />
   );
