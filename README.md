@@ -1,75 +1,133 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Poreia
 
-# Run and deploy your AI Studio app
+Poreia is an AI travel planner for people who want to get from a rough idea to a usable itinerary fast.
 
-This contains everything you need to run your app locally.
+Type one sentence. Poreia turns it into a multi-day trip plan with budget guidance, editable day-by-day activities, saved trip history, Google sign-in, and a map view you can keep refining before or during the trip.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1mwOsu99ncyJ363nkRgPeclg6QK3NIhh_
+## What Poreia Does
+
+- Generates structured itineraries from a short natural-language prompt.
+- Refines an existing trip with follow-up requests instead of forcing a restart.
+- Saves multiple trips per signed-in user in the browser for quick return visits.
+- Shows itinerary stops on a map and supports drag-and-drop reordering.
+- Adds place imagery to activity cards through Google Places when available.
+- Lets travelers keep notes and mood reflections for each day of the trip.
+
+## Stack
+
+- React 19
+- TypeScript
+- Vite
+- Firebase Authentication with Google sign-in
+- Pollinations for itinerary generation
+- Leaflet for map rendering
+- `@dnd-kit` for itinerary editing
+- Recharts for budget visualization
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+**Prerequisites**
 
+- Node.js 22 or later
 
 1. Install dependencies:
-   `npm install`
-2. Run the app:
-   `npm run dev`
 
-## VS Code Dev Container
+   ```bash
+   npm install
+   ```
 
-This repo includes a shared Linux-based VS Code dev container in `.devcontainer/devcontainer.json` so Mac and Windows contributors can use the same development environment.
+2. Create `.env.local` with the variables you need:
+
+   ```bash
+   VITE_FIREBASE_API_KEY=your_firebase_web_api_key
+   VITE_GOOGLE_PLACES_API_KEY=your_browser_restricted_google_places_key
+   VITE_POLLINATIONS_API_KEY=optional_pollinations_key
+   ```
+
+3. Start the dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open `http://localhost:3000`
+
+## Environment Notes
+
+### Required
+
+- `VITE_FIREBASE_API_KEY`
+  Firebase auth initialization fails without this key.
+
+### Optional
+
+- `VITE_GOOGLE_PLACES_API_KEY`
+  Enables place photos for itinerary activities. Without it, activity cards still work, but image coverage is reduced.
+
+- `VITE_POLLINATIONS_API_KEY`
+  If set, the app uses Pollinations' OpenAI-compatible chat completions endpoint. If not set, it falls back to Pollinations' browser-callable text endpoint.
+
+## Provider Behavior
+
+Poreia currently uses Pollinations for itinerary generation.
+
+- Anonymous mode uses the browser-callable text endpoint.
+- Keyed mode uses Pollinations' OpenAI-compatible chat completions API.
+- In development, Vite proxies provider requests through:
+  - `/api/pollinations/text`
+  - `/api/pollinations/v1`
+  - `/api/google-places`
+
+Do not ship private provider keys in a public client build.
+
+## Dev Container
+
+This repository includes a shared VS Code dev container in `.devcontainer/devcontainer.json`.
 
 ### Host prerequisites
 
-- macOS: Docker Desktop and Visual Studio Code
-- Windows: Docker Desktop (or compatible Docker engine with Dev Containers support) and Visual Studio Code
-- VS Code extension: `Dev Containers` (`ms-vscode-remote.remote-containers`)
+- macOS or Windows
+- Docker Desktop or another compatible Docker engine
+- Visual Studio Code
+- VS Code `Dev Containers` extension (`ms-vscode-remote.remote-containers`)
 
 ### Open the project in the container
 
 1. Open the repository in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
-3. Wait for the container build and initial `npm ci` to finish.
-4. Start the app in the container terminal with `npm run dev`.
+3. Wait for the container build and initial dependency install to finish.
+4. Start the app in the container terminal with:
+
+   ```bash
+   npm run dev
+   ```
 
 ### Notes
 
-- The container uses a Linux Node 22 environment to match the project runtime.
-- `node_modules` is stored in a Docker volume inside the container workflow so host OS differences do not leak into dependencies.
-- `.env.local` stays on your local checkout and is available inside the mounted workspace, so each contributor can keep their own local secrets.
-- In development, itinerary API calls are proxied through the Vite dev server at `/api/pollinations/...` to avoid browser-side CORS issues, including when running in a dev container.
-- In development, Google Places photo requests are proxied through the Vite dev server at `/api/google-places/...`.
-- Contributors can still run the project directly on their host OS if they prefer, but the dev container is the recommended shared setup.
+- The container uses a Linux Node 22 environment.
+- `node_modules` lives in a Docker volume so host OS differences do not leak into dependencies.
+- `.env.local` stays in your local checkout and is mounted into the container workspace.
+- Running directly on the host OS is still supported.
 
-## AI Provider
+## Project Structure
 
-The app now uses Pollinations' browser-callable text endpoint at `https://gen.pollinations.ai/text/...`.
+```text
+src/
+  components/   UI surfaces such as search, itinerary, and map views
+  constants/    prompts and seed values
+  lib/          Firebase setup
+  services/     itinerary and image provider integrations
+  styles/       global styles
+  types/        shared TypeScript models
+  App.tsx       app shell, routing, auth gate
+  main.tsx      React entry point
+public/         static files copied as-is
+```
 
-- The app first tries direct browser access without any local API key.
-- If `VITE_POLLINATIONS_API_KEY` is set, the app uses Pollinations' OpenAI-compatible chat completions endpoint at `https://gen.pollinations.ai/v1/chat/completions`.
-- For local/dev only, you can use your Pollinations secret key in `.env.local` to make the app functional immediately.
-- Do not expose a secret `sk_...` key in any deployed client or public repository.
-- Requests are sent directly from the browser with `fetch`.
-- If generation fails in-browser, the most likely causes are provider availability, rate limiting, or CORS/network restrictions.
+## Scripts
 
-## Activity Images
-
-- Itinerary activity cards now support real place photos via the Google Places API.
-- Set `VITE_GOOGLE_PLACES_API_KEY` in `.env.local` with a browser-restricted Google Maps Platform key that has Places API access.
-- Without that key, the app falls back to an empty image placeholder for itinerary activities.
-
-## Structure
-
-The app now follows a standard Vite layout:
-
-- `src/main.tsx` mounts React
-- `src/App.tsx` contains the top-level app shell
-- `src/components/` holds reusable UI
-- `src/services/` holds API/service clients
-- `src/constants/` holds seed data and prompts
-- `src/types/` holds shared TypeScript types
-- `src/styles/global.css` holds global app styles
-- `public/` holds static files copied as-is at build time
+```bash
+npm run dev
+npm run build
+npm run preview
+```
