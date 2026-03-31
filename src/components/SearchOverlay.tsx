@@ -218,14 +218,14 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
 
           {trips.length ? (
             <div className="no-scrollbar max-h-[30rem] overflow-y-auto pr-1">
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),24rem))] justify-start gap-3">
                 {trips.map((trip) => (
                   <Surface
                     as="article"
                     key={trip.id}
                     variant="card"
                     radius="xl"
-                    className="group relative flex min-h-[10.75rem] w-full flex-col justify-between overflow-hidden p-4 text-left transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[rgba(237,170,118,0.42)] hover:shadow-[0_18px_32px_rgba(108,62,26,0.08)] xl:min-h-[10rem]"
+                    className="group relative flex min-h-[8.75rem] w-full max-w-[24rem] flex-col justify-between overflow-hidden p-3.5 text-left transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[rgba(237,170,118,0.42)] hover:shadow-[0_18px_32px_rgba(108,62,26,0.08)] xl:min-h-[8.5rem]"
                   >
                     <button
                       type="button"
@@ -234,7 +234,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                         event.stopPropagation();
                         onDeleteTrip(trip.id);
                       }}
-                      className="focus-ring absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-[0.8rem] border border-[rgba(236,220,204,0.86)] bg-[rgba(255,252,248,0.9)] text-[rgba(121,84,60,0.62)] shadow-[0_8px_18px_rgba(108,62,26,0.06)] transition-[background-color,color,border-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,193,169,0.92)] hover:bg-[rgba(255,250,246,0.98)] hover:text-[rgba(207,80,71,0.96)]"
+                      className="focus-ring absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-[0.8rem] border border-[rgba(236,220,204,0.86)] bg-[rgba(255,252,248,0.9)] text-[rgba(121,84,60,0.62)] shadow-[0_8px_18px_rgba(108,62,26,0.06)] transition-[background-color,color,border-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,193,169,0.92)] hover:bg-[rgba(255,250,246,0.98)] hover:text-[rgba(207,80,71,0.96)]"
                     >
                       <Trash2 size={15} />
                     </button>
@@ -242,9 +242,9 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenTrip(trip.id)}
-                      className="focus-ring flex h-full flex-col justify-between rounded-[1.25rem] pr-11 text-left"
+                      className="focus-ring flex h-full flex-col justify-between rounded-[1.25rem] text-left"
                     >
-                      <div>
+                      <div className="pr-9">
                         <Badge
                           tone="glass"
                           size="sm"
@@ -254,16 +254,16 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                             ? `${trip.currentItinerary.totalDays} days`
                             : "Draft trip"}
                         </Badge>
-                        <h3 className="line-clamp-2 max-w-[16ch] font-display text-[1.55rem] tracking-[-0.045em] text-[rgba(72,43,27,0.96)] lg:text-[1.7rem]">
+                        <h3 className="mt-2 line-clamp-2 max-w-[15ch] font-display text-[1.35rem] leading-[0.96] tracking-[-0.045em] text-[rgba(72,43,27,0.96)] lg:text-[1.5rem]">
                           {trip.currentItinerary?.destination || trip.title}
                         </h3>
-                        <p className="mt-2 max-w-[34ch] line-clamp-3 text-[0.95rem] leading-6 text-[rgba(105,69,48,0.78)]">
+                        <p className="mt-1.5 max-w-[34ch] line-clamp-2 text-[0.92rem] leading-6 text-[rgba(105,69,48,0.78)]">
                           {trip.currentItinerary?.overview ||
                             "Open this trip to keep refining the itinerary."}
                         </p>
                       </div>
 
-                      <div className="mt-5 flex items-center justify-between text-[0.82rem] font-medium text-[rgba(118,80,57,0.78)]">
+                      <div className="mt-4 flex w-full items-center justify-between text-[0.82rem] font-medium text-[rgba(118,80,57,0.78)]">
                         <span className="inline-flex items-center gap-1.5 [font-variant-numeric:tabular-nums]">
                           <Clock3 size={14} />
                           Updated {formatTripDate(trip.updatedAt)}
