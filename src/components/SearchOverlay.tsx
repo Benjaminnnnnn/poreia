@@ -42,6 +42,10 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
   };
 
   const handleSuggestionClick = (suggestion: string) => {
+    if (isGenerating) {
+      return;
+    }
+
     setQuery(suggestion);
     void onSearch(suggestion);
     setIsFocused(false);
@@ -125,6 +129,12 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                           disabled={isGenerating}
                         />
                       </div>
+                      {isGenerating ? (
+                        <p className="mt-2 text-sm text-[rgba(125,86,61,0.78)]">
+                          Generation might take a while. Hang tight while Poreia
+                          builds the first draft.
+                        </p>
+                      ) : null}
 
                       <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                         <div className="max-w-2xl">
@@ -137,7 +147,8 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                                 key={prompt}
                                 type="button"
                                 onClick={() => handleSuggestionClick(prompt)}
-                                className="rounded-[0.55rem] border border-[rgba(239,215,193,0.96)] bg-[rgba(255,252,247,0.95)] px-4 py-2.5 text-left text-sm font-medium text-[rgba(89,58,38,0.94)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,160,100,0.78)] hover:text-[rgba(208,95,54,0.96)]"
+                                disabled={isGenerating}
+                                className="rounded-[0.55rem] border border-[rgba(239,215,193,0.96)] bg-[rgba(255,252,247,0.95)] px-4 py-2.5 text-left text-sm font-medium text-[rgba(89,58,38,0.94)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,160,100,0.78)] hover:text-[rgba(208,95,54,0.96)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:border-[rgba(239,215,193,0.96)] disabled:hover:text-[rgba(89,58,38,0.94)]"
                               >
                                 {prompt}
                               </button>
@@ -173,8 +184,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-[rgba(112,75,52,0.76)]">
-              Keep multiple trips in progress without burying navigation in a
-              permanent sidebar.
+              Keep multiple trips in progress.
             </p>
           </div>
 

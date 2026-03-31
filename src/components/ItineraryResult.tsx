@@ -386,7 +386,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     ? activityLookup.get(activeDragId)?.activity ?? null
     : null;
   const activeActivityImage = activeActivity
-    ? activityImages[activeActivity.id]?.url
+    ? activityImages[activeActivity.id]
     : undefined;
 
   const journaledDaysCount = useMemo(

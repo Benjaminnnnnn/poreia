@@ -7,7 +7,7 @@ export interface Activity {
   lat?: number;
   lng?: number;
   costEstimate?: number;
-  img_prompt?: string; // Optional search hint for the activity image
+  img_prompt?: string; // Internal location-focused hint used for Wikimedia photo lookup
 }
 
 export interface DayPlan {

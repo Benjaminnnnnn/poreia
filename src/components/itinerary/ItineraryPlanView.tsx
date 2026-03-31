@@ -74,7 +74,7 @@ const BudgetChartCard: React.FC<{
 
 interface DailyPlanSectionProps {
   activeActivity: Activity | null;
-  activeActivityImage?: string;
+  activeActivityImage?: ResolvedActivityImage;
   activityImages: Record<string, ResolvedActivityImage>;
   currency: string;
   days: DayPlan[];
@@ -143,7 +143,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                       key={activity.id}
                       activity={activity}
                       currency={currency}
-                      imageUrl={activityImages[activity.id]?.url}
+                      image={activityImages[activity.id]}
                       onDelete={() => onDeleteActivity(dayIndex, activity.id)}
                       onSave={(newActivity) =>
                         onSaveActivity(dayIndex, newActivity)
@@ -178,7 +178,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                   <ActivityDragOverlayCard
                     activity={activeActivity}
                     currency={currency}
-                    imageUrl={activeActivityImage}
+                    image={activeActivityImage}
                   />
                 ) : null}
               </DragOverlay>,
@@ -192,7 +192,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
 
 interface ItineraryPlanViewProps {
   activeActivity: Activity | null;
-  activeActivityImage?: string;
+  activeActivityImage?: ResolvedActivityImage;
   activityImages: Record<string, ResolvedActivityImage>;
   budgetBreakdown: BudgetBreakdown[];
   currency: string;

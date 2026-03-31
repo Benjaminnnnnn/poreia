@@ -208,55 +208,55 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 
   return (
     <header className="shrink-0 border-b border-[rgba(229,218,204,0.96)] bg-[rgba(252,248,242,0.96)] px-4 py-2.5 sm:px-5 lg:px-6">
-      <div className="flex min-h-[3.4rem] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
         <button
           type="button"
           onClick={onNavigateHome}
           aria-label="Go to home page"
-          className="flex min-w-0 items-center gap-3 rounded-[0.7rem] px-1.5 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)]"
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[0.7rem] px-1 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)] sm:flex-none sm:gap-3 sm:px-1.5"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[0.55rem] border border-[rgba(233,208,184,0.96)] bg-[rgba(255,253,249,0.98)] text-[rgba(216,101,58,0.95)]">
-            <Compass size={17} />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.55rem] border border-[rgba(233,208,184,0.96)] bg-[rgba(255,253,249,0.98)] text-[rgba(216,101,58,0.95)] sm:h-9 sm:w-9">
+            <Compass size={16} className="sm:h-[17px] sm:w-[17px]" />
           </div>
 
           <div className="min-w-0">
-            <p className="truncate font-display text-[1.3rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)] sm:text-[1.45rem]">
+            <p className="truncate font-display text-[1.12rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)] sm:text-[1.45rem]">
               Poreia
             </p>
           </div>
         </button>
 
-        <div className="flex flex-wrap items-center justify-end gap-2">
+        <div className="flex shrink-0 items-center justify-end gap-2">
           {authUser ? (
             <>
               {!isHomePage ? (
                 <button
                   type="button"
                   onClick={onStartNewTrip}
-                  className="inline-flex min-h-[38px] items-center gap-2 rounded-[0.55rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
+                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[0.55rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] px-2.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)] sm:min-h-[38px] sm:gap-2 sm:px-3"
                 >
-                  <Plus size={15} />
-                  New trip
+                  <Plus size={14} className="sm:h-[15px] sm:w-[15px]" />
+                  <span className="hidden md:inline">New trip</span>
                 </button>
               ) : null}
 
-              <div ref={accountMenuRef} className="relative ml-1 shrink-0">
+              <div ref={accountMenuRef} className="relative shrink-0">
                 <button
                   type="button"
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)] transition-transform duration-150 hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)]"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)] transition-transform duration-150 hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)] sm:h-11 sm:w-11"
                 >
                   {authUser.photoURL ? (
                     <img
                       src={authUser.photoURL}
                       alt={`${travelerName} profile`}
-                      className="h-9 w-9 rounded-full object-cover"
+                      className="h-8 w-8 rounded-full object-cover sm:h-9 sm:w-9"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgba(230,106,63,0.14)] text-sm font-semibold text-[rgba(191,94,53,0.92)]">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(230,106,63,0.14)] text-sm font-semibold text-[rgba(191,94,53,0.92)] sm:h-9 sm:w-9">
                       {fallbackInitial}
                     </span>
                   )}
@@ -647,6 +647,10 @@ export default function App() {
 
   const handleCreateTrip = useCallback(
     async (prompt: string) => {
+      if (isGeneratingTrip) {
+        return;
+      }
+
       if (!authUser) {
         setAuthError("Sign in with Google before creating a trip.");
         return;
@@ -677,7 +681,7 @@ export default function App() {
         setIsGeneratingTrip(false);
       }
     },
-    [authUser, navigate],
+    [authUser, isGeneratingTrip, navigate],
   );
 
   const updateTrip = useCallback((updatedTrip: TripSession) => {

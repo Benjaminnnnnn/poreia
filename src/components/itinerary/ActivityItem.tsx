@@ -13,6 +13,7 @@ import {
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Activity } from "../../types";
+import { ResolvedActivityImage } from "../../services/activityImageService";
 
 interface ActivityCardLayoutProps {
   activity: Activity;
@@ -21,7 +22,7 @@ interface ActivityCardLayoutProps {
   className: string;
   currency: string;
   dragProps?: React.HTMLAttributes<HTMLDivElement>;
-  imageUrl?: string;
+  image?: ResolvedActivityImage;
   onClick?: () => void;
   style?: React.CSSProperties;
 }
@@ -33,7 +34,7 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
   className,
   currency,
   dragProps,
-  imageUrl,
+  image,
   onClick,
   style,
 }) => (
@@ -50,9 +51,9 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
 
     <div className="flex items-start gap-2.5 pl-8 pr-3 sm:gap-3 sm:pl-10 sm:pr-8">
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[0.45rem] border border-[rgba(239,215,193,0.92)] bg-[rgba(255,242,227,0.86)] sm:h-20 sm:w-20">
-        {imageUrl ? (
+        {image?.url ? (
           <img
-            src={imageUrl}
+            src={image.url}
             alt={activity.description}
             className="h-full w-full object-cover"
             loading="lazy"
@@ -85,6 +86,47 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
           <MapPin size={12} className="shrink-0" />
           <span className="truncate">{activity.location}</span>
         </div>
+        {image?.sourceLabel ? (
+          <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgba(134,101,77,0.58)]">
+            {image.sourceUrl ? (
+              <a
+                href={image.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(event) => event.stopPropagation()}
+                className="rounded-[0.3rem] bg-[rgba(255,242,227,0.82)] px-1.5 py-0.5 text-[rgba(145,104,73,0.7)] transition-colors hover:bg-[rgba(244,233,220,0.96)] hover:text-[rgba(117,81,56,0.84)]"
+              >
+                {image.sourceLabel}
+              </a>
+            ) : (
+              <span className="rounded-[0.3rem] bg-[rgba(255,242,227,0.82)] px-1.5 py-0.5 text-[rgba(145,104,73,0.7)]">
+                {image.sourceLabel}
+              </span>
+            )}
+            {image.licenseLabel ? <span>{image.licenseLabel}</span> : null}
+            {image.attributionLabel ? (
+              image.attributionUrl ? (
+                <a
+                  href={image.attributionUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={(event) => event.stopPropagation()}
+                  className="normal-case tracking-normal text-[rgba(116,79,56,0.72)] underline decoration-[rgba(191,153,126,0.45)] underline-offset-2 transition-colors hover:text-[rgba(88,58,38,0.84)]"
+                  title={image.attributionLabel}
+                >
+                  {image.attributionLabel}
+                </a>
+              ) : (
+                <span
+                  className="normal-case tracking-normal text-[rgba(116,79,56,0.72)]"
+                  title={image.attributionLabel}
+                >
+                  {image.attributionLabel}
+                </span>
+              )
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
 
@@ -96,7 +138,7 @@ interface SortableActivityCardProps {
   activity: Activity;
   cardRef?: React.Ref<HTMLDivElement>;
   currency: string;
-  imageUrl?: string;
+  image?: ResolvedActivityImage;
   isSelected: boolean;
   onClick: () => void;
   onDelete: () => void;
@@ -110,7 +152,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   cardRef,
   currency,
   dragProps,
-  imageUrl,
+  image,
   isSelected,
   onClick,
   onDelete,
@@ -122,7 +164,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
     cardRef={cardRef}
     currency={currency}
     dragProps={dragProps}
-    imageUrl={imageUrl}
+    image={image}
     onClick={onClick}
     style={style}
     className={`cursor-grab touch-none will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:cursor-grabbing ${
@@ -165,6 +207,7 @@ const ActivityEditCard: React.FC<{
   setNodeRef: (node: HTMLDivElement | null) => void;
 }> = ({ activity, currency, onCancel, onSave, setNodeRef, style }) => {
   const [editForm, setEditForm] = useState<Activity>({ ...activity });
+  const originalLocation = activity.location.trim();
 
   return (
     <div
@@ -226,18 +269,6 @@ const ActivityEditCard: React.FC<{
           }
         />
       </div>
-      <div>
-        <label className="text-xs font-semibold text-[rgba(120,83,58,0.78)]">
-          Image Search Hint
-        </label>
-        <input
-          className="w-full rounded-[0.45rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] p-1.5 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,198,194,0.4)]"
-          value={editForm.img_prompt || ""}
-          onChange={(event) =>
-            setEditForm({ ...editForm, img_prompt: event.target.value })
-          }
-        />
-      </div>
 
       <div className="flex justify-end gap-2 pt-2">
         <button
@@ -247,7 +278,18 @@ const ActivityEditCard: React.FC<{
           <X size={16} />
         </button>
         <button
-          onClick={() => onSave(editForm)}
+          onClick={() => {
+            const nextLocation = editForm.location.trim();
+            const locationChanged = nextLocation !== originalLocation;
+
+            onSave({
+              ...editForm,
+              img_prompt:
+                locationChanged || !editForm.img_prompt?.trim()
+                  ? nextLocation || editForm.img_prompt
+                  : editForm.img_prompt,
+            });
+          }}
           className="rounded-[0.45rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] p-1.5 text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
         >
           <Check size={16} />
@@ -260,12 +302,12 @@ const ActivityEditCard: React.FC<{
 export const ActivityDragOverlayCard: React.FC<{
   activity: Activity;
   currency: string;
-  imageUrl?: string;
-}> = ({ activity, currency, imageUrl }) => (
+  image?: ResolvedActivityImage;
+}> = ({ activity, currency, image }) => (
   <ActivityCardLayout
     activity={activity}
     currency={currency}
-    imageUrl={imageUrl}
+    image={image}
     className="origin-top-left cursor-grabbing border-[rgba(77,169,165,0.72)] shadow-[0_28px_70px_rgba(108,62,26,0.18)] will-change-transform"
   />
 );
@@ -273,7 +315,7 @@ export const ActivityDragOverlayCard: React.FC<{
 interface SortableActivityItemProps {
   activity: Activity;
   currency: string;
-  imageUrl?: string;
+  image?: ResolvedActivityImage;
   onDelete: () => void;
   onSave: (newActivity: Activity) => void;
   onClick: () => void;
@@ -283,7 +325,7 @@ interface SortableActivityItemProps {
 export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
   activity,
   currency,
-  imageUrl,
+  image,
   onDelete,
   onSave,
   onClick,
@@ -336,7 +378,7 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
       activity={activity}
       cardRef={setCardRef}
       currency={currency}
-      imageUrl={imageUrl}
+      image={image}
       isSelected={isSelected}
       onEdit={() => setIsEditing(true)}
       onDelete={onDelete}

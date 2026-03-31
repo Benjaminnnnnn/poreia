@@ -30,7 +30,7 @@ const REQUIRED_JSON_SCHEMA = `{
           "lat": 35.0,
           "lng": 139.0,
           "costEstimate": 25,
-          "img_prompt": "short visual phrase"
+          "img_prompt": "specific landmark, district, park, or geographic place name"
         }
       ]
     }
@@ -47,8 +47,12 @@ const SCHEMA_INSTRUCTION = [
   'Return exactly one JSON object for a travel itinerary.',
   'Do not return markdown, commentary, prose, preambles, or code fences.',
   'Use exactly these top-level keys: destination, title, totalDays, totalBudget, currency, overview, days, budgetBreakdown.',
+  'If the user names a destination, the itinerary destination must match that place or a clearly nested place within it.',
+  'Never substitute a different city, region, or country than the one the user requested.',
   'days must be an array of objects with keys: day, theme, activities.',
   'activities must be an array of objects with keys: time, description, location, lat, lng, costEstimate, img_prompt.',
+  'img_prompt is internal metadata for photo lookup. Make it a concise, location-focused phrase such as a landmark, neighborhood, park, museum, district, or geographic site name.',
+  'Do not use cinematic adjectives, stylistic image prompts, or descriptive scenery phrases in img_prompt.',
   'budgetBreakdown must be an array of objects with keys: category, amount.',
   'All numeric fields must be valid JSON numbers, not strings.',
   'If information is uncertain, make a realistic estimate and still return the full JSON object.',
@@ -61,6 +65,58 @@ function trimToMaxLength(value: string, maxChars: number): string {
   }
 
   return `${value.slice(0, maxChars)}...`;
+}
+
+function normalizeComparableText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractRequestedPlace(prompt: string): string | null {
+  const patterns = [
+    /\b(?:in|to|around|through|across|visiting|visit)\s+([^,.;!?]+?)(?=\s+(?:for|with|on|under|over|near|around|from|via|beginner|beginners|budget)\b|$)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+    const candidate = match?.[1]?.trim();
+    if (!candidate) {
+      continue;
+    }
+
+    const normalized = candidate.replace(/\s+/g, ' ').trim();
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return null;
+}
+
+function destinationMatchesPrompt(prompt: string, itinerary: TravelItinerary): boolean {
+  const requestedPlace = extractRequestedPlace(prompt);
+  if (!requestedPlace) {
+    return true;
+  }
+
+  const requested = normalizeComparableText(requestedPlace);
+  const actual = normalizeComparableText(itinerary.destination);
+  if (!requested || !actual) {
+    return true;
+  }
+
+  if (actual.includes(requested) || requested.includes(actual)) {
+    return true;
+  }
+
+  const requestedTokens = requested.split(' ').filter((token) => token.length > 2);
+  const actualTokens = new Set(actual.split(' ').filter((token) => token.length > 2));
+  const overlapCount = requestedTokens.filter((token) => actualTokens.has(token)).length;
+
+  return overlapCount >= Math.min(2, requestedTokens.length);
 }
 
 function summarizeCurrentItinerary(currentItinerary: TravelItinerary): string {
@@ -402,6 +458,12 @@ async function requestAnonymousText(prompt: string): Promise<string> {
   return text;
 }
 
+async function requestProviderResponse(prompt: string, apiKey: string | null): Promise<string> {
+  return apiKey
+    ? requestChatCompletion(prompt, apiKey)
+    : requestAnonymousText(prompt);
+}
+
 export async function generateOrRefineItinerary(
   prompt: string,
   history: ChatMessage[] = [],
@@ -411,12 +473,30 @@ export async function generateOrRefineItinerary(
   const apiKey = getClientApiKey();
 
   try {
-    const text = apiKey
-      ? await requestChatCompletion(fullPrompt, apiKey)
-      : await requestAnonymousText(fullPrompt);
-
+    const text = await requestProviderResponse(fullPrompt, apiKey);
     const parsed = JSON.parse(extractJsonObject(text));
-    return preserveDayJournalEntries(normalizeItinerary(parsed), currentItinerary);
+    const initialItinerary = preserveDayJournalEntries(
+      normalizeItinerary(parsed),
+      currentItinerary,
+    );
+
+    if (currentItinerary || destinationMatchesPrompt(prompt, initialItinerary)) {
+      return initialItinerary;
+    }
+
+    const requestedPlace = extractRequestedPlace(prompt);
+    if (!requestedPlace) {
+      return initialItinerary;
+    }
+
+    const correctionPrompt = `${fullPrompt}\n\nImportant correction: the requested destination is ${requestedPlace}. Regenerate the itinerary for that destination only and do not substitute a different place.`;
+    const correctedText = await requestProviderResponse(correctionPrompt, apiKey);
+    const correctedParsed = JSON.parse(extractJsonObject(correctedText));
+
+    return preserveDayJournalEntries(
+      normalizeItinerary(correctedParsed),
+      currentItinerary,
+    );
   } catch (error) {
     console.error('Failed to generate itinerary', error);
     throw toProviderError(error);
