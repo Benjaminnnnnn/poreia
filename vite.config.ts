@@ -3,6 +3,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  root: 'client',
+  envDir: '.',
   server: {
     port: 3000,
     host: '0.0.0.0',
@@ -24,10 +26,14 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+  },
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './client/src'),
     },
   },
 });

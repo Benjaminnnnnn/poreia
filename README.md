@@ -112,16 +112,17 @@ This repository includes a shared VS Code dev container in `.devcontainer/devcon
 ## Project Structure
 
 ```text
-src/
-  components/   UI surfaces such as search, itinerary, and map views
-  constants/    prompts and seed values
-  lib/          Firebase setup
-  services/     itinerary and image provider integrations
-  styles/       global styles
-  types/        shared TypeScript models
-  App.tsx       app shell, routing, auth gate
-  main.tsx      React entry point
-public/         static files copied as-is
+client/
+  src/
+    components/   UI surfaces such as search, itinerary, and map views
+    constants/    prompts and seed values
+    lib/          Firebase setup
+    services/     itinerary and image provider integrations
+    styles/       global styles
+    types/        shared TypeScript models
+    App.tsx       app shell, routing, auth gate
+    main.tsx      React entry point
+  public/         static files copied as-is
 ```
 
 ## Scripts
