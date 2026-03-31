@@ -124,6 +124,48 @@ interface CountryVisit {
   lng: number;
 }
 
+interface ProfileStatCardProps {
+  iconBackgroundClassName: string;
+  iconColorClassName: string;
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  valueClassName?: string;
+}
+
+const ProfileStatCard: React.FC<ProfileStatCardProps> = ({
+  iconBackgroundClassName,
+  iconColorClassName,
+  icon,
+  label,
+  value,
+  valueClassName = "",
+}) => (
+  <Surface
+    as="div"
+    variant="subtle"
+    padding="none"
+    radius="lg"
+    className="px-4 py-3.5"
+  >
+    <div className="flex items-center gap-2">
+      <div
+        className={`flex h-7 w-7 items-center justify-center rounded-full ${iconBackgroundClassName} ${iconColorClassName}`}
+      >
+        {icon}
+      </div>
+      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-[rgba(126,82,54,0.7)]">
+        {label}
+      </p>
+    </div>
+    <p
+      className={`mt-3 font-display text-[2.05rem] leading-none tracking-[-0.05em] text-[rgba(60,36,24,0.98)] [font-variant-numeric:lining-nums_tabular-nums] ${valueClassName}`}
+    >
+      {value}
+    </p>
+  </Surface>
+);
+
 function formatTripDate(timestamp: number) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -493,66 +535,31 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                 </div>
 
                 <div className="mt-6 grid gap-3">
-                  <Surface
-                    as="div"
-                    variant="subtle"
-                    padding="none"
-                    radius="lg"
-                    className="px-4 py-3.5"
-                  >
-                    <div className="flex items-center gap-2 text-[rgba(72,131,126,0.92)]">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(72,131,126,0.12)]">
-                        <Globe2 size={13} />
-                      </div>
-                      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.7)]">
-                        Countries
-                      </p>
-                    </div>
-                    <p className="mt-3 font-display text-[2rem] leading-none tracking-[-0.05em] text-[rgba(60,36,24,0.98)]">
-                      {countryPins.length}
-                    </p>
-                  </Surface>
+                  <ProfileStatCard
+                    icon={<Globe2 size={13} />}
+                    iconBackgroundClassName="bg-[rgba(72,131,126,0.12)]"
+                    iconColorClassName="text-[rgba(72,131,126,0.92)]"
+                    label="Countries"
+                    value={countryPins.length}
+                    valueClassName="text-[2.2rem]"
+                  />
 
                   <div className="grid grid-cols-2 gap-3">
-                    <Surface
-                      as="div"
-                      variant="subtle"
-                      padding="none"
-                      radius="lg"
-                      className="px-4 py-3.5"
-                    >
-                      <div className="flex items-center gap-2 text-[rgba(217,102,58,0.92)]">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(217,102,58,0.12)]">
-                          <Route size={13} />
-                        </div>
-                        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.7)]">
-                          Trips
-                        </p>
-                      </div>
-                      <p className="mt-3 text-[1.4rem] font-semibold text-[rgba(74,43,26,0.96)]">
-                        {archivedTrips.length}
-                      </p>
-                    </Surface>
+                    <ProfileStatCard
+                      icon={<Route size={13} />}
+                      iconBackgroundClassName="bg-[rgba(217,102,58,0.12)]"
+                      iconColorClassName="text-[rgba(217,102,58,0.92)]"
+                      label="Trips"
+                      value={archivedTrips.length}
+                    />
 
-                    <Surface
-                      as="div"
-                      variant="subtle"
-                      padding="none"
-                      radius="lg"
-                      className="px-4 py-3.5"
-                    >
-                      <div className="flex items-center gap-2 text-[rgba(199,140,47,0.95)]">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(199,140,47,0.12)]">
-                          <MapPinned size={13} />
-                        </div>
-                        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.7)]">
-                          Stops
-                        </p>
-                      </div>
-                      <p className="mt-3 text-[1.4rem] font-semibold text-[rgba(74,43,26,0.96)]">
-                        {tripActivities}
-                      </p>
-                    </Surface>
+                    <ProfileStatCard
+                      icon={<MapPinned size={13} />}
+                      iconBackgroundClassName="bg-[rgba(199,140,47,0.12)]"
+                      iconColorClassName="text-[rgba(199,140,47,0.95)]"
+                      label="Stops"
+                      value={tripActivities}
+                    />
                   </div>
 
                   <Surface
