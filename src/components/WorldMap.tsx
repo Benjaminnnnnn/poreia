@@ -511,9 +511,11 @@ const WorldMap: React.FC<WorldMapProps> = ({
       {showControls ? (
         <div className="absolute bottom-4 right-3 z-[400] flex flex-col gap-2.5 md:bottom-12 md:right-4 md:gap-3">
           <button
+            type="button"
             onClick={handleLocateMe}
             disabled={isLocating}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] text-[rgba(102,70,49,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl transition-all hover:bg-white hover:text-[rgba(217,102,58,0.92)] active:scale-95 md:h-11 md:w-11"
+            aria-label="Locate me"
+            className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] text-[rgba(102,70,49,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl transition-all hover:bg-white hover:text-[rgba(217,102,58,0.92)] active:scale-95"
             title="Locate Me"
           >
             <Locate
@@ -528,16 +530,20 @@ const WorldMap: React.FC<WorldMapProps> = ({
 
           <div className="flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl">
             <button
+              type="button"
               onClick={() => mapInstanceRef.current?.zoomIn()}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(255,236,208,0.8)] hover:text-[rgba(217,102,58,0.92)] active:bg-[rgba(255,231,198,0.92)] md:h-11 md:w-11"
+              aria-label="Zoom in"
+              className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(255,236,208,0.8)] hover:text-[rgba(217,102,58,0.92)] active:bg-[rgba(255,231,198,0.92)]"
               title="Zoom In"
             >
               <Plus size={18} className="md:h-5 md:w-5" />
             </button>
             <div className="h-[1px] w-full bg-[rgba(221,197,173,0.56)]" />
             <button
+              type="button"
               onClick={() => mapInstanceRef.current?.zoomOut()}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(225,242,237,0.82)] hover:text-[rgba(42,140,142,0.92)] active:bg-[rgba(210,235,228,0.92)] md:h-11 md:w-11"
+              aria-label="Zoom out"
+              className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(225,242,237,0.82)] hover:text-[rgba(42,140,142,0.92)] active:bg-[rgba(210,235,228,0.92)]"
               title="Zoom Out"
             >
               <Minus size={18} className="md:h-5 md:w-5" />

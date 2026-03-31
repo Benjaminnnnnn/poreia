@@ -62,7 +62,7 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <button
           type="button"
           onClick={() => onTabChange("itinerary")}
-          className={`flex min-h-[38px] flex-1 items-center justify-center gap-2 px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
+          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.7rem] px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
             activeTab === "itinerary"
               ? "bg-[rgba(230,106,63,0.96)] text-white"
               : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
@@ -74,7 +74,7 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <button
           type="button"
           onClick={() => onTabChange("notes")}
-          className={`flex min-h-[38px] flex-1 items-center justify-center gap-2 px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
+          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.7rem] px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
             activeTab === "notes"
               ? "bg-[rgba(230,106,63,0.96)] text-white"
               : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
@@ -151,7 +151,7 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
                           notes: dayPlan.notes,
                         })
                       }
-                      className={`border px-3 py-2 text-sm font-medium transition-colors ${
+                      className={`focus-ring min-h-[44px] rounded-[0.65rem] border px-3.5 py-2 text-sm font-medium transition-colors ${
                         isActive
                           ? option.activeClassName
                           : option.idleClassName
@@ -182,7 +182,7 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
                 })
               }
               placeholder="What surprised you, what you loved, what you would skip, what the day felt like..."
-              className="mt-2 min-h-[9rem] w-full resize-y border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] outline-none transition-colors placeholder:text-[rgba(150,112,82,0.52)] focus:border-[rgba(223,147,93,0.92)]"
+              className="field-focus mt-2 min-h-[9rem] w-full resize-y rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] placeholder:text-[rgba(150,112,82,0.52)]"
             />
           </div>
         </Surface>

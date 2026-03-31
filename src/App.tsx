@@ -239,7 +239,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           type="button"
           onClick={onNavigateHome}
           aria-label="Go to home page"
-          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-[0.7rem] px-1 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)] sm:flex-none sm:gap-3 sm:px-1.5"
+          className="focus-ring flex min-w-0 flex-1 items-center gap-2.5 rounded-[0.7rem] px-1 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] sm:flex-none sm:gap-3 sm:px-1.5"
         >
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.55rem] border border-[rgba(233,208,184,0.96)] bg-[rgba(255,253,249,0.98)] text-[rgba(216,101,58,0.95)] sm:h-9 sm:w-9">
             <Compass size={16} className="sm:h-[17px] sm:w-[17px]" />
@@ -272,7 +272,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)] transition-transform duration-150 hover:-translate-y-[1px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)] sm:h-11 sm:w-11"
+                  className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)] transition-transform duration-150 hover:-translate-y-[1px] sm:h-11 sm:w-11"
                 >
                   {authUser.photoURL ? (
                     <img
@@ -312,7 +312,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         setIsAccountMenuOpen(false);
                         onOpenProfile();
                       }}
-                      className="mt-2 inline-flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)]"
+                      className="focus-ring mt-2 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)]"
                     >
                       <UserRound size={15} />
                       Profile
@@ -325,7 +325,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                         await onSignOut();
                       }}
                       disabled={isAuthBusy}
-                      className="mt-1 inline-flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="focus-ring mt-1 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <LogOut size={15} />
                       Sign out
@@ -355,7 +355,7 @@ const AuthGate: React.FC<AuthGateProps> = ({
   <section className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-6 sm:px-6 lg:px-8">
     <div className="absolute inset-0 overflow-hidden">
       <video
-        className="h-full w-full object-cover"
+        className="auth-motion-video h-full w-full object-cover"
         autoPlay
         loop
         muted
@@ -365,6 +365,10 @@ const AuthGate: React.FC<AuthGateProps> = ({
       >
         <source src={SIGN_IN_BACKGROUND_VIDEO_URL} type="video/mp4" />
       </video>
+      <div
+        aria-hidden="true"
+        className="auth-motion-fallback absolute inset-0 bg-[linear-gradient(135deg,rgba(246,238,228,0.9)_0%,rgba(248,243,236,0.96)_48%,rgba(239,234,224,0.92)_100%)]"
+      />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,240,231,0.16)_0%,rgba(247,240,231,0.38)_100%)]" />
     </div>
 
@@ -627,14 +631,15 @@ const TripPage: React.FC<TripPageProps> = ({
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Refine this trip (e.g., 'Add a dinner spot on Day 2')"
-                  className="h-11 w-full border-none bg-transparent text-sm font-medium text-[rgba(74,43,26,0.96)] outline-none placeholder:text-[rgba(118,77,54,0.58)] md:text-base"
+                  className="field-focus h-11 w-full rounded-[0.45rem] border border-transparent bg-transparent px-1 text-sm font-medium text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(118,77,54,0.58)] md:text-base"
                   disabled={isRefining}
                 />
                 <Button
                   type="submit"
                   disabled={!inputValue.trim() || isRefining}
                   size="icon"
-                  className="min-h-[40px] min-w-[40px] border-[rgba(214,98,54,0.2)] p-2 disabled:opacity-50"
+                  aria-label="Refine itinerary"
+                  className="border-[rgba(214,98,54,0.2)] p-2 disabled:opacity-50"
                 >
                   <SendHorizontal size={16} />
                 </Button>

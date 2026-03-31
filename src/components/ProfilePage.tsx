@@ -440,7 +440,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                         }
                         maxLength={40}
                         autoFocus
-                        className="w-full rounded-[0.8rem] border border-[rgba(223,205,187,0.96)] bg-[rgba(255,252,248,0.98)] px-3 py-2 font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)] outline-none transition-colors focus:border-[rgba(223,147,93,0.92)]"
+                        className="field-focus w-full rounded-[0.8rem] border border-[rgba(223,205,187,0.96)] bg-[rgba(255,252,248,0.98)] px-3 py-2 font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)]"
                       />
                       <div className="mt-2 flex items-center gap-2">
                         <Button
@@ -668,7 +668,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenTrip(trip.id)}
-                          className="flex h-full w-full flex-col text-left"
+                          className="focus-ring flex h-full w-full flex-col rounded-[1.25rem] text-left"
                         >
                           <div className="relative h-52 overflow-hidden">
                             {coverImage ? (

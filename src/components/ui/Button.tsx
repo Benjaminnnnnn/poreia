@@ -14,11 +14,11 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "min-h-[36px] gap-1.5 px-3 py-2 text-sm sm:min-h-[38px]",
-  md: "min-h-[40px] gap-2 px-4 py-2.5 text-sm",
+  sm: "min-h-[44px] gap-1.5 px-3.5 py-2 text-sm",
+  md: "min-h-[44px] gap-2 px-4 py-2.5 text-sm",
   lg: "min-h-[54px] gap-3 px-5 py-3 text-base",
-  icon: "h-9 w-9 p-0",
-  "icon-sm": "h-8 w-8 p-0",
+  icon: "h-11 w-11 p-0",
+  "icon-sm": "h-10 w-10 p-0",
 };
 
 export interface ButtonProps
@@ -45,7 +45,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       type={type}
       className={cx(
-        "inline-flex items-center justify-center rounded-[0.55rem] border font-semibold transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(224,146,94,0.42)] disabled:cursor-not-allowed disabled:opacity-55",
+        "focus-ring inline-flex items-center justify-center rounded-[0.55rem] border font-semibold transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] disabled:cursor-not-allowed disabled:opacity-55",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
         fullWidth && "w-full",
