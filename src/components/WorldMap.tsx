@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import L from "leaflet";
 import { Locate, Minus, Plus } from "lucide-react";
+import { hasFiniteCoordinates } from "../lib/coordinates";
 import { MapPinData } from "../types";
 
 interface WorldMapProps {
@@ -19,6 +20,14 @@ interface WorldMapProps {
 
 const CLUSTER_DISTANCE_KM = 35;
 const DEFAULT_PIN_COLOR = "#3f9b9a";
+
+function hasUsableViewport(map: L.Map) {
+  const container = map.getContainer();
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  return width > 0 && height > 0;
+}
 
 function hexToRgba(color: string, alpha: number) {
   if (!color.startsWith("#")) {
@@ -138,8 +147,9 @@ function createMarkerIcon(pin: MapPinData, isSelected: boolean) {
   const pinColor = pin.dayColor || DEFAULT_PIN_COLOR;
   const pinGlow = hexToRgba(pinColor, 0.22);
   const pinBadge = hexToRgba(pinColor, 0.14);
-  const pinLabel = pin.dayNumber ? `Day ${pin.dayNumber}` : "Featured";
+  const pinLabel = pin.badgeLabel || (pin.dayNumber ? `Day ${pin.dayNumber}` : "Featured");
   const pinImage = getPinImage(pin);
+  const markerValue = pin.markerValue || (pin.dayNumber ? String(pin.dayNumber) : null);
 
   return L.divIcon({
     className: "custom-pin-icon",
@@ -159,8 +169,8 @@ function createMarkerIcon(pin: MapPinData, isSelected: boolean) {
         <div class="relative flex h-12 w-12 items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform duration-300 group-hover:scale-110 ${isSelected ? "scale-110 ring-2 ring-white/75" : ""}" style="background: ${pinColor}">
           <div class="absolute inset-[5px] rounded-full border border-white/25"></div>
           ${
-            pin.dayNumber
-              ? `<span class="relative text-[11px] font-black leading-none text-white">${pin.dayNumber}</span>`
+            markerValue
+              ? `<span class="relative text-[11px] font-black leading-none text-white">${markerValue}</span>`
               : '<div class="relative h-3 w-3 rounded-full bg-white"></div>'
           }
         </div>
@@ -183,7 +193,9 @@ function shouldRefreshMarker(nextPin: MapPinData, previousPin?: MapPinData) {
     previousPin.description !== nextPin.description ||
     previousPin.dayNumber !== nextPin.dayNumber ||
     previousPin.dayColor !== nextPin.dayColor ||
-    previousPin.image !== nextPin.image
+    previousPin.image !== nextPin.image ||
+    previousPin.badgeLabel !== nextPin.badgeLabel ||
+    previousPin.markerValue !== nextPin.markerValue
   );
 }
 
@@ -204,17 +216,21 @@ const WorldMap: React.FC<WorldMapProps> = ({
   const userPulseRef = useRef<L.Layer | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const validPins = useMemo(
+    () => pins.filter((pin) => hasFiniteCoordinates(pin)),
+    [pins],
+  );
   const pinViewportKey = useMemo(
     () =>
-      pins
+      validPins
         .map((pin) => `${pin.id}:${pin.lat.toFixed(4)}:${pin.lng.toFixed(4)}`)
         .sort()
         .join("|"),
-    [pins],
+    [validPins],
   );
   const pinLookup = useMemo(
-    () => new Map(pins.map((pin) => [pin.id, pin])),
-    [pins],
+    () => new Map(validPins.map((pin) => [pin.id, pin])),
+    [validPins],
   );
 
   const handleMarkerClick = useEffectEvent((pinId: string) => {
@@ -278,7 +294,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
     }
 
     const map = mapInstanceRef.current;
-    const nextPinIds = new Set(pins.map((pin) => pin.id));
+    const nextPinIds = new Set(validPins.map((pin) => pin.id));
 
     Object.keys(markersRef.current).forEach((pinId) => {
       if (nextPinIds.has(pinId)) {
@@ -290,7 +306,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
       delete markerPinsRef.current[pinId];
     });
 
-    pins.forEach((pin) => {
+    validPins.forEach((pin) => {
       const marker = markersRef.current[pin.id];
       const previousPin = markerPinsRef.current[pin.id];
 
@@ -317,7 +333,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
       marker.setIcon(createMarkerIcon(pin, selectedPinIdRef.current === pin.id));
       markerPinsRef.current[pin.id] = pin;
     });
-  }, [handleMarkerClick, isMapReady, pins]);
+  }, [handleMarkerClick, isMapReady, validPins]);
 
   useEffect(() => {
     const previousSelectedPinId = previousSelectedPinIdRef.current;
@@ -343,41 +359,58 @@ const WorldMap: React.FC<WorldMapProps> = ({
   }, [selectedPinId]);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || !pins.length || selectedPinId) {
+    if (!mapInstanceRef.current || !validPins.length || selectedPinId) {
       return;
     }
 
     const map = mapInstanceRef.current;
-    const primaryPins = getPrimaryPinCluster(pins);
+    let frameId = 0;
 
-    if (primaryPins.length === 1) {
-      map.flyTo([primaryPins[0].lat, primaryPins[0].lng], 12, {
+    const syncViewport = () => {
+      if (!hasUsableViewport(map)) {
+        frameId = window.requestAnimationFrame(syncViewport);
+        return;
+      }
+
+      map.invalidateSize(false);
+
+      const primaryPins = getPrimaryPinCluster(validPins);
+
+      if (primaryPins.length === 1) {
+        map.flyTo([primaryPins[0].lat, primaryPins[0].lng], 12, {
+          duration: 1.2,
+          easeLinearity: 0.25,
+        });
+        return;
+      }
+
+      const bounds = L.latLngBounds(
+        primaryPins.map((pin) => [pin.lat, pin.lng] as [number, number]),
+      );
+      const southWest = bounds.getSouthWest();
+      const northEast = bounds.getNorthEast();
+
+      if (southWest.lat === northEast.lat && southWest.lng === northEast.lng) {
+        map.flyTo([southWest.lat, southWest.lng], 12, {
+          duration: 1.2,
+          easeLinearity: 0.25,
+        });
+        return;
+      }
+
+      map.flyToBounds(bounds.pad(0.28), {
         duration: 1.2,
         easeLinearity: 0.25,
+        maxZoom: 13,
       });
-      return;
-    }
+    };
 
-    const bounds = L.latLngBounds(
-      primaryPins.map((pin) => [pin.lat, pin.lng] as [number, number]),
-    );
-    const southWest = bounds.getSouthWest();
-    const northEast = bounds.getNorthEast();
+    frameId = window.requestAnimationFrame(syncViewport);
 
-    if (southWest.lat === northEast.lat && southWest.lng === northEast.lng) {
-      map.flyTo([southWest.lat, southWest.lng], 12, {
-        duration: 1.2,
-        easeLinearity: 0.25,
-      });
-      return;
-    }
-
-    map.flyToBounds(bounds.pad(0.28), {
-      duration: 1.2,
-      easeLinearity: 0.25,
-      maxZoom: 13,
-    });
-  }, [pinViewportKey, pins, selectedPinId]);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [pinViewportKey, selectedPinId, validPins]);
 
   useEffect(() => {
     if (!isMapReady || !selectedPinId || !mapInstanceRef.current) {
@@ -389,10 +422,27 @@ const WorldMap: React.FC<WorldMapProps> = ({
       return;
     }
 
-    mapInstanceRef.current.flyTo([pin.lat, pin.lng], 13, {
-      duration: 1.5,
-      easeLinearity: 0.25,
-    });
+    const map = mapInstanceRef.current;
+    let frameId = 0;
+
+    const focusPin = () => {
+      if (!hasUsableViewport(map)) {
+        frameId = window.requestAnimationFrame(focusPin);
+        return;
+      }
+
+      map.invalidateSize(false);
+      map.flyTo([pin.lat, pin.lng], 13, {
+        duration: 1.5,
+        easeLinearity: 0.25,
+      });
+    };
+
+    frameId = window.requestAnimationFrame(focusPin);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
   }, [isMapReady, pinLookup, selectedPinId]);
 
   const handleLocateMe = () => {
@@ -461,9 +511,11 @@ const WorldMap: React.FC<WorldMapProps> = ({
       {showControls ? (
         <div className="absolute bottom-4 right-3 z-[400] flex flex-col gap-2.5 md:bottom-12 md:right-4 md:gap-3">
           <button
+            type="button"
             onClick={handleLocateMe}
             disabled={isLocating}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] text-[rgba(102,70,49,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl transition-all hover:bg-white hover:text-[rgba(217,102,58,0.92)] active:scale-95 md:h-11 md:w-11"
+            aria-label="Locate me"
+            className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] text-[rgba(102,70,49,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl transition-all hover:bg-white hover:text-[rgba(217,102,58,0.92)] active:scale-95"
             title="Locate Me"
           >
             <Locate
@@ -478,16 +530,20 @@ const WorldMap: React.FC<WorldMapProps> = ({
 
           <div className="flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl">
             <button
+              type="button"
               onClick={() => mapInstanceRef.current?.zoomIn()}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(255,236,208,0.8)] hover:text-[rgba(217,102,58,0.92)] active:bg-[rgba(255,231,198,0.92)] md:h-11 md:w-11"
+              aria-label="Zoom in"
+              className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(255,236,208,0.8)] hover:text-[rgba(217,102,58,0.92)] active:bg-[rgba(255,231,198,0.92)]"
               title="Zoom In"
             >
               <Plus size={18} className="md:h-5 md:w-5" />
             </button>
             <div className="h-[1px] w-full bg-[rgba(221,197,173,0.56)]" />
             <button
+              type="button"
               onClick={() => mapInstanceRef.current?.zoomOut()}
-              className="flex h-10 w-10 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(225,242,237,0.82)] hover:text-[rgba(42,140,142,0.92)] active:bg-[rgba(210,235,228,0.92)] md:h-11 md:w-11"
+              aria-label="Zoom out"
+              className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(225,242,237,0.82)] hover:text-[rgba(42,140,142,0.92)] active:bg-[rgba(210,235,228,0.92)]"
               title="Zoom Out"
             >
               <Minus size={18} className="md:h-5 md:w-5" />

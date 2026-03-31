@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useId, useState } from "react";
 import {
   Check,
   Clock,
@@ -14,6 +14,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Activity } from "../../types";
 import { ResolvedActivityImage } from "../../services/activityImageService";
+import Button from "../ui/Button";
 
 interface ActivityCardLayoutProps {
   activity: Activity;
@@ -43,7 +44,7 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
     {...dragProps}
     onClick={onClick}
     style={style}
-    className={`group relative rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,255,253,0.98)] p-3 shadow-[0_8px_20px_rgba(108,62,26,0.04)] ${className}`}
+    className={`focus-ring group relative rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,255,253,0.98)] p-3 shadow-[0_8px_20px_rgba(108,62,26,0.04)] ${className}`}
   >
     <div className="pointer-events-none absolute left-1.5 top-1/2 z-10 -translate-y-1/2 p-2 text-[rgba(227,175,139,0.72)] sm:left-2">
       <GripVertical size={18} />
@@ -173,24 +174,28 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
         : "border-white hover:border-[rgba(237,170,118,0.65)] hover:shadow-lg"
     }`}
   >
-    <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+    <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
       <button
+        type="button"
         onClick={(event) => {
           event.stopPropagation();
           onEdit();
         }}
-        className="rounded-[0.45rem] p-1.5 text-[rgba(153,118,93,0.8)] transition-colors hover:bg-[rgba(227,242,239,0.86)] hover:text-[rgba(42,140,142,0.92)]"
+        className="focus-ring flex h-10 w-10 items-center justify-center rounded-[0.6rem] text-[rgba(153,118,93,0.8)] transition-colors hover:bg-[rgba(227,242,239,0.86)] hover:text-[rgba(42,140,142,0.92)]"
         title="Edit"
+        aria-label={`Edit ${activity.description}`}
       >
         <Pencil size={14} />
       </button>
       <button
+        type="button"
         onClick={(event) => {
           event.stopPropagation();
           onDelete();
         }}
-        className="rounded-[0.45rem] p-1.5 text-[rgba(153,118,93,0.8)] transition-colors hover:bg-red-50 hover:text-red-500"
+        className="focus-ring flex h-10 w-10 items-center justify-center rounded-[0.6rem] text-[rgba(153,118,93,0.8)] transition-colors hover:bg-red-50 hover:text-red-500"
         title="Delete"
+        aria-label={`Delete ${activity.description}`}
       >
         <Trash2 size={14} />
       </button>
@@ -207,6 +212,7 @@ const ActivityEditCard: React.FC<{
   setNodeRef: (node: HTMLDivElement | null) => void;
 }> = ({ activity, currency, onCancel, onSave, setNodeRef, style }) => {
   const [editForm, setEditForm] = useState<Activity>({ ...activity });
+  const editFormId = useId();
   const originalLocation = activity.location.trim();
 
   return (
@@ -217,11 +223,16 @@ const ActivityEditCard: React.FC<{
     >
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-semibold text-[rgba(120,83,58,0.78)]">
+          <label
+            htmlFor={`${editFormId}-time`}
+            className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+          >
             Time
           </label>
           <input
-            className="w-full rounded-[0.45rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] p-1.5 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,198,194,0.4)]"
+            id={`${editFormId}-time`}
+            type="text"
+            className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm"
             value={editForm.time}
             onChange={(event) =>
               setEditForm({ ...editForm, time: event.target.value })
@@ -229,12 +240,16 @@ const ActivityEditCard: React.FC<{
           />
         </div>
         <div>
-          <label className="text-xs font-semibold text-[rgba(120,83,58,0.78)]">
+          <label
+            htmlFor={`${editFormId}-cost`}
+            className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+          >
             Cost ({currency})
           </label>
           <input
+            id={`${editFormId}-cost`}
             type="number"
-            className="w-full rounded-[0.45rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] p-1.5 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,198,194,0.4)]"
+            className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm"
             value={editForm.costEstimate || ""}
             onChange={(event) =>
               setEditForm({
@@ -246,11 +261,16 @@ const ActivityEditCard: React.FC<{
         </div>
       </div>
       <div>
-        <label className="text-xs font-semibold text-[rgba(120,83,58,0.78)]">
+        <label
+          htmlFor={`${editFormId}-activity`}
+          className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+        >
           Activity
         </label>
         <input
-          className="w-full rounded-[0.45rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] p-1.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[rgba(127,198,194,0.4)]"
+          id={`${editFormId}-activity`}
+          type="text"
+          className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm font-medium"
           value={editForm.description}
           onChange={(event) =>
             setEditForm({ ...editForm, description: event.target.value })
@@ -258,11 +278,16 @@ const ActivityEditCard: React.FC<{
         />
       </div>
       <div>
-        <label className="text-xs font-semibold text-[rgba(120,83,58,0.78)]">
+        <label
+          htmlFor={`${editFormId}-location`}
+          className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+        >
           Location
         </label>
         <input
-          className="w-full rounded-[0.45rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] p-1.5 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,198,194,0.4)]"
+          id={`${editFormId}-location`}
+          type="text"
+          className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm"
           value={editForm.location}
           onChange={(event) =>
             setEditForm({ ...editForm, location: event.target.value })
@@ -271,13 +296,16 @@ const ActivityEditCard: React.FC<{
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
+        <Button
           onClick={onCancel}
-          className="rounded-[0.45rem] p-1.5 text-[rgba(120,83,58,0.78)] hover:bg-[rgba(255,241,227,0.92)]"
+          variant="ghost"
+          size="icon-sm"
+          className="rounded-[0.45rem] text-[rgba(120,83,58,0.78)] hover:bg-[rgba(255,241,227,0.92)]"
+          aria-label="Cancel activity edits"
         >
           <X size={16} />
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             const nextLocation = editForm.location.trim();
             const locationChanged = nextLocation !== originalLocation;
@@ -290,10 +318,12 @@ const ActivityEditCard: React.FC<{
                   : editForm.img_prompt,
             });
           }}
-          className="rounded-[0.45rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] p-1.5 text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
+          size="icon-sm"
+          className="rounded-[0.45rem]"
+          aria-label="Save activity edits"
         >
           <Check size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );

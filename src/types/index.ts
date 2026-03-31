@@ -43,6 +43,8 @@ export interface MapPinData {
   description: string;
   dayNumber?: number;
   dayColor?: string;
+  badgeLabel?: string;
+  markerValue?: string;
 }
 
 export interface ChatMessage {

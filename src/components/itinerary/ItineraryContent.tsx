@@ -1,6 +1,8 @@
 import React from "react";
 import { BookText, Calendar, NotebookPen } from "lucide-react";
 import { DayPlan, TravelItinerary } from "../../types";
+import Badge from "../ui/Badge";
+import Surface from "../ui/Surface";
 import {
   MOOD_OPTIONS,
   MOOD_OPTION_LOOKUP,
@@ -35,17 +37,17 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
           Trip plan
         </p>
         <div className="mb-2 flex flex-wrap gap-2">
-          <span className="rounded-[0.35rem] border border-[rgba(237,170,118,0.38)] bg-[rgba(255,249,243,0.92)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[rgba(217,102,58,0.96)]">
+          <Badge tone="coral" size="xs">
             {totalDays} Days
-          </span>
-          <span className="rounded-[0.35rem] border border-[rgba(237,170,118,0.38)] bg-[rgba(255,249,243,0.92)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[rgba(217,102,58,0.96)]">
+          </Badge>
+          <Badge tone="coral" size="xs">
             {currency}
             {totalBudget.toLocaleString()} Total
-          </span>
+          </Badge>
           {journaledDaysCount ? (
-            <span className="rounded-[0.35rem] border border-[rgba(110,160,154,0.32)] bg-[rgba(233,245,242,0.96)] px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[rgba(55,128,121,0.96)]">
+            <Badge tone="teal" size="xs">
               {journaledDaysCount} journaled
-            </span>
+            </Badge>
           ) : null}
         </div>
         <h2 className="font-display text-[1.8rem] font-bold leading-none text-[rgba(74,43,26,0.96)] md:text-[2.4rem]">
@@ -60,7 +62,7 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <button
           type="button"
           onClick={() => onTabChange("itinerary")}
-          className={`flex min-h-[38px] flex-1 items-center justify-center gap-2 px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
+          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.7rem] px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
             activeTab === "itinerary"
               ? "bg-[rgba(230,106,63,0.96)] text-white"
               : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
@@ -72,7 +74,7 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <button
           type="button"
           onClick={() => onTabChange("notes")}
-          className={`flex min-h-[38px] flex-1 items-center justify-center gap-2 px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
+          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.7rem] px-4 text-sm font-semibold transition-colors lg:min-w-[8rem] ${
             activeTab === "notes"
               ? "bg-[rgba(230,106,63,0.96)] text-white"
               : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
@@ -111,9 +113,12 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
 
     <div className="space-y-4">
       {days.map((dayPlan, dayIndex) => (
-        <section
+        <Surface
+          as="section"
           key={dayPlan.day}
-          className="border border-[rgba(232,222,211,0.96)] bg-[rgba(255,251,246,0.96)] p-4 shadow-[0_10px_24px_rgba(108,62,26,0.04)]"
+          variant="card"
+          radius="md"
+          className="shadow-[0_10px_24px_rgba(108,62,26,0.04)]"
         >
           <div className="flex flex-col gap-3 border-b border-[rgba(239,223,207,0.88)] pb-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
@@ -146,7 +151,7 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
                           notes: dayPlan.notes,
                         })
                       }
-                      className={`border px-3 py-2 text-sm font-medium transition-colors ${
+                      className={`focus-ring min-h-[44px] rounded-[0.65rem] border px-3.5 py-2 text-sm font-medium transition-colors ${
                         isActive
                           ? option.activeClassName
                           : option.idleClassName
@@ -177,10 +182,10 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
                 })
               }
               placeholder="What surprised you, what you loved, what you would skip, what the day felt like..."
-              className="mt-2 min-h-[9rem] w-full resize-y border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] outline-none transition-colors placeholder:text-[rgba(150,112,82,0.52)] focus:border-[rgba(223,147,93,0.92)]"
+              className="field-focus mt-2 min-h-[9rem] w-full resize-y rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] placeholder:text-[rgba(150,112,82,0.52)]"
             />
           </div>
-        </section>
+        </Surface>
       ))}
     </div>
   </section>
@@ -216,9 +221,13 @@ export const ItinerarySidePanel: React.FC<{
             ? MOOD_OPTION_LOOKUP.get(day.mood)
             : null;
           return (
-            <div
+            <Surface
+              as="div"
               key={`journal-summary-${day.day}`}
-              className="border border-[rgba(230,217,203,0.92)] bg-[rgba(255,251,246,0.78)] px-4 py-3"
+              variant="subtle"
+              padding="none"
+              radius="md"
+              className="px-4 py-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -229,17 +238,19 @@ export const ItinerarySidePanel: React.FC<{
                     {day.theme}
                   </p>
                 </div>
-                <span
-                  className={`border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+                <Badge
+                  tone="neutral"
+                  size="sm"
+                  className={
                     moodOption
-                      ? moodOption.pillClassName
-                      : "border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.92)] text-[rgba(102,68,47,0.82)]"
-                  }`}
+                      ? `${moodOption.pillClassName} rounded-[0.45rem] px-3 py-1 text-xs`
+                      : "rounded-[0.45rem] px-3 py-1 text-xs"
+                  }
                 >
                   {day.mood || "No mood yet"}
-                </span>
+                </Badge>
               </div>
-            </div>
+            </Surface>
           );
         })}
       </div>

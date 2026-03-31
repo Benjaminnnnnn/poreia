@@ -14,6 +14,7 @@ import {
   getActivityImage,
   ResolvedActivityImage,
 } from "../services/activityImageService";
+import { hasFiniteCoordinates } from "../lib/coordinates";
 import {
   Activity,
   BudgetBreakdown,
@@ -188,7 +189,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
   const mapPins = useMemo(
     () =>
       itineraryActivityEntries.flatMap(({ activity, dayNumber }) => {
-        if (activity.lat === undefined || activity.lng === undefined) {
+        if (!hasFiniteCoordinates(activity)) {
           return [];
         }
 

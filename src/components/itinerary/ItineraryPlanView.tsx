@@ -30,13 +30,19 @@ import {
   ActivityDragOverlayCard,
   SortableActivityItem,
 } from "./ActivityItem";
+import Surface from "../ui/Surface";
 
 const BudgetChartCard: React.FC<{
   breakdown: BudgetBreakdown[];
   currency: string;
   hasRecordedCosts: boolean;
 }> = ({ breakdown, currency, hasRecordedCosts }) => (
-  <section className="rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,251,246,0.96)] p-4 shadow-[0_12px_24px_rgba(108,62,26,0.04)]">
+  <Surface
+    as="section"
+    variant="card"
+    radius="md"
+    className="shadow-[0_12px_24px_rgba(108,62,26,0.04)]"
+  >
     <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
       <Wallet size={16} />{" "}
       {hasRecordedCosts ? "Recorded Spend by Day" : "Budget Allocation"}
@@ -69,7 +75,7 @@ const BudgetChartCard: React.FC<{
         </PieChart>
       </ResponsiveContainer>
     </div>
-  </section>
+  </Surface>
 );
 
 interface DailyPlanSectionProps {
@@ -153,9 +159,15 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                     />
                   ))}
                   {dayPlan.activities.length === 0 ? (
-                    <div className="rounded-[0.7rem] border-2 border-dashed border-[rgba(239,215,193,0.92)] py-4 text-center text-sm text-[rgba(120,83,58,0.62)]">
+                    <Surface
+                      as="div"
+                      variant="dashed"
+                      padding="none"
+                      radius="md"
+                      className="border-2 border-[rgba(239,215,193,0.92)] py-4 text-center text-sm text-[rgba(120,83,58,0.62)]"
+                    >
                       Drop items here
-                    </div>
+                    </Surface>
                   ) : null}
                 </div>
               </SortableContext>
