@@ -14,6 +14,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Activity } from "../../types";
 import { ResolvedActivityImage } from "../../services/activityImageService";
+import Button from "../ui/Button";
 
 interface ActivityCardLayoutProps {
   activity: Activity;
@@ -271,13 +272,15 @@ const ActivityEditCard: React.FC<{
       </div>
 
       <div className="flex justify-end gap-2 pt-2">
-        <button
+        <Button
           onClick={onCancel}
-          className="rounded-[0.45rem] p-1.5 text-[rgba(120,83,58,0.78)] hover:bg-[rgba(255,241,227,0.92)]"
+          variant="ghost"
+          size="icon-sm"
+          className="rounded-[0.45rem] text-[rgba(120,83,58,0.78)] hover:bg-[rgba(255,241,227,0.92)]"
         >
           <X size={16} />
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => {
             const nextLocation = editForm.location.trim();
             const locationChanged = nextLocation !== originalLocation;
@@ -290,10 +293,11 @@ const ActivityEditCard: React.FC<{
                   : editForm.img_prompt,
             });
           }}
-          className="rounded-[0.45rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] p-1.5 text-white transition-colors hover:bg-[rgba(217,98,56,1)]"
+          size="icon-sm"
+          className="rounded-[0.45rem]"
         >
           <Check size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );

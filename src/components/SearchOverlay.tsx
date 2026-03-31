@@ -2,6 +2,9 @@ import { ArrowUpRight, Clock3, Search, Sparkles, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { SUGGESTED_PROMPTS } from "../constants";
 import { TripSession } from "../types";
+import Badge from "./ui/Badge";
+import Button from "./ui/Button";
+import Surface from "./ui/Surface";
 
 const SEARCH_OVERLAY_IMAGE =
   "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
@@ -91,7 +94,13 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                     </p>
                   </div>
 
-                  <div className="mt-8 max-w-4xl rounded-[0.55rem] border border-[rgba(230,214,197,0.96)] bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]">
+                  <Surface
+                    as="div"
+                    variant="glass"
+                    padding="none"
+                    radius="md"
+                    className="mt-8 max-w-4xl bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]"
+                  >
                     <div className="border-b border-[rgba(240,226,210,0.94)] px-4 py-3">
                       <div>
                         <label
@@ -143,30 +152,32 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                           </p>
                           <div className="mt-3 flex flex-wrap gap-2.5">
                             {SUGGESTED_PROMPTS.slice(0, 4).map((prompt) => (
-                              <button
+                              <Button
                                 key={prompt}
-                                type="button"
                                 onClick={() => handleSuggestionClick(prompt)}
                                 disabled={isGenerating}
-                                className="rounded-[0.55rem] border border-[rgba(239,215,193,0.96)] bg-[rgba(255,252,247,0.95)] px-4 py-2.5 text-left text-sm font-medium text-[rgba(89,58,38,0.94)] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,160,100,0.78)] hover:text-[rgba(208,95,54,0.96)] disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:translate-y-0 disabled:hover:border-[rgba(239,215,193,0.96)] disabled:hover:text-[rgba(89,58,38,0.94)]"
+                                variant="secondary"
+                                size="md"
+                                className="h-auto justify-start whitespace-normal border-[rgba(239,215,193,0.96)] bg-[rgba(255,252,247,0.95)] px-4 py-2.5 text-left font-medium text-[rgba(89,58,38,0.94)] hover:-translate-y-0.5 hover:border-[rgba(234,160,100,0.78)] hover:text-[rgba(208,95,54,0.96)] disabled:hover:translate-y-0 disabled:hover:border-[rgba(239,215,193,0.96)] disabled:hover:text-[rgba(89,58,38,0.94)]"
                               >
                                 {prompt}
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         </div>
 
-                        <button
+                        <Button
                           type="submit"
                           disabled={!query.trim() || isGenerating}
-                          className="flex min-h-[3.25rem] w-full shrink-0 items-center justify-center gap-2 rounded-[0.55rem] border border-[rgba(214,98,54,0.16)] bg-[rgba(230,106,63,0.96)] px-4 py-3 text-sm font-semibold text-white transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:bg-[rgba(217,98,56,1)] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:min-w-[10.5rem]"
+                          fullWidth
+                          className="min-h-[3.25rem] shrink-0 hover:-translate-y-0.5 disabled:opacity-50 sm:w-auto sm:min-w-[10.5rem]"
                         >
                           Start planning
                           <ArrowUpRight size={18} />
-                        </button>
+                        </Button>
                       </div>
                     </div>
-                  </div>
+                  </Surface>
                 </div>
               </div>
             </form>
@@ -192,9 +203,12 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
             <div className="max-h-[30rem] overflow-y-auto pr-1">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {trips.map((trip) => (
-                  <article
+                  <Surface
+                    as="article"
                     key={trip.id}
-                    className="group relative flex min-h-[10.25rem] w-full flex-col justify-between border border-[rgba(226,214,200,0.95)] bg-[rgba(255,251,246,0.96)] p-4 text-left transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 xl:min-h-[9.75rem]"
+                    variant="card"
+                    radius="xl"
+                    className="group relative flex min-h-[10.25rem] w-full flex-col justify-between p-4 text-left transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 xl:min-h-[9.75rem]"
                   >
                     <button
                       type="button"
@@ -214,11 +228,15 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                       className="flex h-full flex-col justify-between text-left"
                     >
                       <div>
-                        <div className="inline-flex rounded-[0.45rem] border border-[rgba(255,255,255,0.82)] bg-[rgba(255,252,247,0.8)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(72,131,126,0.92)]">
+                        <Badge
+                          tone="glass"
+                          size="sm"
+                          className="rounded-[0.45rem] border-[rgba(255,255,255,0.82)] bg-[rgba(255,252,247,0.8)]"
+                        >
                           {trip.currentItinerary
                             ? `${trip.currentItinerary.totalDays} days`
                             : "Draft"}
-                        </div>
+                        </Badge>
                         <h3 className="mt-4 font-display text-[1.45rem] leading-[1.02] tracking-[-0.04em] text-[rgba(72,43,27,0.96)] lg:text-[1.55rem]">
                           {trip.currentItinerary?.destination || trip.title}
                         </h3>
@@ -238,12 +256,17 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                         </span>
                       </div>
                     </button>
-                  </article>
+                  </Surface>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="border border-dashed border-[rgba(228,204,188,0.95)] bg-[rgba(255,250,245,0.74)] px-5 py-10 text-center">
+            <Surface
+              as="div"
+              variant="dashed"
+              radius="xl"
+              className="px-5 py-10 text-center"
+            >
               <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
                 Your trip shelf is empty.
               </p>
@@ -251,7 +274,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                 The first itinerary you generate will stay here so you can jump
                 back in without reopening a menu.
               </p>
-            </div>
+            </Surface>
           )}
         </section>
       </div>

@@ -21,6 +21,8 @@ import React, {
   useState,
 } from "react";
 import { v4 as uuidv4 } from "uuid";
+import Button from "./components/ui/Button";
+import Surface from "./components/ui/Surface";
 import SearchOverlay from "./components/SearchOverlay";
 import ProfilePage from "./components/ProfilePage";
 import { auth, signInWithGoogle, signOutUser } from "./lib/firebase";
@@ -133,8 +135,11 @@ const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({
   className = "",
   label,
 }) => (
-  <div
-    className={`flex items-center justify-center bg-[rgba(255,250,245,0.72)] backdrop-blur-xl ${className}`}
+  <Surface
+    variant="glass"
+    padding="none"
+    radius="md"
+    className={`flex items-center justify-center bg-[rgba(255,250,245,0.72)] ${className}`}
   >
     <div className="flex flex-col items-center gap-3 text-[rgba(92,58,36,0.96)]">
       <Loader2
@@ -143,7 +148,7 @@ const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({
       />
       <p className="font-medium">{label}</p>
     </div>
-  </div>
+  </Surface>
 );
 
 const GoogleMark: React.FC<{ className?: string }> = ({ className = "" }) => (
@@ -251,14 +256,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {authUser ? (
             <>
               {!isHomePage ? (
-                <button
-                  type="button"
+                <Button
                   onClick={onStartNewTrip}
-                  className="inline-flex min-h-[36px] items-center gap-1.5 rounded-[0.55rem] border border-[rgba(214,98,54,0.18)] bg-[rgba(230,106,63,0.96)] px-2.5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)] sm:min-h-[38px] sm:gap-2 sm:px-3"
+                  size="sm"
+                  className="px-2.5 sm:px-3"
                 >
                   <Plus size={14} className="sm:h-[15px] sm:w-[15px]" />
                   <span className="hidden md:inline">New trip</span>
-                </button>
+                </Button>
               ) : null}
 
               <div ref={accountMenuRef} className="relative shrink-0">
@@ -284,7 +289,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 </button>
 
                 {isAccountMenuOpen ? (
-                  <div className="absolute right-0 top-[calc(100%+0.65rem)] z-30 min-w-[12rem] rounded-[1rem] border border-[rgba(229,214,198,0.98)] bg-[rgba(255,251,246,0.96)] p-2 shadow-[0_24px_48px_rgba(120,78,42,0.14)] backdrop-blur-[10px]">
+                  <Surface
+                    variant="glass"
+                    padding="none"
+                    radius="lg"
+                    className="absolute right-0 top-[calc(100%+0.65rem)] z-30 min-w-[12rem] p-2 shadow-[0_24px_48px_rgba(120,78,42,0.14)]"
+                  >
                     <div className="border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
                       <p className="truncate text-sm font-semibold text-[rgba(88,57,39,0.94)]">
                         {travelerName}
@@ -320,7 +330,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       <LogOut size={15} />
                       Sign out
                     </button>
-                  </div>
+                  </Surface>
                 ) : null}
               </div>
             </>
@@ -358,7 +368,13 @@ const AuthGate: React.FC<AuthGateProps> = ({
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,240,231,0.16)_0%,rgba(247,240,231,0.38)_100%)]" />
     </div>
 
-    <div className="relative z-10 w-full max-w-[35rem] overflow-hidden rounded-[1.9rem] border border-[rgba(230,216,200,0.76)] bg-[rgba(255,251,246,0.62)] shadow-[0_28px_80px_rgba(134,83,37,0.16)] backdrop-blur-[12px]">
+    <Surface
+      as="div"
+      variant="glass"
+      padding="none"
+      radius="3xl"
+      className="relative z-10 w-full max-w-[35rem] overflow-hidden border-[rgba(230,216,200,0.76)] bg-[rgba(255,251,246,0.62)] shadow-[0_28px_80px_rgba(134,83,37,0.16)] backdrop-blur-[12px]"
+    >
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.78)_50%,rgba(255,255,255,0)_100%)]"
@@ -376,23 +392,49 @@ const AuthGate: React.FC<AuthGateProps> = ({
         </div>
 
         <div className="mt-8 grid gap-3 text-[0.82rem] font-medium text-[rgba(116,79,56,0.74)] sm:grid-cols-3">
-          <div className="rounded-[0.95rem] border border-[rgba(233,220,206,0.92)] bg-[rgba(255,252,248,0.72)] px-3.5 py-3">
+          <Surface
+            as="div"
+            variant="subtle"
+            padding="none"
+            radius="lg"
+            className="px-3.5 py-3"
+          >
             Start from one sentence
-          </div>
-          <div className="rounded-[0.95rem] border border-[rgba(233,220,206,0.92)] bg-[rgba(255,252,248,0.72)] px-3.5 py-3">
+          </Surface>
+          <Surface
+            as="div"
+            variant="subtle"
+            padding="none"
+            radius="lg"
+            className="px-3.5 py-3"
+          >
             Refine plans on the go
-          </div>
-          <div className="rounded-[0.95rem] border border-[rgba(233,220,206,0.92)] bg-[rgba(255,252,248,0.72)] px-3.5 py-3">
+          </Surface>
+          <Surface
+            as="div"
+            variant="subtle"
+            padding="none"
+            radius="lg"
+            className="px-3.5 py-3"
+          >
             Keep every trip in reach
-          </div>
+          </Surface>
         </div>
 
-        <div className="mt-8 rounded-[1.15rem] border border-[rgba(229,214,198,0.94)] bg-[rgba(255,252,248,0.78)] p-3 shadow-[0_14px_36px_rgba(129,84,46,0.08)]">
-          <button
-            type="button"
+        <Surface
+          as="div"
+          variant="glass"
+          padding="sm"
+          radius="xl"
+          className="mt-8 bg-[rgba(255,252,248,0.78)] shadow-[0_14px_36px_rgba(129,84,46,0.08)]"
+        >
+          <Button
             onClick={onSignIn}
             disabled={isSigningIn}
-            className="inline-flex min-h-[54px] w-full items-center justify-center gap-3 rounded-[0.95rem] border border-[rgba(225,207,188,0.96)] bg-[rgba(255,252,248,0.98)] px-5 py-3 text-base font-semibold text-[rgba(84,54,37,0.94)] transition-all hover:-translate-y-[1px] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            fullWidth
+            size="lg"
+            variant="secondary"
+            className="rounded-[0.95rem] border-[rgba(225,207,188,0.96)] bg-[rgba(255,252,248,0.98)] text-base text-[rgba(84,54,37,0.94)] hover:-translate-y-[1px] hover:bg-white disabled:opacity-60"
           >
             {isSigningIn ? (
               <Loader2
@@ -403,20 +445,26 @@ const AuthGate: React.FC<AuthGateProps> = ({
               <GoogleMark className="h-[18px] w-[18px]" />
             )}
             Continue with Google
-          </button>
+          </Button>
 
           <p className="px-2 pb-1 pt-3 text-center text-[0.8rem] leading-6 text-[rgba(118,80,57,0.72)]">
             No setup flow. Just sign in and start shaping the trip.
           </p>
-        </div>
+        </Surface>
 
         {errorMessage ? (
-          <div className="mt-4 rounded-[1rem] border border-[rgba(226,172,145,0.55)] bg-[rgba(255,241,235,0.92)] px-4 py-3 text-sm font-medium text-[rgba(150,69,45,0.92)]">
+          <Surface
+            as="div"
+            variant="subtle"
+            padding="none"
+            radius="lg"
+            className="mt-4 border-[rgba(226,172,145,0.55)] bg-[rgba(255,241,235,0.92)] px-4 py-3 text-sm font-medium text-[rgba(150,69,45,0.92)]"
+          >
             {errorMessage}
-          </div>
+          </Surface>
         ) : null}
       </div>
-    </div>
+    </Surface>
   </section>
 );
 
@@ -582,13 +630,14 @@ const TripPage: React.FC<TripPageProps> = ({
                   className="h-11 w-full border-none bg-transparent text-sm font-medium text-[rgba(74,43,26,0.96)] outline-none placeholder:text-[rgba(118,77,54,0.58)] md:text-base"
                   disabled={isRefining}
                 />
-                <button
+                <Button
                   type="submit"
                   disabled={!inputValue.trim() || isRefining}
-                  className="min-h-[40px] min-w-[40px] rounded-[0.55rem] border border-[rgba(214,98,54,0.2)] bg-[rgba(230,106,63,0.96)] p-2 text-white transition-all hover:bg-[rgba(217,98,56,1)] disabled:opacity-50"
+                  size="icon"
+                  className="min-h-[40px] min-w-[40px] border-[rgba(214,98,54,0.2)] p-2 disabled:opacity-50"
                 >
                   <SendHorizontal size={16} />
-                </button>
+                </Button>
               </div>
               {isRefining ? (
                 <div className="animate-progress absolute bottom-0 left-2 right-2 h-[2px] bg-[rgba(230,106,63,0.72)]" />

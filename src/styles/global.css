@@ -19,6 +19,33 @@ body,
   --brand-peach: oklch(0.87 0.1 58);
   --brand-teal: oklch(0.69 0.11 188);
   --brand-sea: oklch(0.57 0.1 213);
+  --surface-card-border: rgba(232, 222, 211, 0.96);
+  --surface-card-bg: rgba(255, 251, 246, 0.96);
+  --surface-subtle-border: rgba(229, 214, 198, 0.98);
+  --surface-subtle-bg: rgba(255, 252, 247, 0.96);
+  --surface-muted-border: rgba(234, 221, 207, 0.96);
+  --surface-muted-bg: rgba(248, 244, 236, 0.88);
+  --surface-glass-border: rgba(229, 214, 198, 0.94);
+  --surface-glass-bg: rgba(255, 251, 246, 0.92);
+  --surface-dashed-border: rgba(228, 204, 188, 0.95);
+  --surface-dashed-bg: rgba(255, 250, 245, 0.74);
+  --shadow-surface-card: 0 12px 24px rgba(108, 62, 26, 0.04);
+  --shadow-surface-float: 0 22px 52px rgba(118, 74, 36, 0.08);
+  --action-primary-bg: rgba(230, 106, 63, 0.96);
+  --action-primary-bg-hover: rgba(217, 98, 56, 1);
+  --action-primary-border: rgba(214, 98, 54, 0.18);
+  --action-secondary-bg: rgba(255, 252, 247, 0.96);
+  --action-secondary-bg-hover: rgba(247, 239, 228, 0.82);
+  --action-secondary-border: rgba(226, 214, 200, 0.95);
+  --badge-coral-border: rgba(237, 170, 118, 0.38);
+  --badge-coral-bg: rgba(255, 249, 243, 0.92);
+  --badge-coral-text: rgba(217, 102, 58, 0.96);
+  --badge-teal-border: rgba(110, 160, 154, 0.32);
+  --badge-teal-bg: rgba(233, 245, 242, 0.96);
+  --badge-teal-text: rgba(55, 128, 121, 0.96);
+  --badge-neutral-border: rgba(236, 220, 204, 0.96);
+  --badge-neutral-bg: rgba(255, 252, 248, 0.92);
+  --badge-neutral-text: rgba(102, 68, 47, 0.82);
 }
 
 * {

@@ -27,6 +27,9 @@ import type {
   TravelItinerary,
   TripSession,
 } from "../types";
+import Badge from "./ui/Badge";
+import Button from "./ui/Button";
+import Surface from "./ui/Surface";
 
 const WorldMap = lazy(() => import("./WorldMap"));
 
@@ -383,7 +386,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     <div className="h-full overflow-y-auto bg-[rgb(248,245,240)]">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-6">
         <div className="grid gap-6 xl:grid-cols-[18rem,minmax(0,1fr)]">
-          <aside className="overflow-hidden rounded-[1.4rem] border border-[rgba(229,214,198,0.98)] bg-[rgba(255,251,246,0.92)] shadow-[0_20px_48px_rgba(118,74,36,0.08)]">
+          <Surface
+            as="aside"
+            variant="glass"
+            padding="none"
+            radius="2xl"
+            className="overflow-hidden shadow-[0_20px_48px_rgba(118,74,36,0.08)]"
+          >
             <div className="relative overflow-hidden px-5 pb-6 pt-6">
               <div
                 aria-hidden="true"
@@ -434,25 +443,27 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                         className="w-full rounded-[0.8rem] border border-[rgba(223,205,187,0.96)] bg-[rgba(255,252,248,0.98)] px-3 py-2 font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)] outline-none transition-colors focus:border-[rgba(223,147,93,0.92)]"
                       />
                       <div className="mt-2 flex items-center gap-2">
-                        <button
+                        <Button
                           type="submit"
                           disabled={!draftTravelerName.trim()}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-[0.75rem] border border-[rgba(214,98,54,0.16)] bg-[rgba(230,106,63,0.96)] px-3 text-sm font-semibold text-white transition-colors hover:bg-[rgba(217,98,56,1)] disabled:cursor-not-allowed disabled:opacity-55"
+                          size="icon"
+                          className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
                         >
                           <Check size={14} />
                           Save
-                        </button>
-                        <button
-                          type="button"
+                        </Button>
+                        <Button
                           onClick={() => {
                             setDraftTravelerName(travelerName);
                             setIsEditingTravelerName(false);
                           }}
-                          className="inline-flex h-9 items-center gap-1.5 rounded-[0.75rem] border border-[rgba(226,214,200,0.95)] bg-[rgba(255,252,247,0.96)] px-3 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)]"
+                          variant="secondary"
+                          size="icon"
+                          className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
                         >
                           <X size={14} />
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                     </form>
                   ) : (
@@ -460,14 +471,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                       <h1 className="font-display text-[2rem] leading-[0.96] tracking-[-0.05em] text-[rgba(74,43,26,0.97)]">
                         {travelerName}
                       </h1>
-                      <button
-                        type="button"
+                      <Button
                         onClick={() => setIsEditingTravelerName(true)}
-                        className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[rgba(226,214,200,0.95)] bg-[rgba(255,252,247,0.96)] text-[rgba(126,82,54,0.82)] transition-colors hover:bg-[rgba(247,239,228,0.82)] hover:text-[rgba(217,102,58,0.92)]"
+                        variant="secondary"
+                        size="icon-sm"
+                        className="mt-1 shrink-0 rounded-full text-[rgba(126,82,54,0.82)] hover:text-[rgba(217,102,58,0.92)]"
                         aria-label="Edit traveler name"
                       >
                         <Pencil size={14} />
-                      </button>
+                      </Button>
                     </div>
                   )}
 
@@ -481,7 +493,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                 </div>
 
                 <div className="mt-6 grid gap-3">
-                  <div className="rounded-[1rem] border border-[rgba(234,221,207,0.96)] bg-[rgba(255,252,247,0.94)] px-4 py-3.5">
+                  <Surface
+                    as="div"
+                    variant="subtle"
+                    padding="none"
+                    radius="lg"
+                    className="px-4 py-3.5"
+                  >
                     <div className="flex items-center gap-2 text-[rgba(72,131,126,0.92)]">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(72,131,126,0.12)]">
                         <Globe2 size={13} />
@@ -493,10 +511,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                     <p className="mt-3 font-display text-[2rem] leading-none tracking-[-0.05em] text-[rgba(60,36,24,0.98)]">
                       {countryPins.length}
                     </p>
-                  </div>
+                  </Surface>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-[1rem] border border-[rgba(234,221,207,0.96)] bg-[rgba(255,252,247,0.94)] px-4 py-3.5">
+                    <Surface
+                      as="div"
+                      variant="subtle"
+                      padding="none"
+                      radius="lg"
+                      className="px-4 py-3.5"
+                    >
                       <div className="flex items-center gap-2 text-[rgba(217,102,58,0.92)]">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(217,102,58,0.12)]">
                           <Route size={13} />
@@ -508,9 +532,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                       <p className="mt-3 text-[1.4rem] font-semibold text-[rgba(74,43,26,0.96)]">
                         {archivedTrips.length}
                       </p>
-                    </div>
+                    </Surface>
 
-                    <div className="rounded-[1rem] border border-[rgba(234,221,207,0.96)] bg-[rgba(255,252,247,0.94)] px-4 py-3.5">
+                    <Surface
+                      as="div"
+                      variant="subtle"
+                      padding="none"
+                      radius="lg"
+                      className="px-4 py-3.5"
+                    >
                       <div className="flex items-center gap-2 text-[rgba(199,140,47,0.95)]">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(199,140,47,0.12)]">
                           <MapPinned size={13} />
@@ -522,19 +552,31 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                       <p className="mt-3 text-[1.4rem] font-semibold text-[rgba(74,43,26,0.96)]">
                         {tripActivities}
                       </p>
-                    </div>
+                    </Surface>
                   </div>
 
-                  <div className="rounded-[1rem] border border-[rgba(234,221,207,0.96)] bg-[rgba(248,244,236,0.88)] px-4 py-3.5 text-sm leading-6 text-[rgba(103,67,46,0.82)]">
+                  <Surface
+                    as="div"
+                    variant="muted"
+                    padding="none"
+                    radius="lg"
+                    className="px-4 py-3.5 text-sm leading-6 text-[rgba(103,67,46,0.82)]"
+                  >
                     {totalTripDays} total itinerary days across your archive.
-                  </div>
+                  </Surface>
                 </div>
               </div>
             </div>
-          </aside>
+          </Surface>
 
           <div className="min-w-0 space-y-6">
-            <section className="overflow-hidden rounded-[1.45rem] border border-[rgba(229,214,198,0.98)] bg-[rgba(255,251,246,0.92)] shadow-[0_22px_52px_rgba(118,74,36,0.08)]">
+            <Surface
+              as="section"
+              variant="glass"
+              padding="none"
+              radius="2xl"
+              className="overflow-hidden shadow-[0_22px_52px_rgba(118,74,36,0.08)]"
+            >
               <div className="border-b border-[rgba(236,224,210,0.94)] px-5 py-4 sm:px-6">
                 <div className="max-w-xl">
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(126,82,54,0.72)]">
@@ -552,9 +594,15 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
               <div className="relative h-[24rem] sm:h-[28rem]">
                 <Suspense
                   fallback={
-                    <div className="flex h-full items-center justify-center bg-[rgba(255,250,245,0.72)] text-sm font-medium text-[rgba(105,70,48,0.78)]">
+                    <Surface
+                      as="div"
+                      variant="glass"
+                      padding="none"
+                      radius="md"
+                      className="flex h-full items-center justify-center bg-[rgba(255,250,245,0.72)] text-sm font-medium text-[rgba(105,70,48,0.78)]"
+                    >
                       Loading traveler atlas...
-                    </div>
+                    </Surface>
                   }
                 >
                   <WorldMap
@@ -566,7 +614,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
                 {!countryPins.length ? (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-                    <div className="max-w-md rounded-[1.1rem] border border-[rgba(233,220,206,0.9)] bg-[rgba(255,251,246,0.9)] px-5 py-4 text-center shadow-[0_18px_40px_rgba(118,74,36,0.08)] backdrop-blur-sm">
+                    <Surface
+                      as="div"
+                      variant="glass"
+                      padding="none"
+                      radius="xl"
+                      className="max-w-md px-5 py-4 text-center shadow-[0_18px_40px_rgba(118,74,36,0.08)] backdrop-blur-sm"
+                    >
                       <p className="font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
                         Your atlas is still blank.
                       </p>
@@ -574,11 +628,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                         Save a few itineraries with destination details and your
                         visited countries will appear here automatically.
                       </p>
-                    </div>
+                    </Surface>
                   </div>
                 ) : null}
               </div>
-            </section>
+            </Surface>
 
             <section>
               <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -603,9 +657,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                     const coverImage = tripImages[trip.id]?.url;
 
                     return (
-                      <article
+                      <Surface
+                        as="article"
                         key={trip.id}
-                        className="group overflow-hidden rounded-[1.25rem] border border-[rgba(226,214,200,0.95)] bg-[rgba(255,251,246,0.96)] transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1"
+                        variant="card"
+                        padding="none"
+                        radius="xl"
+                        className="group overflow-hidden transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1"
                       >
                         <button
                           type="button"
@@ -625,9 +683,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
                             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(60,37,25,0.02)_0%,rgba(60,37,25,0.42)_100%)]" />
 
-                            <div className="absolute left-4 top-4 inline-flex rounded-[0.75rem] border border-[rgba(255,255,255,0.68)] bg-[rgba(255,252,247,0.86)] px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(72,131,126,0.94)] backdrop-blur-sm">
+                            <Badge
+                              tone="glass"
+                              size="md"
+                              className="absolute left-4 top-4 tracking-[0.18em]"
+                            >
                               {country || "Saved trip"}
-                            </div>
+                            </Badge>
                           </div>
 
                           <div className="flex flex-1 flex-col px-5 py-5">
@@ -659,12 +721,17 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                             </div>
                           </div>
                         </button>
-                      </article>
+                      </Surface>
                     );
                   })}
                 </div>
               ) : (
-                <div className="rounded-[1.25rem] border border-dashed border-[rgba(228,204,188,0.95)] bg-[rgba(255,250,245,0.74)] px-5 py-10 text-center">
+                <Surface
+                  as="div"
+                  variant="dashed"
+                  radius="xl"
+                  className="px-5 py-10 text-center"
+                >
                   <p className="font-display text-[1.8rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
                     No travel history yet.
                   </p>
@@ -672,7 +739,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                     Generate your first itinerary and it will land here as part
                     of your personal archive.
                   </p>
-                </div>
+                </Surface>
               )}
             </section>
           </div>
