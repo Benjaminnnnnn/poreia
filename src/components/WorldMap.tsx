@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import L from "leaflet";
 import { Locate, Minus, Plus } from "lucide-react";
+import { hasFiniteCoordinates } from "../lib/coordinates";
 import { MapPinData } from "../types";
 
 interface WorldMapProps {
@@ -19,6 +20,14 @@ interface WorldMapProps {
 
 const CLUSTER_DISTANCE_KM = 35;
 const DEFAULT_PIN_COLOR = "#3f9b9a";
+
+function hasUsableViewport(map: L.Map) {
+  const container = map.getContainer();
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  return width > 0 && height > 0;
+}
 
 function hexToRgba(color: string, alpha: number) {
   if (!color.startsWith("#")) {
@@ -207,17 +216,21 @@ const WorldMap: React.FC<WorldMapProps> = ({
   const userPulseRef = useRef<L.Layer | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
+  const validPins = useMemo(
+    () => pins.filter((pin) => hasFiniteCoordinates(pin)),
+    [pins],
+  );
   const pinViewportKey = useMemo(
     () =>
-      pins
+      validPins
         .map((pin) => `${pin.id}:${pin.lat.toFixed(4)}:${pin.lng.toFixed(4)}`)
         .sort()
         .join("|"),
-    [pins],
+    [validPins],
   );
   const pinLookup = useMemo(
-    () => new Map(pins.map((pin) => [pin.id, pin])),
-    [pins],
+    () => new Map(validPins.map((pin) => [pin.id, pin])),
+    [validPins],
   );
 
   const handleMarkerClick = useEffectEvent((pinId: string) => {
@@ -281,7 +294,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
     }
 
     const map = mapInstanceRef.current;
-    const nextPinIds = new Set(pins.map((pin) => pin.id));
+    const nextPinIds = new Set(validPins.map((pin) => pin.id));
 
     Object.keys(markersRef.current).forEach((pinId) => {
       if (nextPinIds.has(pinId)) {
@@ -293,7 +306,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
       delete markerPinsRef.current[pinId];
     });
 
-    pins.forEach((pin) => {
+    validPins.forEach((pin) => {
       const marker = markersRef.current[pin.id];
       const previousPin = markerPinsRef.current[pin.id];
 
@@ -320,7 +333,7 @@ const WorldMap: React.FC<WorldMapProps> = ({
       marker.setIcon(createMarkerIcon(pin, selectedPinIdRef.current === pin.id));
       markerPinsRef.current[pin.id] = pin;
     });
-  }, [handleMarkerClick, isMapReady, pins]);
+  }, [handleMarkerClick, isMapReady, validPins]);
 
   useEffect(() => {
     const previousSelectedPinId = previousSelectedPinIdRef.current;
@@ -346,41 +359,58 @@ const WorldMap: React.FC<WorldMapProps> = ({
   }, [selectedPinId]);
 
   useEffect(() => {
-    if (!mapInstanceRef.current || !pins.length || selectedPinId) {
+    if (!mapInstanceRef.current || !validPins.length || selectedPinId) {
       return;
     }
 
     const map = mapInstanceRef.current;
-    const primaryPins = getPrimaryPinCluster(pins);
+    let frameId = 0;
 
-    if (primaryPins.length === 1) {
-      map.flyTo([primaryPins[0].lat, primaryPins[0].lng], 12, {
+    const syncViewport = () => {
+      if (!hasUsableViewport(map)) {
+        frameId = window.requestAnimationFrame(syncViewport);
+        return;
+      }
+
+      map.invalidateSize(false);
+
+      const primaryPins = getPrimaryPinCluster(validPins);
+
+      if (primaryPins.length === 1) {
+        map.flyTo([primaryPins[0].lat, primaryPins[0].lng], 12, {
+          duration: 1.2,
+          easeLinearity: 0.25,
+        });
+        return;
+      }
+
+      const bounds = L.latLngBounds(
+        primaryPins.map((pin) => [pin.lat, pin.lng] as [number, number]),
+      );
+      const southWest = bounds.getSouthWest();
+      const northEast = bounds.getNorthEast();
+
+      if (southWest.lat === northEast.lat && southWest.lng === northEast.lng) {
+        map.flyTo([southWest.lat, southWest.lng], 12, {
+          duration: 1.2,
+          easeLinearity: 0.25,
+        });
+        return;
+      }
+
+      map.flyToBounds(bounds.pad(0.28), {
         duration: 1.2,
         easeLinearity: 0.25,
+        maxZoom: 13,
       });
-      return;
-    }
+    };
 
-    const bounds = L.latLngBounds(
-      primaryPins.map((pin) => [pin.lat, pin.lng] as [number, number]),
-    );
-    const southWest = bounds.getSouthWest();
-    const northEast = bounds.getNorthEast();
+    frameId = window.requestAnimationFrame(syncViewport);
 
-    if (southWest.lat === northEast.lat && southWest.lng === northEast.lng) {
-      map.flyTo([southWest.lat, southWest.lng], 12, {
-        duration: 1.2,
-        easeLinearity: 0.25,
-      });
-      return;
-    }
-
-    map.flyToBounds(bounds.pad(0.28), {
-      duration: 1.2,
-      easeLinearity: 0.25,
-      maxZoom: 13,
-    });
-  }, [pinViewportKey, pins, selectedPinId]);
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [pinViewportKey, selectedPinId, validPins]);
 
   useEffect(() => {
     if (!isMapReady || !selectedPinId || !mapInstanceRef.current) {
@@ -392,10 +422,27 @@ const WorldMap: React.FC<WorldMapProps> = ({
       return;
     }
 
-    mapInstanceRef.current.flyTo([pin.lat, pin.lng], 13, {
-      duration: 1.5,
-      easeLinearity: 0.25,
-    });
+    const map = mapInstanceRef.current;
+    let frameId = 0;
+
+    const focusPin = () => {
+      if (!hasUsableViewport(map)) {
+        frameId = window.requestAnimationFrame(focusPin);
+        return;
+      }
+
+      map.invalidateSize(false);
+      map.flyTo([pin.lat, pin.lng], 13, {
+        duration: 1.5,
+        easeLinearity: 0.25,
+      });
+    };
+
+    frameId = window.requestAnimationFrame(focusPin);
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
   }, [isMapReady, pinLookup, selectedPinId]);
 
   const handleLocateMe = () => {

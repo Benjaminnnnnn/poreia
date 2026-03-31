@@ -21,6 +21,7 @@ import {
   getActivityImage,
   type ResolvedActivityImage,
 } from "../services/activityImageService";
+import { hasFiniteCoordinates } from "../lib/coordinates";
 import type {
   Activity,
   MapPinData,
@@ -185,7 +186,7 @@ function getRepresentativeActivity(
   return itinerary?.days
     .flatMap((day) => day.activities)
     .find((activity) => {
-      return activity.lat !== undefined && activity.lng !== undefined;
+      return hasFiniteCoordinates(activity);
     });
 }
 
@@ -224,8 +225,7 @@ function buildCountryPins(trips: TripSession[]): MapPinData[] {
     if (
       !itinerary ||
       !activity ||
-      activity.lat === undefined ||
-      activity.lng === undefined ||
+      !hasFiniteCoordinates(activity) ||
       !country
     ) {
       return;
