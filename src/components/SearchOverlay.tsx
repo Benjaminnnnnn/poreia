@@ -136,7 +136,7 @@ const SearchOverlay: React.FC<SearchOverlayProps> = ({
                             setTimeout(() => setIsFocused(false), 200)
                           }
                           placeholder="3 relaxed days in Lisbon with ocean views and late dinners"
-                          className="field-focus h-14 w-full rounded-[0.55rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] pl-14 pr-4 text-lg font-semibold text-[rgba(74,43,26,0.97)] placeholder:text-[rgba(150,112,82,0.52)]"
+                          className="field-focus h-14 w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.55rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] pl-14 pr-4 text-base font-medium text-[rgba(74,43,26,0.97)] placeholder:text-[0.98rem] placeholder:font-medium placeholder:text-[rgba(150,112,82,0.52)] sm:text-lg sm:font-semibold sm:placeholder:text-lg"
                           disabled={isGenerating}
                         />
                       </div>
