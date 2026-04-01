@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { EnvBindings } from './core/env';
 import { jsonError, toAppError } from './core/http';
+import { createProfileRoutes } from './routes/profile';
 import { createTripsRoutes, type CreateTripsRoutesOptions } from './routes/trips';
 
 export interface CreateAppOptions {
@@ -25,6 +26,7 @@ export function createApp(options: CreateAppOptions = {}) {
     }),
   );
 
+  app.route('/api/v1', createProfileRoutes());
   app.route('/api/v1', createTripsRoutes(options.tripsRoutes));
 
   app.notFound((context) =>

@@ -102,6 +102,15 @@ export class TripsRepository {
     return document?.data ?? null;
   }
 
+  async upsertUser(userId: string, user: UserProfileDoc): Promise<void> {
+    await this.firestore.commit([
+      this.firestore.buildUpdateWrite(
+        userPath(userId),
+        user as unknown as Record<string, unknown>,
+      ),
+    ]);
+  }
+
   async getUserRecord(userId: string): Promise<UserRecord | null> {
     const document = await this.firestore.getDocument<UserProfileDoc>(userPath(userId));
     if (!document) {

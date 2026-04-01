@@ -16,6 +16,8 @@ export type {
   TripStatus,
   TripSummaryResponse,
   TripVisibility,
+  UpdateUserProfileRequest,
+  UserProfileResponse,
 } from "@poreia/shared";
 
 import type {

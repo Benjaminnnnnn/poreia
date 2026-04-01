@@ -54,6 +54,10 @@ export interface ReplaceTripItineraryRequest {
   itinerary: TravelItinerary;
 }
 
+export interface UpdateUserProfileRequest {
+  travelerName: string;
+}
+
 export interface PatchTripRequest {
   archived?: boolean;
   expectedVersion: number;
@@ -115,4 +119,17 @@ export interface TripDetailResponse {
   currentItinerary: TravelItinerary;
   recentMessages: TripMessageResponse[];
   members?: TripMemberResponse[];
+}
+
+export interface UserProfileResponse {
+  userId: string;
+  displayName: string;
+  email: string;
+  photoURL: string | null;
+  travelerName: string | null;
+  ownedTripCount: number;
+  sharedTripCount: number;
+  createdAt: string;
+  updatedAt: string;
+  lastSeenAt: string;
 }

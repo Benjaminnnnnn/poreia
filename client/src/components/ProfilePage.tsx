@@ -314,7 +314,7 @@ const ProfilePage: React.FC = () => {
   } = useAppNavigation();
   const {
     actions: { setTravelerName },
-    state: { authUser, travelerName },
+    state: { authUser, isUpdatingProfile, travelerName },
   } = useAppAuth();
   const {
     state: { isLoadingTrips, trips },
@@ -420,14 +420,19 @@ const ProfilePage: React.FC = () => {
     };
   }, [tripsNeedingImages]);
 
-  const handleTravelerNameSave = () => {
+  const handleTravelerNameSave = async () => {
     const nextTravelerName = draftTravelerName.trim();
     if (!nextTravelerName) {
       return;
     }
 
-    setTravelerName(nextTravelerName);
-    setIsEditingTravelerName(false);
+    try {
+      await setTravelerName(nextTravelerName);
+      setIsEditingTravelerName(false);
+    } catch (error) {
+      console.error(error);
+      alert("Could not update your profile. Please try again.");
+    }
   };
 
   return (
@@ -486,6 +491,7 @@ const ProfilePage: React.FC = () => {
                         onChange={(event) =>
                           setDraftTravelerName(event.target.value)
                         }
+                        disabled={isUpdatingProfile}
                         maxLength={40}
                         autoFocus
                         className="field-focus w-full rounded-[0.8rem] border border-[rgba(223,205,187,0.96)] bg-[rgba(255,252,248,0.98)] px-3 py-2 font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)]"
@@ -493,18 +499,19 @@ const ProfilePage: React.FC = () => {
                       <div className="mt-2 flex items-center gap-2">
                         <Button
                           type="submit"
-                          disabled={!draftTravelerName.trim()}
+                          disabled={!draftTravelerName.trim() || isUpdatingProfile}
                           size="icon"
                           className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
                         >
                           <Check size={14} />
-                          Save
+                          {isUpdatingProfile ? "Saving..." : "Save"}
                         </Button>
                         <Button
                           onClick={() => {
                             setDraftTravelerName(travelerName);
                             setIsEditingTravelerName(false);
                           }}
+                          disabled={isUpdatingProfile}
                           variant="secondary"
                           size="icon"
                           className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"

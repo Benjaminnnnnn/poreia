@@ -12,33 +12,23 @@ import React, {
 } from "react";
 import { useAppNavigation } from "../context/AppNavigation";
 import { auth, signInWithGoogle, signOutUser } from "../lib/firebase";
+import {
+  getCurrentUserProfile,
+  updateCurrentUserProfile,
+} from "../services/profileApi";
 import Button from "./ui/Button";
 import Surface from "./ui/Surface";
 
-const TRAVELER_NAME_STORAGE_KEY = "poreia_traveler_name";
 const SIGN_IN_BACKGROUND_VIDEO_URL = "/background-web.mp4";
 const APP_LOGO_SRC = "/logo.svg";
-
-const getTravelerNameStorageKey = (userId: string) =>
-  `${TRAVELER_NAME_STORAGE_KEY}:${userId}`;
 
 const getDefaultTravelerName = (user: User | null) =>
   user?.displayName?.trim() || user?.email?.split("@")[0] || "Traveler";
 
-const loadTravelerName = (user: User | null): string => {
-  if (typeof window === "undefined" || !user?.uid) {
-    return getDefaultTravelerName(user);
-  }
-
-  try {
-    const stored = window.localStorage.getItem(
-      getTravelerNameStorageKey(user.uid),
-    );
-    return stored?.trim() || getDefaultTravelerName(user);
-  } catch {
-    return getDefaultTravelerName(user);
-  }
-};
+const getResolvedTravelerName = (
+  user: User | null,
+  travelerName?: string | null,
+) => travelerName?.trim() || getDefaultTravelerName(user);
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message.trim()) {
@@ -397,10 +387,11 @@ const AuthLoadingFallback = () => (
 
 interface AppAuthContextValue {
   actions: {
-    setTravelerName: React.Dispatch<React.SetStateAction<string>>;
+    setTravelerName: (travelerName: string) => Promise<void>;
   };
   state: {
     authUser: User;
+    isUpdatingProfile: boolean;
     travelerName: string;
   };
 }
@@ -428,33 +419,101 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
   const [travelerName, setTravelerName] = useState("Traveler");
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isAuthBusy, setIsAuthBusy] = useState(false);
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const authSyncVersionRef = useRef(0);
 
   useEffect(() => {
+    let isCancelled = false;
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setAuthUser(user);
-      setTravelerName(loadTravelerName(user));
-      setIsAuthReady(true);
+      const syncVersion = authSyncVersionRef.current + 1;
+      authSyncVersionRef.current = syncVersion;
       setAuthError(null);
 
       if (!user) {
+        setAuthUser(null);
+        setTravelerName(getDefaultTravelerName(null));
+        setIsAuthReady(true);
+        setIsUpdatingProfile(false);
         goHome();
+        return;
       }
+
+      setAuthUser(user);
+      setTravelerName(getDefaultTravelerName(user));
+      setIsAuthReady(false);
+
+      void (async () => {
+        try {
+          const profile = await getCurrentUserProfile(user);
+          if (
+            isCancelled ||
+            authSyncVersionRef.current !== syncVersion
+          ) {
+            return;
+          }
+
+          setTravelerName(
+            getResolvedTravelerName(user, profile.travelerName),
+          );
+        } catch (error) {
+          console.error(error);
+
+          if (
+            isCancelled ||
+            authSyncVersionRef.current !== syncVersion
+          ) {
+            return;
+          }
+
+          setTravelerName(getDefaultTravelerName(user));
+        } finally {
+          if (
+            !isCancelled &&
+            authSyncVersionRef.current === syncVersion
+          ) {
+            setIsAuthReady(true);
+          }
+        }
+      })();
     });
 
-    return unsubscribe;
+    return () => {
+      isCancelled = true;
+      unsubscribe();
+    };
   }, [goHome]);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || !authUser?.uid) {
-      return;
-    }
+  const handleSetTravelerName = useCallback(
+    async (nextTravelerName: string) => {
+      if (!authUser) {
+        return;
+      }
 
-    window.localStorage.setItem(
-      getTravelerNameStorageKey(authUser.uid),
-      travelerName.trim() || getDefaultTravelerName(authUser),
-    );
-  }, [authUser, travelerName]);
+      const trimmedTravelerName = nextTravelerName.trim();
+      if (!trimmedTravelerName) {
+        return;
+      }
+
+      setIsUpdatingProfile(true);
+
+      try {
+        const profile = await updateCurrentUserProfile(authUser, {
+          travelerName: trimmedTravelerName,
+        });
+        setTravelerName(
+          getResolvedTravelerName(authUser, profile.travelerName),
+        );
+      } catch (error) {
+        console.error(error);
+        throw error;
+      } finally {
+        setIsUpdatingProfile(false);
+      }
+    },
+    [authUser],
+  );
 
   const handleSignIn = useCallback(async () => {
     setAuthError(null);
@@ -496,13 +555,14 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
     return {
       state: {
         authUser,
+        isUpdatingProfile,
         travelerName,
       },
       actions: {
-        setTravelerName,
+        setTravelerName: handleSetTravelerName,
       },
     };
-  }, [authUser, travelerName]);
+  }, [authUser, handleSetTravelerName, isUpdatingProfile, travelerName]);
 
   return (
     <div className="relative z-10 flex h-full min-h-0 flex-col">

@@ -11,6 +11,7 @@ import type {
   TripStatus,
   TripSummaryResponse,
   TripVisibility,
+  UserProfileResponse,
 } from '@poreia/shared';
 
 export type {
@@ -26,6 +27,7 @@ export type {
   TripStatus,
   TripSummaryResponse,
   TripVisibility,
+  UserProfileResponse,
 } from '@poreia/shared';
 
 export type MembershipStatus = 'active' | 'revoked';

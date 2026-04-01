@@ -11,17 +11,24 @@ import { TripsService } from '../services/tripsService';
 type TripsServiceBuilder = (env: EnvBindings) => TripsService;
 type TripMembersServiceBuilder = (env: EnvBindings) => TripMembersService;
 
+function createServerFirestoreClient(appEnv: ReturnType<typeof getAppEnv>) {
+  return new FirestoreClient(
+    appEnv,
+    appEnv.firestoreEmulatorHost ? { emulatorAuth: 'owner' } : undefined,
+  );
+}
+
 function defaultBuildTripsService(env: EnvBindings): TripsService {
   const appEnv = getAppEnv(env);
   return new TripsService(
-    new TripsRepository(new FirestoreClient(appEnv)),
+    new TripsRepository(createServerFirestoreClient(appEnv)),
     new ItineraryProvider(appEnv.pollinationsApiKey),
   );
 }
 
 function defaultBuildTripMembersService(env: EnvBindings): TripMembersService {
   const appEnv = getAppEnv(env);
-  return new TripMembersService(new TripsRepository(new FirestoreClient(appEnv)));
+  return new TripMembersService(new TripsRepository(createServerFirestoreClient(appEnv)));
 }
 
 export interface CreateTripsRoutesOptions {
