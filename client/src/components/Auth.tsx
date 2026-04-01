@@ -1,6 +1,6 @@
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-import { Compass, Loader2, LogOut, Plus, UserRound } from "lucide-react";
+import { Loader2, LogOut, Plus, UserRound } from "lucide-react";
 import React, {
   createContext,
   use,
@@ -17,6 +17,7 @@ import Surface from "./ui/Surface";
 
 const TRAVELER_NAME_STORAGE_KEY = "poreia_traveler_name";
 const SIGN_IN_BACKGROUND_VIDEO_URL = "/background-web.mp4";
+const APP_LOGO_SRC = "/logo.svg";
 
 const getTravelerNameStorageKey = (userId: string) =>
   `${TRAVELER_NAME_STORAGE_KEY}:${userId}`;
@@ -139,10 +140,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           type="button"
           onClick={onNavigateHome}
           aria-label="Go to home page"
-          className="focus-ring flex min-w-0 flex-1 items-center gap-2.5 rounded-[0.7rem] px-1 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] sm:flex-none sm:gap-3 sm:px-1.5"
+          className="focus-ring flex min-w-0 flex-1 items-center gap-1 rounded-[0.7rem] px-1 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] sm:flex-none sm:gap-3 sm:px-1.5"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.55rem] border border-[rgba(233,208,184,0.96)] bg-[rgba(255,253,249,0.98)] text-[rgba(216,101,58,0.95)] sm:h-9 sm:w-9">
-            <Compass size={16} className="sm:h-[17px] sm:w-[17px]" />
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.55rem] text-[rgba(216,101,58,0.95)] sm:h-9 sm:w-9">
+            <img
+              src={APP_LOGO_SRC}
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full rounded-[0.45rem] object-contain p-0.5 sm:p-[3px]"
+            />
           </div>
 
           <div className="min-w-0">

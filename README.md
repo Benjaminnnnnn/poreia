@@ -50,7 +50,7 @@ Type one sentence. Poreia turns it into a multi-day trip plan with budget guidan
    npm run dev
    ```
 
-4. Open `http://localhost:3000`
+4. Open `http://localhost:5173`
 
 ## Environment Notes
 
