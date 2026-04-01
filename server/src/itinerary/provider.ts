@@ -7,6 +7,9 @@ const POLLINATIONS_TEXT_ENDPOINT = 'https://gen.pollinations.ai/text/';
 const POLLINATIONS_CHAT_COMPLETIONS_ENDPOINT = 'https://gen.pollinations.ai/v1/chat/completions';
 const MAX_PROMPT_CHARS = 1600;
 const POLLINATIONS_MODEL = 'openai';
+const ERROR_RESPONSE_EXAMPLE = `{
+  "error": "The request must be about planning or refining a trip."
+}`;
 
 const REQUIRED_JSON_SCHEMA = `{
   "destination": "Tokyo, Japan",
@@ -40,20 +43,22 @@ const REQUIRED_JSON_SCHEMA = `{
   ]
 }`;
 
-const SCHEMA_INSTRUCTION = [
-  'Return exactly one JSON object for a travel itinerary.',
+const RESPONSE_INSTRUCTION = [
+  'Return exactly one JSON object.',
+  'You may return one of two shapes only.',
+  `If the request is valid, return a travel itinerary object with this exact shape:\n${REQUIRED_JSON_SCHEMA}`,
+  `If the request is unrelated to travel, nonsensical, or for a refinement would require switching to a different primary destination, return this exact shape instead:\n${ERROR_RESPONSE_EXAMPLE}`,
   'Do not return markdown, commentary, prose, preambles, or code fences.',
-  'Use exactly these top-level keys: destination, title, totalDays, totalBudget, currency, overview, days, budgetBreakdown.',
+  'For itinerary objects, use exactly these top-level keys: destination, title, totalDays, totalBudget, currency, overview, days, budgetBreakdown.',
   'If the user names a destination, the itinerary destination must match that place or a clearly nested place within it.',
   'Never substitute a different city, region, or country than the one the user requested.',
-  'days must be an array of objects with keys: day, theme, activities.',
-  'activities must be an array of objects with keys: time, description, location, lat, lng, costEstimate, img_prompt.',
-  'img_prompt is internal metadata for photo lookup. Make it a concise, location-focused phrase such as a landmark, neighborhood, park, museum, district, or geographic site name.',
-  'Do not use cinematic adjectives, stylistic image prompts, or descriptive scenery phrases in img_prompt.',
-  'budgetBreakdown must be an array of objects with keys: category, amount.',
-  'All numeric fields must be valid JSON numbers, not strings.',
-  'If information is uncertain, make a realistic estimate and still return the full JSON object.',
-  `Follow this exact shape:\n${REQUIRED_JSON_SCHEMA}`,
+  'For itinerary objects, days must be an array of objects with keys: day, theme, activities.',
+  'For itinerary objects, activities must be an array of objects with keys: time, description, location, lat, lng, costEstimate, img_prompt.',
+  'For itinerary objects, img_prompt is internal metadata for photo lookup. Make it a concise, location-focused phrase such as a landmark, neighborhood, park, museum, district, or geographic site name.',
+  'For itinerary objects, do not use cinematic adjectives, stylistic image prompts, or descriptive scenery phrases in img_prompt.',
+  'For itinerary objects, budgetBreakdown must be an array of objects with keys: category, amount.',
+  'For itinerary objects, all numeric fields must be valid JSON numbers, not strings.',
+  'If information is uncertain but the travel request still makes sense, make a realistic estimate and return the full itinerary JSON object.',
 ].join(' ');
 
 export const travelItinerarySchema = z.object({
@@ -91,6 +96,12 @@ export const travelItinerarySchema = z.object({
   ),
 });
 
+const providerErrorSchema = z
+  .object({
+    error: z.string().trim().min(1),
+  })
+  .strict();
+
 function trimToMaxLength(value: string, maxChars: number): string {
   if (value.length <= maxChars) {
     return value;
@@ -105,6 +116,10 @@ function normalizeComparableText(value: string): string {
     .replace(/[^a-z0-9\s]/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function tokenizeComparableText(value: string): string[] {
+  return normalizeComparableText(value).split(' ').filter((token) => token.length > 2);
 }
 
 function extractRequestedPlace(prompt: string): string | null {
@@ -148,6 +163,27 @@ function destinationMatchesPrompt(prompt: string, itinerary: TravelItinerary): b
   return overlapCount >= Math.min(2, requestedTokens.length);
 }
 
+function destinationMatchesCurrentTrip(
+  currentItinerary: TravelItinerary,
+  nextItinerary: TravelItinerary,
+): boolean {
+  const current = normalizeComparableText(currentItinerary.destination);
+  const next = normalizeComparableText(nextItinerary.destination);
+  if (!current || !next) {
+    return false;
+  }
+
+  if (current.includes(next) || next.includes(current)) {
+    return true;
+  }
+
+  const currentTokens = tokenizeComparableText(currentItinerary.destination);
+  const nextTokens = new Set(tokenizeComparableText(nextItinerary.destination));
+  const overlapCount = currentTokens.filter((token) => nextTokens.has(token)).length;
+
+  return overlapCount >= Math.min(2, currentTokens.length);
+}
+
 function summarizeCurrentItinerary(currentItinerary: TravelItinerary): string {
   const daySummaries = currentItinerary.days
     .map((day) => {
@@ -176,13 +212,16 @@ function buildPrompt(
 ): string {
   const contextParts = [
     'You are Poreia, an elite AI travel planner.',
-    SCHEMA_INSTRUCTION,
+    RESPONSE_INSTRUCTION,
     'Use realistic budgets and include lat/lng for activities.',
   ];
 
   if (currentItinerary) {
     contextParts.push(
-      'Refine this existing itinerary and keep unchanged parts consistent unless the user asks for major changes.',
+      'Refine this existing itinerary only.',
+      `Keep the same primary destination: ${currentItinerary.destination}.`,
+      'Do not switch to a different city, region, or country, and do not return a brand-new trip concept.',
+      'Keep unchanged parts consistent unless the user clearly asks to modify them.',
       `Current itinerary summary:\n${summarizeCurrentItinerary(currentItinerary)}`,
     );
   }
@@ -278,8 +317,8 @@ async function requestChatCompletion(prompt: string, apiKey: string): Promise<st
           role: 'system',
           content:
             'You are Poreia, an elite AI travel planner. ' +
-            SCHEMA_INSTRUCTION +
-            ' Return only valid JSON that matches the required itinerary schema.',
+            RESPONSE_INSTRUCTION +
+            ' Return only valid JSON.',
         },
         {
           role: 'user',
@@ -352,6 +391,22 @@ function normalizeItinerary(raw: unknown): TravelItinerary {
   };
 }
 
+function parseProviderResponse(
+  raw: unknown,
+  currentItinerary?: TravelItinerary | null,
+): TravelItinerary {
+  const providerError = providerErrorSchema.safeParse(raw);
+  if (providerError.success) {
+    throw new AppError(
+      422,
+      currentItinerary ? 'invalid_refinement_prompt' : 'invalid_trip_prompt',
+      providerError.data.error,
+    );
+  }
+
+  return preserveDayJournalEntries(normalizeItinerary(raw), currentItinerary);
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
@@ -374,13 +429,29 @@ export class ItineraryProvider {
           : requestAnonymousText(value);
 
       const parseResponse = async (value: string) =>
-        preserveDayJournalEntries(
-          normalizeItinerary(JSON.parse(extractJsonObject(value))),
-          currentItinerary,
-        );
+        parseProviderResponse(JSON.parse(extractJsonObject(value)), currentItinerary);
 
       const firstPass = await parseResponse(await requestProviderResponse(fullPrompt));
-      if (currentItinerary || destinationMatchesPrompt(prompt, firstPass)) {
+      if (currentItinerary && destinationMatchesCurrentTrip(currentItinerary, firstPass)) {
+        return firstPass;
+      }
+
+      if (currentItinerary) {
+        const correctionPrompt = `${fullPrompt}\n\nImportant correction: keep the same primary destination as ${currentItinerary.destination}. If the user's request cannot be satisfied without changing destinations, return exactly ${ERROR_RESPONSE_EXAMPLE} instead of an itinerary.`;
+        const correctedItinerary = await parseResponse(await requestProviderResponse(correctionPrompt));
+
+        if (destinationMatchesCurrentTrip(currentItinerary, correctedItinerary)) {
+          return correctedItinerary;
+        }
+
+        throw new AppError(
+          502,
+          'provider_invalid_response',
+          `The itinerary service returned ${correctedItinerary.destination} instead of keeping the trip anchored to ${currentItinerary.destination}.`,
+        );
+      }
+
+      if (destinationMatchesPrompt(prompt, firstPass)) {
         return firstPass;
       }
 

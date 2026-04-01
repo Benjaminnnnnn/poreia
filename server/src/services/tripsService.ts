@@ -154,6 +154,47 @@ function countActivities(itinerary: TravelItinerary): number {
   return itinerary.days.reduce((sum, day) => sum + day.activities.length, 0);
 }
 
+function normalizeComparableText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function destinationsMatch(currentDestination: string, nextDestination: string): boolean {
+  const current = normalizeComparableText(currentDestination);
+  const next = normalizeComparableText(nextDestination);
+  if (!current || !next) {
+    return false;
+  }
+
+  if (current.includes(next) || next.includes(current)) {
+    return true;
+  }
+
+  const currentTokens = current.split(' ').filter((token) => token.length > 2);
+  const nextTokens = new Set(next.split(' ').filter((token) => token.length > 2));
+  const overlapCount = currentTokens.filter((token) => nextTokens.has(token)).length;
+
+  return overlapCount >= Math.min(2, currentTokens.length);
+}
+
+function assertRefinementStaysOnCurrentTrip(
+  currentItinerary: TravelItinerary,
+  nextItinerary: TravelItinerary,
+): void {
+  if (destinationsMatch(currentItinerary.destination, nextItinerary.destination)) {
+    return;
+  }
+
+  throw new AppError(
+    502,
+    'provider_invalid_response',
+    `The itinerary service returned ${nextItinerary.destination} instead of keeping the trip anchored to ${currentItinerary.destination}.`,
+  );
+}
+
 function buildPermissions(role: TripSummaryResponse['accessRole']): TripPermissions {
   return {
     role,
@@ -756,6 +797,7 @@ export class TripsService {
       })),
       currentSnapshot.itinerary,
     );
+    assertRefinementStaysOnCurrentTrip(currentSnapshot.itinerary, nextItinerary);
 
     const now = nowIsoString();
     const snapshotId = createPrefixedId('snap');

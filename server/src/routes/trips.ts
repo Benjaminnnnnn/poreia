@@ -43,7 +43,8 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   const buildTripMembersService = options.buildTripMembersService ?? defaultBuildTripMembersService;
   const buildTripsService = options.buildTripsService ?? defaultBuildTripsService;
 
-  app.use('*', authMiddleware);
+  app.use('/trips', authMiddleware);
+  app.use('/trips/*', authMiddleware);
 
   app.post('/trips', async (context) => {
     const tripsService = buildTripsService(context.env);

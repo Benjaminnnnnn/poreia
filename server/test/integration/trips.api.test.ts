@@ -321,6 +321,32 @@ describe('Trips API integration', () => {
     });
     await expectApiError(validationResponse, 422, 'validation_error');
 
+    const unrelatedPromptResponse = await appRequest(
+      '/api/v1/trips',
+      {
+        method: 'POST',
+        headers: ownerHeaders(),
+        body: JSON.stringify({
+          prompt: 'Write a TypeScript function for sorting arrays.',
+        }),
+      },
+      createProviderFailureApp(422, 'invalid_trip_prompt', 'The request must be about planning or refining a trip.'),
+    );
+    await expectApiError(unrelatedPromptResponse, 422, 'invalid_trip_prompt');
+
+    const nonsensePromptResponse = await appRequest(
+      '/api/v1/trips',
+      {
+        method: 'POST',
+        headers: ownerHeaders(),
+        body: JSON.stringify({
+          prompt: 'zzzzz zzzzz zzzzz zzzzz',
+        }),
+      },
+      createProviderFailureApp(422, 'invalid_trip_prompt', 'The request does not describe a meaningful trip.'),
+    );
+    await expectApiError(nonsensePromptResponse, 422, 'invalid_trip_prompt');
+
     const unavailableResponse = await appRequest(
       '/api/v1/trips',
       {
@@ -592,6 +618,20 @@ describe('Trips API integration', () => {
     });
     await expectApiError(forbiddenResponse, 403, 'forbidden');
 
+    const unrelatedPromptResponse = await appRequest(
+      `/api/v1/trips/${tripId}/refinements`,
+      {
+        method: 'POST',
+        headers: ownerHeaders(),
+        body: JSON.stringify({
+          prompt: 'Explain quantum computing with TypeScript examples.',
+          expectedVersion: 2,
+        }),
+      },
+      createProviderFailureApp(422, 'invalid_refinement_prompt', 'The refinement must stay focused on the current trip.'),
+    );
+    await expectApiError(unrelatedPromptResponse, 422, 'invalid_refinement_prompt');
+
     const staleWriteResponse = await appRequest(`/api/v1/trips/${tripId}/refinements`, {
       method: 'POST',
       headers: ownerHeaders(),
@@ -629,6 +669,52 @@ describe('Trips API integration', () => {
       createProviderFailureApp(502, 'provider_invalid_response', 'The itinerary service returned invalid JSON.'),
     );
     await expectApiError(invalidResponse, 502, 'provider_invalid_response');
+  });
+
+  it('rejects refinement responses that drift to a different destination', async () => {
+    const driftingRefineApp = createTestApp({
+      itineraryFactory: () => ({
+        destination: 'Paris, France',
+        title: 'Paris Reset',
+        totalDays: 3,
+        totalBudget: 1200,
+        currency: 'USD',
+        overview: 'A different trip entirely.',
+        days: [
+          {
+            day: 1,
+            theme: 'Paris arrival',
+            activities: [
+              {
+                id: 'activity_paris_1',
+                time: '10:00',
+                description: 'Walk by the Seine',
+                location: 'Seine River',
+              },
+            ],
+          },
+        ],
+        budgetBreakdown: [
+          { category: 'Food', amount: 400 },
+          { category: 'Stay', amount: 800 },
+        ],
+      }),
+    });
+
+    const response = await appRequest(
+      `/api/v1/trips/${tripId}/refinements`,
+      {
+        method: 'POST',
+        headers: ownerHeaders(),
+        body: JSON.stringify({
+          prompt: 'Add a ramen stop on Day 2.',
+          expectedVersion: 1,
+        }),
+      },
+      driftingRefineApp,
+    );
+
+    await expectApiError(response, 502, 'provider_invalid_response');
   });
 
   it('returns refine-trip validation and not-found errors', async () => {

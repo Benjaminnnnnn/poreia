@@ -33,7 +33,7 @@ export function createProfileRoutes(options: CreateProfileRoutesOptions = {}) {
   const buildUserProfilesService =
     options.buildUserProfilesService ?? defaultBuildUserProfilesService;
 
-  app.use('*', authMiddleware);
+  app.use('/me/*', authMiddleware);
 
   app.get('/me/profile', async (context) => {
     const profilesService = buildUserProfilesService(context.env);
