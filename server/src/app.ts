@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { EnvBindings } from './core/env';
 import { jsonError, toAppError } from './core/http';
+import { createRequestLogger } from './core/logger';
 import { createProfileRoutes } from './routes/profile';
 import { createTripsRoutes, type CreateTripsRoutesOptions } from './routes/trips';
 
@@ -13,6 +14,9 @@ export function createApp(options: CreateAppOptions = {}) {
 
   app.use('*', async (context, next) => {
     const requestId = crypto.randomUUID();
+    const logger = createRequestLogger(context.req.raw, requestId);
+
+    context.set('logger', logger);
     context.set('requestId', requestId);
     context.header('x-request-id', requestId);
     await next();
