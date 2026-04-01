@@ -1,6 +1,7 @@
-import { Hono, type MiddlewareHandler } from 'hono';
+import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { getAppEnv, type EnvBindings } from '../core/env';
 import { emptyResponse, jsonData } from '../core/http';
+import { getLogger } from '../core/logger';
 import { FirestoreClient } from '../firestore/client';
 import { TripsRepository } from '../firestore/tripsRepository';
 import { requireAuth } from '../http/auth';
@@ -8,7 +9,8 @@ import { ItineraryProvider } from '../itinerary/provider';
 import { TripMembersService } from '../services/tripMembersService';
 import { TripsService } from '../services/tripsService';
 
-type TripsServiceBuilder = (env: EnvBindings) => TripsService;
+type TripsRouteContext = Context<{ Bindings: EnvBindings }>;
+type TripsServiceBuilder = (context: TripsRouteContext) => TripsService;
 type TripMembersServiceBuilder = (env: EnvBindings) => TripMembersService;
 
 function createServerFirestoreClient(appEnv: ReturnType<typeof getAppEnv>) {
@@ -18,11 +20,11 @@ function createServerFirestoreClient(appEnv: ReturnType<typeof getAppEnv>) {
   );
 }
 
-function defaultBuildTripsService(env: EnvBindings): TripsService {
-  const appEnv = getAppEnv(env);
+function defaultBuildTripsService(context: TripsRouteContext): TripsService {
+  const appEnv = getAppEnv(context.env);
   return new TripsService(
     new TripsRepository(createServerFirestoreClient(appEnv)),
-    new ItineraryProvider(appEnv.pollinationsApiKey),
+    new ItineraryProvider(appEnv.pollinationsApiKey, getLogger(context)),
   );
 }
 
@@ -47,7 +49,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   app.use('/trips/*', authMiddleware);
 
   app.post('/trips', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const input = tripsService.parseCreateTripInput(await context.req.json());
     const authUser = context.get('authUser');
     const result = await tripsService.createTrip(authUser, input);
@@ -56,7 +58,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.get('/trips', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const url = new URL(context.req.url);
     const query = tripsService.parseListTripsQuery({
       cursor: url.searchParams.get('cursor') ?? undefined,
@@ -70,7 +72,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.get('/trips/:tripId', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const url = new URL(context.req.url);
     const includes = new Set(url.searchParams.getAll('include'));
     const parsedQuery = tripsService.parseDetailQuery({
@@ -87,7 +89,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.put('/trips/:tripId/itinerary', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const input = tripsService.parseReplaceItineraryInput(await context.req.json());
     const result = await tripsService.replaceTripItinerary(
       context.get('authUser').uid,
@@ -99,7 +101,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.post('/trips/:tripId/refinements', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const input = tripsService.parseRefineTripInput(await context.req.json());
     const result = await tripsService.refineTrip(
       context.get('authUser').uid,
@@ -111,7 +113,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.patch('/trips/:tripId', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const input = tripsService.parsePatchTripInput(await context.req.json());
     const result = await tripsService.patchTrip(
       context.get('authUser').uid,
@@ -123,7 +125,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.get('/trips/:tripId/messages', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     const url = new URL(context.req.url);
     const query = tripsService.parseListMessagesQuery({
       cursor: url.searchParams.get('cursor') ?? undefined,
@@ -191,7 +193,7 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   });
 
   app.delete('/trips/:tripId', async (context) => {
-    const tripsService = buildTripsService(context.env);
+    const tripsService = buildTripsService(context);
     await tripsService.deleteTrip(
       context.get('authUser').uid,
       context.req.param('tripId'),
