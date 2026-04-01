@@ -41,6 +41,15 @@ interface FirestoreErrorResponse {
   };
 }
 
+interface FirestoreClientOptions {
+  emulatorAuth?: 'none' | 'owner';
+}
+
+function appendQueryParam(url: URL, key: string, value: string): void {
+  const separator = url.search ? '&' : '?';
+  url.search += `${separator}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
+}
+
 function parseFirestoreError(body: string): FirestoreErrorResponse | null {
   if (!body.trim()) {
     return null;
@@ -58,7 +67,10 @@ export class FirestoreClient {
   private readonly documentsBaseUrl: string;
   private readonly projectId: string;
 
-  constructor(private readonly env: AppEnv) {
+  constructor(
+    private readonly env: AppEnv,
+    private readonly options: FirestoreClientOptions = {},
+  ) {
     this.projectId = env.firebaseProjectId;
     this.databasePath = `projects/${this.projectId}/databases/(default)`;
 
@@ -73,13 +85,24 @@ export class FirestoreClient {
     return `${this.databasePath}/documents/${path}`;
   }
 
-  private async request<T>(url: string, init?: RequestInit): Promise<T> {
-    const headers = new Headers(init?.headers);
+  private async buildHeaders(headers?: HeadersInit): Promise<Headers> {
+    const nextHeaders = new Headers(headers);
 
-    if (!this.env.firestoreEmulatorHost) {
-      const accessToken = await getGoogleAccessToken(this.env);
-      headers.set('Authorization', `Bearer ${accessToken}`);
+    if (this.env.firestoreEmulatorHost) {
+      if (this.options.emulatorAuth === 'owner') {
+        nextHeaders.set('Authorization', 'Bearer owner');
+      }
+
+      return nextHeaders;
     }
+
+    const accessToken = await getGoogleAccessToken(this.env);
+    nextHeaders.set('Authorization', `Bearer ${accessToken}`);
+    return nextHeaders;
+  }
+
+  private async request<T>(url: string, init?: RequestInit): Promise<T> {
+    const headers = await this.buildHeaders(init?.headers);
 
     const response = await fetch(url, {
       ...init,
@@ -116,12 +139,7 @@ export class FirestoreClient {
 
   async getDocument<T>(path: string): Promise<FirestoreDocument<T> | null> {
     const url = `${this.documentsBaseUrl}/${path}`;
-    const headers = new Headers();
-
-    if (!this.env.firestoreEmulatorHost) {
-      const accessToken = await getGoogleAccessToken(this.env);
-      headers.set('Authorization', `Bearer ${accessToken}`);
-    }
+    const headers = await this.buildHeaders();
 
     const response = await fetch(url, { headers });
     if (response.status === 404) {
@@ -156,11 +174,11 @@ export class FirestoreClient {
     );
 
     if (options?.orderBy) {
-      url.searchParams.set('orderBy', options.orderBy);
+      appendQueryParam(url, 'orderBy', options.orderBy);
     }
 
     if (options?.pageSize) {
-      url.searchParams.set('pageSize', String(options.pageSize));
+      appendQueryParam(url, 'pageSize', String(options.pageSize));
     }
 
     const payload = await this.request<ListDocumentsResponse>(url.toString(), {

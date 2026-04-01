@@ -2,13 +2,48 @@
   "name": "poreia-dev",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": "."
+    "context": ".."
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21"
+    }
   },
   "remoteUser": "root",
   "forwardPorts": [
+    4000,
+    4400,
+    4500,
+    8080,
+    8787,
+    9150,
     5173
   ],
   "portsAttributes": {
+    "4000": {
+      "label": "Firebase Emulator UI",
+      "onAutoForward": "notify"
+    },
+    "4400": {
+      "label": "Firebase Emulator Hub",
+      "onAutoForward": "silent"
+    },
+    "4500": {
+      "label": "Firebase Emulator Logging",
+      "onAutoForward": "silent"
+    },
+    "8080": {
+      "label": "Firestore Emulator",
+      "onAutoForward": "silent"
+    },
+    "8787": {
+      "label": "Wrangler dev server",
+      "onAutoForward": "notify"
+    },
+    "9150": {
+      "label": "Firestore UI Websocket",
+      "onAutoForward": "silent"
+    },
     "5173": {
       "label": "Vite dev server",
       "onAutoForward": "notify"

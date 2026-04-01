@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { getAppEnv, type EnvBindings } from '../core/env';
 import { emptyResponse, jsonData } from '../core/http';
 import { FirestoreClient } from '../firestore/client';
@@ -8,7 +8,10 @@ import { ItineraryProvider } from '../itinerary/provider';
 import { TripMembersService } from '../services/tripMembersService';
 import { TripsService } from '../services/tripsService';
 
-function buildTripsService(env: EnvBindings): TripsService {
+type TripsServiceBuilder = (env: EnvBindings) => TripsService;
+type TripMembersServiceBuilder = (env: EnvBindings) => TripMembersService;
+
+function defaultBuildTripsService(env: EnvBindings): TripsService {
   const appEnv = getAppEnv(env);
   return new TripsService(
     new TripsRepository(new FirestoreClient(appEnv)),
@@ -16,15 +19,24 @@ function buildTripsService(env: EnvBindings): TripsService {
   );
 }
 
-function buildTripMembersService(env: EnvBindings): TripMembersService {
+function defaultBuildTripMembersService(env: EnvBindings): TripMembersService {
   const appEnv = getAppEnv(env);
   return new TripMembersService(new TripsRepository(new FirestoreClient(appEnv)));
 }
 
-export function createTripsRoutes() {
-  const app = new Hono<{ Bindings: EnvBindings }>();
+export interface CreateTripsRoutesOptions {
+  authMiddleware?: MiddlewareHandler<{ Bindings: EnvBindings }>;
+  buildTripMembersService?: TripMembersServiceBuilder;
+  buildTripsService?: TripsServiceBuilder;
+}
 
-  app.use('*', requireAuth);
+export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
+  const app = new Hono<{ Bindings: EnvBindings }>();
+  const authMiddleware = options.authMiddleware ?? requireAuth;
+  const buildTripMembersService = options.buildTripMembersService ?? defaultBuildTripMembersService;
+  const buildTripsService = options.buildTripsService ?? defaultBuildTripsService;
+
+  app.use('*', authMiddleware);
 
   app.post('/trips', async (context) => {
     const tripsService = buildTripsService(context.env);
