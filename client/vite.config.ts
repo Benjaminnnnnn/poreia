@@ -16,16 +16,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (requestPath) => requestPath.replace(/^\/api\/google-places/, ''),
       },
-      '/api/pollinations/text': {
-        target: 'https://gen.pollinations.ai',
-        changeOrigin: true,
-        rewrite: (requestPath) => requestPath.replace(/^\/api\/pollinations\/text/, '/text'),
-      },
-      '/api/pollinations/v1': {
-        target: 'https://gen.pollinations.ai',
-        changeOrigin: true,
-        rewrite: (requestPath) => requestPath.replace(/^\/api\/pollinations\/v1/, '/v1'),
-      },
     },
   },
   build: {

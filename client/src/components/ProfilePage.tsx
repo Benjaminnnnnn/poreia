@@ -160,12 +160,12 @@ const ProfileStatCard: React.FC<ProfileStatCardProps> = ({
   </Surface>
 );
 
-function formatTripDate(timestamp: number) {
+function formatTripDate(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(timestamp);
+  }).format(new Date(value));
 }
 
 function getTripStopCount(itinerary: TravelItinerary | null) {
@@ -317,7 +317,7 @@ const ProfilePage: React.FC = () => {
     state: { authUser, travelerName },
   } = useAppAuth();
   const {
-    state: { trips },
+    state: { isLoadingTrips, trips },
   } = useTrips();
   const [tripImages, setTripImages] = useState<
     Record<string, ResolvedActivityImage>
@@ -336,7 +336,10 @@ const ProfilePage: React.FC = () => {
     () =>
       [...trips]
         .filter((trip) => trip.currentItinerary)
-        .sort((left, right) => right.updatedAt - left.updatedAt),
+        .sort(
+          (left, right) =>
+            Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
+        ),
     [trips],
   );
   const countryPins = useMemo(
@@ -631,7 +634,7 @@ const ProfilePage: React.FC = () => {
                   />
                 </Suspense>
 
-                {!countryPins.length ? (
+                {!isLoadingTrips && !countryPins.length ? (
                   <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
                     <Surface
                       as="div"
@@ -673,7 +676,21 @@ const ProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {archivedTrips.length ? (
+              {isLoadingTrips ? (
+                <Surface
+                  as="div"
+                  variant="dashed"
+                  radius="xl"
+                  className="px-5 py-10 text-center"
+                >
+                  <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
+                    Loading your archive.
+                  </p>
+                  <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
+                    Syncing saved trips from the backend.
+                  </p>
+                </Surface>
+              ) : archivedTrips.length ? (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {archivedTrips.map((trip) => {
                     const itinerary = trip.currentItinerary;

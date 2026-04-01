@@ -5,10 +5,11 @@
   "type": "module",
   "workspaces": [
     "client",
-    "server"
+    "server",
+    "shared"
   ],
   "scripts": {
-    "dev": "concurrently -k -n client,server \"npm run client:dev\" \"npm run server:dev\"",
+    "dev": "concurrently -k -n client,server,firestore \"npm run client:dev\" \"npm run server:dev\" \"npm run firestore:emulator\"",
     "client:dev": "npm --workspace @poreia/client run dev",
     "server:dev": "npm --workspace @poreia/server run dev",
     "server:deploy": "npm --workspace @poreia/server run deploy",

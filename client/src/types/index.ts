@@ -1,38 +1,29 @@
+export type {
+  Activity,
+  BudgetBreakdown,
+  CreateTripRequest,
+  DayPlan,
+  MessageRole,
+  PatchTripRequest,
+  RefineTripRequest,
+  ReplaceTripItineraryRequest,
+  TripDetailResponse,
+  TripMemberResponse,
+  TripMessageResponse,
+  TravelItinerary,
+  TripPermissions,
+  TripRole,
+  TripStatus,
+  TripSummaryResponse,
+  TripVisibility,
+} from "@poreia/shared";
 
-export interface Activity {
-  id: string; // Unique ID for Drag and Drop
-  time: string;
-  description: string;
-  location: string;
-  lat?: number;
-  lng?: number;
-  costEstimate?: number;
-  img_prompt?: string; // Internal location-focused hint used for Wikimedia photo lookup
-}
-
-export interface DayPlan {
-  day: number;
-  theme: string;
-  activities: Activity[];
-  mood?: string;
-  notes?: string;
-}
-
-export interface BudgetBreakdown {
-  category: string;
-  amount: number;
-}
-
-export interface TravelItinerary {
-  destination: string;
-  title: string;
-  totalDays: number;
-  totalBudget: number;
-  currency: string;
-  overview: string;
-  days: DayPlan[];
-  budgetBreakdown: BudgetBreakdown[];
-}
+import type {
+  TravelItinerary,
+  TripMessageResponse,
+  TripPermissions,
+  TripSummaryResponse,
+} from "@poreia/shared";
 
 export interface MapPinData {
   id: string;
@@ -47,17 +38,16 @@ export interface MapPinData {
   markerValue?: string;
 }
 
+export type TripMessage = TripMessageResponse;
+
+export interface TripSession extends TripSummaryResponse {
+  permissions?: TripPermissions;
+  currentItinerary: TravelItinerary | null;
+  messages: TripMessage[];
+}
+
 export interface ChatMessage {
   role: 'user' | 'model';
   text: string;
-  timestamp: number;
-}
-
-export interface TripSession {
-  id: string;
-  title: string;
-  createdAt: number;
-  updatedAt: number;
-  messages: ChatMessage[];
-  currentItinerary: TravelItinerary | null;
+  timestamp?: number;
 }

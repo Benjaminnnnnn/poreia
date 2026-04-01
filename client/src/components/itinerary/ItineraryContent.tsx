@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BookText, Calendar, NotebookPen } from "lucide-react";
 import { DayPlan, TravelItinerary } from "../../types";
 import Badge from "../ui/Badge";
@@ -105,97 +105,115 @@ interface ItineraryNotesViewProps {
 export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
   days,
   onUpdateDayReflection,
-}) => (
-  <section className="space-y-5">
-    <div className="max-w-2xl">
-      <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
-        <BookText size={16} /> Notes by day
-      </h3>
-      <p className="mt-3 text-sm leading-6 text-[rgba(103,67,45,0.8)]">
-        Capture how each day felt while the details are fresh. These notes stay
-        with the trip and remain available when you come back later.
-      </p>
-    </div>
+}) => {
+  const [draftNotesByDay, setDraftNotesByDay] = useState<Record<number, string>>(
+    {},
+  );
 
-    <div className="space-y-4">
-      {days.map((dayPlan, dayIndex) => (
-        <Surface
-          as="section"
-          key={dayPlan.day}
-          variant="card"
-          radius="md"
-          className="shadow-[0_10px_24px_rgba(108,62,26,0.04)]"
-        >
-          <div className="flex flex-col gap-3 border-b border-[rgba(239,223,207,0.88)] pb-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
-                Day {dayPlan.day}
-              </p>
-              <h4 className="mt-1 text-lg font-bold text-[rgba(74,43,26,0.96)]">
-                {dayPlan.theme}
-              </h4>
-              <p className="mt-2 text-sm text-[rgba(108,72,49,0.78)]">
-                {dayPlan.activities.length} planned{" "}
-                {dayPlan.activities.length === 1 ? "stop" : "stops"}
-              </p>
-            </div>
+  useEffect(() => {
+    setDraftNotesByDay(
+      Object.fromEntries(days.map((day) => [day.day, day.notes || ""])),
+    );
+  }, [days]);
 
-            <div className="w-full max-w-xl">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
-                Mood
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {MOOD_OPTIONS.map((option) => {
-                  const isActive = dayPlan.mood === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() =>
-                        onUpdateDayReflection(dayIndex, {
-                          mood: isActive ? undefined : option.value,
-                          notes: dayPlan.notes,
-                        })
-                      }
-                      className={`focus-ring min-h-[44px] rounded-[0.65rem] border px-3.5 py-2 text-sm font-medium transition-colors ${
-                        isActive
-                          ? option.activeClassName
-                          : option.idleClassName
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
+  return (
+    <section className="space-y-5">
+      <div className="max-w-2xl">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
+          <BookText size={16} /> Notes by day
+        </h3>
+        <p className="mt-3 text-sm leading-6 text-[rgba(103,67,45,0.8)]">
+          Capture how each day felt while the details are fresh. These notes stay
+          with the trip and remain available when you come back later.
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {days.map((dayPlan, dayIndex) => (
+          <Surface
+            as="section"
+            key={dayPlan.day}
+            variant="card"
+            radius="md"
+            className="shadow-[0_10px_24px_rgba(108,62,26,0.04)]"
+          >
+            <div className="flex flex-col gap-3 border-b border-[rgba(239,223,207,0.88)] pb-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
+                  Day {dayPlan.day}
+                </p>
+                <h4 className="mt-1 text-lg font-bold text-[rgba(74,43,26,0.96)]">
+                  {dayPlan.theme}
+                </h4>
+                <p className="mt-2 text-sm text-[rgba(108,72,49,0.78)]">
+                  {dayPlan.activities.length} planned{" "}
+                  {dayPlan.activities.length === 1 ? "stop" : "stops"}
+                </p>
+              </div>
+
+              <div className="w-full max-w-xl">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
+                  Mood
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {MOOD_OPTIONS.map((option) => {
+                    const isActive = dayPlan.mood === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() =>
+                          onUpdateDayReflection(dayIndex, {
+                            mood: isActive ? undefined : option.value,
+                            notes: draftNotesByDay[dayPlan.day] ?? "",
+                          })
+                        }
+                        className={`focus-ring min-h-[44px] rounded-[0.65rem] border px-3.5 py-2 text-sm font-medium transition-colors ${
+                          isActive
+                            ? option.activeClassName
+                            : option.idleClassName
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="pt-4">
-            <label
-              htmlFor={`day-notes-${dayPlan.day}`}
-              className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]"
-            >
-              Notes
-            </label>
-            <textarea
-              id={`day-notes-${dayPlan.day}`}
-              value={dayPlan.notes || ""}
-              onChange={(event) =>
-                onUpdateDayReflection(dayIndex, {
-                  mood: dayPlan.mood,
-                  notes: event.target.value,
-                })
-              }
-              placeholder="What surprised you, what you loved, what you would skip, what the day felt like..."
-              className="field-focus mt-2 min-h-[9rem] w-full resize-y rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] placeholder:text-[rgba(150,112,82,0.52)]"
-            />
-          </div>
-        </Surface>
-      ))}
-    </div>
-  </section>
-);
+            <div className="pt-4">
+              <label
+                htmlFor={`day-notes-${dayPlan.day}`}
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]"
+              >
+                Notes
+              </label>
+              <textarea
+                id={`day-notes-${dayPlan.day}`}
+                value={draftNotesByDay[dayPlan.day] ?? ""}
+                onChange={(event) =>
+                  setDraftNotesByDay((current) => ({
+                    ...current,
+                    [dayPlan.day]: event.target.value,
+                  }))
+                }
+                onBlur={() =>
+                  onUpdateDayReflection(dayIndex, {
+                    mood: dayPlan.mood,
+                    notes: draftNotesByDay[dayPlan.day] ?? "",
+                  })
+                }
+                placeholder="What surprised you, what you loved, what you would skip, what the day felt like..."
+                className="field-focus mt-2 min-h-[9rem] w-full resize-y rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] placeholder:text-[rgba(150,112,82,0.52)]"
+              />
+            </div>
+          </Surface>
+        ))}
+      </div>
+    </section>
+  );
+};
 
 export const ItinerarySidePanel: React.FC<{
   activeTab: WorkspaceTab;
@@ -224,7 +242,9 @@ export const ItinerarySidePanel: React.FC<{
       <div className="space-y-3 pb-6">
         {itinerary.days.map((day) => {
           const moodOption = day.mood
-            ? MOOD_OPTION_LOOKUP.get(day.mood)
+            ? MOOD_OPTION_LOOKUP.get(
+                day.mood as (typeof MOOD_OPTIONS)[number]["value"],
+              )
             : null;
           return (
             <Surface

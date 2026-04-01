@@ -4,27 +4,29 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { useAppAuth } from "../components/Auth";
-import { generateOrRefineItinerary } from "../services/itineraryService";
-import { TripSession } from "../types";
-
-const TRIPS_STORAGE_KEY = "poreia_trips";
-const TRIPS_STORAGE_VERSION = 1;
-
-interface PersistedTripsPayload {
-  trips: TripSession[];
-  version: number;
-}
+import {
+  createTrip as createTripRequest,
+  deleteTrip as deleteTripRequest,
+  getTripDetail,
+  listTrips,
+  refineTrip as refineTripRequest,
+  replaceTripItinerary,
+} from "../services/tripsApi";
+import type { TripSession, TravelItinerary } from "../types";
 
 interface TripsContextValue {
   actions: {
     createTrip: (prompt: string) => Promise<TripSession | null>;
-    deleteTrip: (tripId: string) => void;
+    deleteTrip: (tripId: string) => Promise<void>;
     refineTrip: (tripId: string, prompt: string) => Promise<void>;
-    updateTrip: (trip: TripSession) => void;
+    updateTripItinerary: (
+      tripId: string,
+      itinerary: TravelItinerary,
+    ) => Promise<void>;
   };
   meta: {
     getTripById: (tripId: string) => TripSession | undefined;
@@ -32,14 +34,13 @@ interface TripsContextValue {
   };
   state: {
     isCreatingTrip: boolean;
+    isLoadingTrips: boolean;
     refiningTripId: string | null;
     trips: TripSession[];
   };
 }
 
 const TripsContext = createContext<TripsContextValue | null>(null);
-
-const getTripsStorageKey = (userId: string) => `${TRIPS_STORAGE_KEY}:${userId}`;
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message.trim()) {
@@ -49,60 +50,52 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-const parseTripsPayload = (stored: string): TripSession[] => {
-  const parsed = JSON.parse(stored) as unknown;
-
-  if (Array.isArray(parsed)) {
-    return parsed as TripSession[];
+function mergeTrip(current: TripSession | undefined, incoming: TripSession): TripSession {
+  if (!current) {
+    return incoming;
   }
 
-  if (
-    parsed &&
-    typeof parsed === "object" &&
-    Array.isArray((parsed as PersistedTripsPayload).trips)
-  ) {
-    return (parsed as PersistedTripsPayload).trips;
-  }
-
-  return [];
-};
-
-const loadTrips = (userId: string | null): TripSession[] => {
-  if (typeof window === "undefined" || !userId) {
-    return [];
-  }
-
-  for (const storageKey of [getTripsStorageKey(userId), TRIPS_STORAGE_KEY]) {
-    try {
-      const stored = window.localStorage.getItem(storageKey);
-      if (!stored) {
-        continue;
-      }
-
-      return parseTripsPayload(stored);
-    } catch {
-      continue;
-    }
-  }
-
-  return [];
-};
-
-const saveTrips = (userId: string | null, trips: TripSession[]) => {
-  if (typeof window === "undefined" || !userId) {
-    return;
-  }
-
-  const payload: PersistedTripsPayload = {
-    version: TRIPS_STORAGE_VERSION,
-    trips,
+  return {
+    ...current,
+    ...incoming,
+    currentItinerary: incoming.currentItinerary ?? current.currentItinerary,
+    messages: incoming.messages.length ? incoming.messages : current.messages,
+    permissions: incoming.permissions ?? current.permissions,
   };
+}
 
-  window.localStorage.setItem(
-    getTripsStorageKey(userId),
-    JSON.stringify(payload),
+function upsertTripCollection(
+  currentTrips: TripSession[],
+  incomingTrips: TripSession[],
+): TripSession[] {
+  const tripMap = new Map(currentTrips.map((trip) => [trip.id, trip]));
+
+  incomingTrips.forEach((trip) => {
+    tripMap.set(trip.id, mergeTrip(tripMap.get(trip.id), trip));
+  });
+
+  return [...tripMap.values()].sort(
+    (left, right) =>
+      Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
   );
-};
+}
+
+function applyItineraryToTrip(
+  trip: TripSession,
+  itinerary: TravelItinerary,
+): TripSession {
+  return {
+    ...trip,
+    title: itinerary.title,
+    destination: itinerary.destination,
+    overview: itinerary.overview,
+    totalDays: itinerary.totalDays,
+    totalBudget: itinerary.totalBudget,
+    currency: itinerary.currency,
+    currentItinerary: itinerary,
+    updatedAt: new Date().toISOString(),
+  };
+}
 
 export const TripsProvider: React.FC<{
   children: React.ReactNode;
@@ -110,78 +103,118 @@ export const TripsProvider: React.FC<{
   const {
     state: { authUser },
   } = useAppAuth();
-  const [trips, setTrips] = useState<TripSession[]>(() => loadTrips(authUser.uid));
-  const [loadedTripsUserId, setLoadedTripsUserId] = useState(authUser.uid);
+  const [trips, setTrips] = useState<TripSession[]>([]);
+  const [isLoadingTrips, setIsLoadingTrips] = useState(true);
   const [isCreatingTrip, setIsCreatingTrip] = useState(false);
   const [refiningTripId, setRefiningTripId] = useState<string | null>(null);
+  const tripsRef = useRef<TripSession[]>([]);
+  const tripOperationChainsRef = useRef(new Map<string, Promise<void>>());
 
   useEffect(() => {
-    if (loadedTripsUserId === authUser.uid) {
-      return;
-    }
+    tripsRef.current = trips;
+  }, [trips]);
 
-    setTrips(loadTrips(authUser.uid));
-    setLoadedTripsUserId(authUser.uid);
-    setIsCreatingTrip(false);
-    setRefiningTripId(null);
-  }, [authUser.uid, loadedTripsUserId]);
+  const replaceTrips = useCallback((incomingTrips: TripSession[]) => {
+    setTrips((currentTrips) => upsertTripCollection(currentTrips, incomingTrips));
+  }, []);
 
-  useEffect(() => {
-    if (loadedTripsUserId !== authUser.uid) {
-      return;
-    }
+  const replaceTrip = useCallback((incomingTrip: TripSession) => {
+    replaceTrips([incomingTrip]);
+  }, [replaceTrips]);
 
-    saveTrips(authUser.uid, trips);
-  }, [authUser.uid, loadedTripsUserId, trips]);
+  const getTripById = useCallback(
+    (tripId: string) => trips.find((trip) => trip.id === tripId),
+    [trips],
+  );
 
-  const updateTripById = useCallback(
-    (tripId: string, updater: (trip: TripSession) => TripSession) => {
-      setTrips((currentTrips) =>
-        currentTrips.map((trip) =>
-          trip.id === tripId ? updater(trip) : trip,
-        ),
-      );
+  const getTripByIdFromRef = useCallback((tripId: string) => {
+    return tripsRef.current.find((trip) => trip.id === tripId);
+  }, []);
+
+  const queueTripOperation = useCallback(
+    (tripId: string, operation: () => Promise<void>) => {
+      const previousOperation =
+        tripOperationChainsRef.current.get(tripId) ?? Promise.resolve();
+      const nextOperation = previousOperation
+        .catch(() => undefined)
+        .then(operation);
+
+      tripOperationChainsRef.current.set(tripId, nextOperation);
+      void nextOperation.finally(() => {
+        if (tripOperationChainsRef.current.get(tripId) === nextOperation) {
+          tripOperationChainsRef.current.delete(tripId);
+        }
+      });
+
+      return nextOperation;
     },
     [],
   );
 
-  const updateTrip = useCallback(
-    (updatedTrip: TripSession) => {
-      updateTripById(updatedTrip.id, () => updatedTrip);
-    },
-    [updateTripById],
-  );
+  useEffect(() => {
+    let isCancelled = false;
 
-  const deleteTrip = useCallback((tripId: string) => {
-    setTrips((currentTrips) =>
-      currentTrips.filter((trip) => trip.id !== tripId),
-    );
-  }, []);
+    setTrips([]);
+    setIsLoadingTrips(true);
+    setIsCreatingTrip(false);
+    setRefiningTripId(null);
+    tripOperationChainsRef.current.clear();
+
+    void (async () => {
+      try {
+        const listedTrips = await listTrips(authUser);
+        if (isCancelled) {
+          return;
+        }
+
+        replaceTrips(listedTrips);
+
+        if (!listedTrips.length) {
+          return;
+        }
+
+        const detailResults = await Promise.allSettled(
+          listedTrips.map((trip) => getTripDetail(authUser, trip.id)),
+        );
+
+        if (isCancelled) {
+          return;
+        }
+
+        const detailedTrips = detailResults.flatMap((result) =>
+          result.status === "fulfilled" ? [result.value] : [],
+        );
+
+        if (detailedTrips.length) {
+          replaceTrips(detailedTrips);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingTrips(false);
+        }
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [authUser, replaceTrips]);
 
   const createTrip = useCallback(
     async (prompt: string) => {
-      if (!prompt.trim() || isCreatingTrip) {
+      const trimmedPrompt = prompt.trim();
+      if (!trimmedPrompt || isCreatingTrip) {
         return null;
       }
 
       setIsCreatingTrip(true);
-      const newId = uuidv4();
-      const timestamp = Date.now();
 
       try {
-        const itinerary = await generateOrRefineItinerary(prompt);
-
-        const newTrip: TripSession = {
-          id: newId,
-          title: itinerary.destination || prompt,
-          createdAt: timestamp,
-          currentItinerary: itinerary,
-          messages: [{ role: "user", text: prompt, timestamp }],
-          updatedAt: timestamp,
-        };
-
-        setTrips((currentTrips) => [newTrip, ...currentTrips]);
-        return newTrip;
+        const createdTrip = await createTripRequest(authUser, trimmedPrompt);
+        replaceTrip(createdTrip);
+        return createdTrip;
       } catch (error) {
         console.error(error);
         alert(getErrorMessage(error, "Failed to plan trip. Please try again."));
@@ -190,12 +223,29 @@ export const TripsProvider: React.FC<{
         setIsCreatingTrip(false);
       }
     },
-    [isCreatingTrip],
+    [authUser, isCreatingTrip, replaceTrip],
   );
 
-  const getTripById = useCallback(
-    (tripId: string) => trips.find((trip) => trip.id === tripId),
-    [trips],
+  const deleteTrip = useCallback(
+    async (tripId: string) => {
+      const trip = getTripByIdFromRef(tripId);
+      if (!trip) {
+        return;
+      }
+
+      try {
+        await queueTripOperation(tripId, async () => {
+          await deleteTripRequest(authUser, tripId);
+          setTrips((currentTrips) =>
+            currentTrips.filter((currentTrip) => currentTrip.id !== tripId),
+          );
+        });
+      } catch (error) {
+        console.error(error);
+        alert(getErrorMessage(error, "Failed to delete trip."));
+      }
+    },
+    [authUser, getTripByIdFromRef, queueTripOperation],
   );
 
   const refineTrip = useCallback(
@@ -205,40 +255,27 @@ export const TripsProvider: React.FC<{
         return;
       }
 
-      const trip = getTripById(tripId);
+      const trip = getTripByIdFromRef(tripId);
       if (!trip) {
         return;
       }
 
-      const timestamp = Date.now();
-      const updatedMessages = [
-        ...trip.messages,
-        {
-          role: "user" as const,
-          text: trimmedPrompt,
-          timestamp,
-        },
-      ];
-
-      updateTripById(tripId, (currentTrip) => ({
-        ...currentTrip,
-        messages: updatedMessages,
-      }));
       setRefiningTripId(tripId);
 
       try {
-        const newItinerary = await generateOrRefineItinerary(
-          trimmedPrompt,
-          updatedMessages,
-          trip.currentItinerary,
-        );
+        await queueTripOperation(tripId, async () => {
+          const currentTrip = getTripByIdFromRef(tripId);
+          if (!currentTrip) {
+            return;
+          }
 
-        updateTripById(tripId, (currentTrip) => ({
-          ...currentTrip,
-          currentItinerary: newItinerary,
-          title: newItinerary.destination || currentTrip.title,
-          updatedAt: Date.now(),
-        }));
+          const refinedTrip = await refineTripRequest(authUser, tripId, {
+            expectedVersion: currentTrip.version,
+            prompt: trimmedPrompt,
+          });
+
+          replaceTrip(refinedTrip);
+        });
       } catch (error) {
         console.error(error);
         alert(getErrorMessage(error, "Failed to update itinerary."));
@@ -248,7 +285,52 @@ export const TripsProvider: React.FC<{
         );
       }
     },
-    [getTripById, refiningTripId, updateTripById],
+    [authUser, getTripByIdFromRef, queueTripOperation, refiningTripId, replaceTrip],
+  );
+
+  const updateTripItinerary = useCallback(
+    async (tripId: string, itinerary: TravelItinerary) => {
+      const trip = getTripByIdFromRef(tripId);
+      if (!trip) {
+        return;
+      }
+
+      setTrips((currentTrips) =>
+        currentTrips.map((currentTrip) =>
+          currentTrip.id === tripId
+            ? applyItineraryToTrip(currentTrip, itinerary)
+            : currentTrip,
+        ),
+      );
+
+      try {
+        await queueTripOperation(tripId, async () => {
+          const currentTrip = getTripByIdFromRef(tripId);
+          if (!currentTrip) {
+            return;
+          }
+
+          const updatedTrip = await replaceTripItinerary(authUser, tripId, {
+            expectedVersion: currentTrip.version,
+            itinerary,
+          });
+
+          replaceTrip(updatedTrip);
+        });
+      } catch (error) {
+        console.error(error);
+
+        try {
+          const refreshedTrip = await getTripDetail(authUser, tripId);
+          replaceTrip(refreshedTrip);
+        } catch (refreshError) {
+          console.error(refreshError);
+        }
+
+        alert(getErrorMessage(error, "Failed to save itinerary changes."));
+      }
+    },
+    [authUser, getTripByIdFromRef, queueTripOperation, replaceTrip],
   );
 
   const meta = useMemo<TripsContextValue["meta"]>(
@@ -259,23 +341,24 @@ export const TripsProvider: React.FC<{
     [getTripById, refiningTripId],
   );
 
-  const state = useMemo<TripsContextValue["state"]>(
-    () => ({
-      isCreatingTrip,
-      refiningTripId,
-      trips,
-    }),
-    [isCreatingTrip, refiningTripId, trips],
-  );
-
   const actions = useMemo<TripsContextValue["actions"]>(
     () => ({
       createTrip,
       deleteTrip,
       refineTrip,
-      updateTrip,
+      updateTripItinerary,
     }),
-    [createTrip, deleteTrip, refineTrip, updateTrip],
+    [createTrip, deleteTrip, refineTrip, updateTripItinerary],
+  );
+
+  const state = useMemo<TripsContextValue["state"]>(
+    () => ({
+      isCreatingTrip,
+      isLoadingTrips,
+      refiningTripId,
+      trips,
+    }),
+    [isCreatingTrip, isLoadingTrips, refiningTripId, trips],
   );
 
   const value = useMemo<TripsContextValue>(

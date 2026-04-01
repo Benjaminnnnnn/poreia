@@ -1,44 +1,35 @@
-export type TripRole = 'owner' | 'editor' | 'viewer';
+import type {
+  Activity,
+  BudgetBreakdown,
+  DayPlan,
+  MessageRole,
+  TravelItinerary,
+  TripMemberResponse,
+  TripMessageResponse,
+  TripPermissions,
+  TripRole,
+  TripStatus,
+  TripSummaryResponse,
+  TripVisibility,
+} from '@poreia/shared';
+
+export type {
+  Activity,
+  BudgetBreakdown,
+  DayPlan,
+  MessageRole,
+  TravelItinerary,
+  TripMemberResponse,
+  TripMessageResponse,
+  TripPermissions,
+  TripRole,
+  TripStatus,
+  TripSummaryResponse,
+  TripVisibility,
+} from '@poreia/shared';
+
 export type MembershipStatus = 'active' | 'revoked';
-export type TripStatus = 'draft' | 'ready' | 'archived' | 'failed';
-export type TripVisibility = 'private' | 'shared';
 export type SnapshotSource = 'create' | 'refine' | 'manual_edit';
-export type MessageRole = 'user' | 'model';
-
-export interface Activity {
-  id: string;
-  time: string;
-  description: string;
-  location: string;
-  lat?: number;
-  lng?: number;
-  costEstimate?: number;
-  img_prompt?: string;
-}
-
-export interface DayPlan {
-  day: number;
-  theme: string;
-  activities: Activity[];
-  mood?: string;
-  notes?: string;
-}
-
-export interface BudgetBreakdown {
-  category: string;
-  amount: number;
-}
-
-export interface TravelItinerary {
-  destination: string;
-  title: string;
-  totalDays: number;
-  totalBudget: number;
-  currency: string;
-  overview: string;
-  days: DayPlan[];
-  budgetBreakdown: BudgetBreakdown[];
-}
 
 export interface AuthUser {
   uid: string;
@@ -130,51 +121,4 @@ export interface TripMembershipMirrorDoc {
   lastRefinedAt: string | null;
   archivedAt: string | null;
   joinedAt: string;
-}
-
-export interface TripSummaryResponse {
-  id: string;
-  ownerId: string;
-  title: string;
-  destination: string;
-  overview: string;
-  totalDays: number;
-  totalBudget: number;
-  currency: string;
-  status: TripStatus;
-  visibility: TripVisibility;
-  accessRole: TripRole;
-  memberCount: number;
-  version: number;
-  currentSnapshotId: string;
-  createdAt: string;
-  updatedAt: string;
-  lastRefinedAt: string | null;
-  archivedAt: string | null;
-}
-
-export interface TripPermissions {
-  role: TripRole;
-  canView: true;
-  canEdit: boolean;
-  canManageMembers: boolean;
-  canDelete: boolean;
-}
-
-export interface TripMessageResponse {
-  id: string;
-  role: MessageRole;
-  text: string;
-  createdAt: string;
-  snapshotId: string | null;
-}
-
-export interface TripMemberResponse {
-  userId: string;
-  displayName: string;
-  email: string;
-  role: TripRole;
-  status: MembershipStatus;
-  joinedAt: string;
-  invitedBy: string;
 }

@@ -81,6 +81,25 @@ export class FirestoreClient {
     this.documentsBaseUrl = `${apiBase}/${this.databasePath}/documents`;
   }
 
+  private providerLabel(): string {
+    return this.env.firestoreEmulatorHost
+      ? `Firestore emulator at ${this.env.firestoreEmulatorHost}`
+      : 'Firestore';
+  }
+
+  private async executeFetch(url: string, init?: RequestInit): Promise<Response> {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      const message =
+        error instanceof Error && error.message.trim().length > 0
+          ? `Failed to reach ${this.providerLabel()}: ${error.message}`
+          : `Failed to reach ${this.providerLabel()}.`;
+
+      throw new AppError(503, 'provider_unavailable', message);
+    }
+  }
+
   private documentName(path: string): string {
     return `${this.databasePath}/documents/${path}`;
   }
@@ -104,7 +123,7 @@ export class FirestoreClient {
   private async request<T>(url: string, init?: RequestInit): Promise<T> {
     const headers = await this.buildHeaders(init?.headers);
 
-    const response = await fetch(url, {
+    const response = await this.executeFetch(url, {
       ...init,
       headers,
     });
@@ -141,7 +160,7 @@ export class FirestoreClient {
     const url = `${this.documentsBaseUrl}/${path}`;
     const headers = await this.buildHeaders();
 
-    const response = await fetch(url, { headers });
+    const response = await this.executeFetch(url, { headers });
     if (response.status === 404) {
       return null;
     }

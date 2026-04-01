@@ -44,8 +44,9 @@ const TripPage: React.FC<TripPageProps> = ({ tripId }) => {
     actions: { goHome },
   } = useAppNavigation();
   const {
-    actions: { refineTrip, updateTrip },
+    actions: { refineTrip, updateTripItinerary },
     meta: { getTripById, isRefiningTrip },
+    state: { isLoadingTrips },
   } = useTrips();
   const trip = getTripById(tripId);
   const isRefining = isRefiningTrip(tripId);
@@ -54,11 +55,11 @@ const TripPage: React.FC<TripPageProps> = ({ tripId }) => {
     useState<WorkspaceTab>("itinerary");
 
   useEffect(() => {
-    if (!trip && !isRefining) {
+    if (!trip && !isRefining && !isLoadingTrips) {
       const timer = setTimeout(() => goHome(), 0);
       return () => clearTimeout(timer);
     }
-  }, [goHome, isRefining, trip]);
+  }, [goHome, isLoadingTrips, isRefining, trip]);
 
   useEffect(() => {
     setActiveWorkspaceTab("itinerary");
@@ -76,11 +77,7 @@ const TripPage: React.FC<TripPageProps> = ({ tripId }) => {
   }
 
   const handleManualItineraryUpdate = (newItinerary: TravelItinerary) => {
-    updateTrip({
-      ...trip,
-      currentItinerary: newItinerary,
-      updatedAt: Date.now(),
-    });
+    void updateTripItinerary(tripId, newItinerary);
   };
 
   const handleRefine = async (event: React.FormEvent) => {
@@ -118,7 +115,7 @@ const TripPage: React.FC<TripPageProps> = ({ tripId }) => {
         )}
       </div>
 
-      {activeWorkspaceTab === "itinerary" ? (
+      {activeWorkspaceTab === "itinerary" && trip.permissions?.canEdit !== false ? (
         <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-20 flex justify-center px-3 md:bottom-5 md:px-4">
           <div className="pointer-events-auto w-full max-w-full md:max-w-2xl">
             <form onSubmit={handleRefine} className="group relative">

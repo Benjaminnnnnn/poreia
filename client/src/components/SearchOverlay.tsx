@@ -10,11 +10,11 @@ import Surface from "./ui/Surface";
 const SEARCH_OVERLAY_IMAGE =
   "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
 
-const formatTripDate = (timestamp: number) =>
+const formatTripDate = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
-  }).format(timestamp);
+  }).format(new Date(value));
 
 const SearchOverlay: React.FC = () => {
   const {
@@ -22,7 +22,7 @@ const SearchOverlay: React.FC = () => {
   } = useAppNavigation();
   const {
     actions: { createTrip, deleteTrip },
-    state: { isCreatingTrip, trips },
+    state: { isCreatingTrip, isLoadingTrips, trips },
   } = useTrips();
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -218,7 +218,21 @@ const SearchOverlay: React.FC = () => {
             </p>
           </div>
 
-          {trips.length ? (
+          {isLoadingTrips ? (
+            <Surface
+              as="div"
+              variant="dashed"
+              radius="xl"
+              className="px-5 py-10 text-center"
+            >
+              <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
+                Loading your trips.
+              </p>
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
+                Pulling your saved itineraries.
+              </p>
+            </Surface>
+          ) : trips.length ? (
             <div className="no-scrollbar max-h-[30rem] overflow-y-auto pr-1">
               <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,20rem),24rem))] justify-start gap-3">
                 {trips.map((trip) => (
@@ -252,15 +266,15 @@ const SearchOverlay: React.FC = () => {
                           size="sm"
                           className="rounded-[0.45rem] border-[rgba(255,255,255,0.82)] bg-[rgba(255,252,247,0.8)] tracking-[0.14em]"
                         >
-                          {trip.currentItinerary
-                            ? `${trip.currentItinerary.totalDays} days`
+                          {trip.totalDays
+                            ? `${trip.totalDays} days`
                             : "Draft trip"}
                         </Badge>
                         <h3 className="mt-2 line-clamp-2 max-w-[15ch] font-display text-[1.35rem] leading-[0.96] tracking-[-0.045em] text-[rgba(72,43,27,0.96)] lg:text-[1.5rem]">
-                          {trip.currentItinerary?.destination || trip.title}
+                          {trip.destination || trip.title}
                         </h3>
                         <p className="mt-1.5 max-w-[34ch] line-clamp-2 text-[0.92rem] leading-6 text-[rgba(105,69,48,0.78)]">
-                          {trip.currentItinerary?.overview ||
+                          {trip.overview ||
                             "Open this trip to keep refining the itinerary."}
                         </p>
                       </div>
