@@ -45,6 +45,7 @@ interface CreateTripBundle {
 }
 
 interface MembershipMirrorWrite {
+  currentDocument?: { exists?: boolean; updateTime?: string };
   mirror: TripMembershipMirrorDoc;
   userId: string;
 }
@@ -60,12 +61,76 @@ interface CommitTripRevisionInput {
   tripId: string;
 }
 
+interface MemberWrite {
+  currentDocument?: { exists?: boolean; updateTime?: string };
+  member: TripMemberDoc;
+}
+
+interface UserProfileWrite {
+  user: UserProfileDoc;
+  userId: string;
+}
+
+interface CommitTripMutationInput {
+  deleteTrip?: boolean;
+  memberDeletes?: string[];
+  memberUpserts?: MemberWrite[];
+  membershipMirrorDeletes?: string[];
+  membershipMirrorUpserts?: MembershipMirrorWrite[];
+  messageDeletes?: string[];
+  snapshotDeletes?: string[];
+  summary?: TripSummaryDoc;
+  summaryUpdateTime?: string;
+  tripId: string;
+  userProfileUpserts?: UserProfileWrite[];
+}
+
+export interface UserRecord {
+  user: UserProfileDoc;
+  userId: string;
+}
+
+function documentId(name: string): string {
+  return name.split('/').pop() ?? '';
+}
+
 export class TripsRepository {
   constructor(private readonly firestore: FirestoreClient) {}
 
   async getUser(userId: string): Promise<UserProfileDoc | null> {
     const document = await this.firestore.getDocument<UserProfileDoc>(userPath(userId));
     return document?.data ?? null;
+  }
+
+  async getUserRecord(userId: string): Promise<UserRecord | null> {
+    const document = await this.firestore.getDocument<UserProfileDoc>(userPath(userId));
+    if (!document) {
+      return null;
+    }
+
+    return {
+      userId,
+      user: document.data,
+    };
+  }
+
+  async findUserByEmail(email: string): Promise<UserRecord | null> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const documents = await this.firestore.listDocuments<UserProfileDoc>(undefined, 'users', {
+      pageSize: 500,
+    });
+    const match = documents.find(
+      (document) => document.data.email.trim().toLowerCase() === normalizedEmail,
+    );
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+      userId: documentId(match.name),
+      user: match.data,
+    };
   }
 
   async createTripBundle(bundle: CreateTripBundle): Promise<void> {
@@ -145,7 +210,7 @@ export class TripsRepository {
     });
 
     return documents.map((document) => ({
-      id: document.name.split('/').pop() ?? '',
+      id: documentId(document.name),
       message: document.data,
     }));
   }
@@ -157,6 +222,18 @@ export class TripsRepository {
     });
 
     return documents.map((document) => document.data);
+  }
+
+  async listSnapshots(tripId: string, pageSize: number): Promise<Array<{ id: string; snapshot: SnapshotDoc }>> {
+    const documents = await this.firestore.listDocuments<SnapshotDoc>(tripPath(tripId), 'snapshots', {
+      orderBy: 'createdAt desc,__name__ desc',
+      pageSize,
+    });
+
+    return documents.map((document) => ({
+      id: documentId(document.name),
+      snapshot: document.data,
+    }));
   }
 
   async commitTripRevision(input: CommitTripRevisionInput): Promise<void> {
@@ -188,6 +265,57 @@ export class TripsRepository {
           mirror as unknown as Record<string, unknown>,
         ),
       ),
+    ];
+
+    await this.firestore.commit(writes);
+  }
+
+  async commitTripMutation(input: CommitTripMutationInput): Promise<void> {
+    const writes = [
+      ...(input.summary
+        ? [
+            this.firestore.buildUpdateWrite(
+              tripPath(input.tripId),
+              input.summary as unknown as Record<string, unknown>,
+              input.summaryUpdateTime
+                ? { updateTime: input.summaryUpdateTime }
+                : undefined,
+            ),
+          ]
+        : []),
+      ...(input.memberUpserts ?? []).map(({ member, currentDocument }) =>
+        this.firestore.buildUpdateWrite(
+          tripMemberPath(input.tripId, member.userId),
+          member as unknown as Record<string, unknown>,
+          currentDocument,
+        ),
+      ),
+      ...(input.memberDeletes ?? []).map((userId) =>
+        this.firestore.buildDeleteWrite(tripMemberPath(input.tripId, userId)),
+      ),
+      ...(input.membershipMirrorUpserts ?? []).map(({ userId, mirror, currentDocument }) =>
+        this.firestore.buildUpdateWrite(
+          membershipMirrorPath(userId, input.tripId),
+          mirror as unknown as Record<string, unknown>,
+          currentDocument,
+        ),
+      ),
+      ...(input.membershipMirrorDeletes ?? []).map((userId) =>
+        this.firestore.buildDeleteWrite(membershipMirrorPath(userId, input.tripId)),
+      ),
+      ...(input.userProfileUpserts ?? []).map(({ userId, user }) =>
+        this.firestore.buildUpdateWrite(
+          userPath(userId),
+          user as unknown as Record<string, unknown>,
+        ),
+      ),
+      ...(input.snapshotDeletes ?? []).map((snapshotId) =>
+        this.firestore.buildDeleteWrite(tripSnapshotPath(input.tripId, snapshotId)),
+      ),
+      ...(input.messageDeletes ?? []).map((messageId) =>
+        this.firestore.buildDeleteWrite(tripMessagePath(input.tripId, messageId)),
+      ),
+      ...(input.deleteTrip ? [this.firestore.buildDeleteWrite(tripPath(input.tripId))] : []),
     ];
 
     await this.firestore.commit(writes);

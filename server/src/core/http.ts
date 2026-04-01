@@ -1,12 +1,29 @@
 import type { Context } from 'hono';
 import { AppError, isAppError } from './errors';
 
-export function jsonData<T>(context: Context, data: T, status = 200, meta?: Record<string, unknown>) {
+export function jsonData<T>(
+  context: Context,
+  data: T,
+  status = 200,
+  meta?: Record<string, unknown>,
+  headers?: HeadersInit,
+) {
   return new Response(JSON.stringify(meta ? { data, meta } : { data }), {
     status,
     headers: {
       'Content-Type': 'application/json',
       'x-request-id': context.get('requestId'),
+      ...headers,
+    },
+  });
+}
+
+export function emptyResponse(context: Context, status = 204, headers?: HeadersInit) {
+  return new Response(null, {
+    status,
+    headers: {
+      'x-request-id': context.get('requestId'),
+      ...headers,
     },
   });
 }

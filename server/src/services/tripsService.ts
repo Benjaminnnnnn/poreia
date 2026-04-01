@@ -48,6 +48,28 @@ const replaceItinerarySchema = z.object({
   itinerary: travelItinerarySchema,
 });
 
+const patchTripSchema = z
+  .object({
+    archived: z.boolean().optional(),
+    expectedVersion: z.coerce.number().int().min(1),
+    title: z.string().trim().min(1).max(200).optional(),
+    visibility: z.enum(['private', 'shared']).optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.archived === undefined && value.title === undefined && value.visibility === undefined) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one mutable field is required.',
+        path: ['title'],
+      });
+    }
+  });
+
+const listMessagesQuerySchema = z.object({
+  cursor: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
+
 interface ListTripsResult {
   data: TripSummaryResponse[];
   meta: {
@@ -79,6 +101,21 @@ interface RefineTripInput {
 interface ReplaceTripItineraryInput {
   expectedVersion: number;
   itinerary: TravelItinerary;
+}
+
+interface PatchTripInput {
+  archived?: boolean;
+  expectedVersion: number;
+  title?: string;
+  visibility?: 'private' | 'shared';
+}
+
+interface ListMessagesResult {
+  data: TripMessageResponse[];
+  meta: {
+    limit: number;
+    nextCursor: string | null;
+  };
 }
 
 export interface GetTripDetailOptions {
@@ -138,6 +175,15 @@ function requireActiveMembership(membership: TripMemberDoc | null): TripMemberDo
 function requireEditableMembership(membership: TripMemberDoc | null): TripMemberDoc {
   const activeMembership = requireActiveMembership(membership);
   if (activeMembership.role === 'viewer') {
+    throw new AppError(403, 'forbidden', 'You do not have permission to modify this trip.');
+  }
+
+  return activeMembership;
+}
+
+function requireOwnerMembership(membership: TripMemberDoc | null): TripMemberDoc {
+  const activeMembership = requireActiveMembership(membership);
+  if (activeMembership.role !== 'owner') {
     throw new AppError(403, 'forbidden', 'You do not have permission to modify this trip.');
   }
 
@@ -306,6 +352,35 @@ function encodeCursor(summary: TripSummaryResponse): string {
   );
 }
 
+function decodeMessageCursor(cursor: string | undefined): { createdAt: string; id: string } | null {
+  if (!cursor) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(atob(cursor)) as { createdAt?: string; id?: string };
+    if (!parsed.createdAt || !parsed.id) {
+      return null;
+    }
+
+    return {
+      id: parsed.id,
+      createdAt: parsed.createdAt,
+    };
+  } catch {
+    throw new AppError(422, 'validation_error', 'Cursor is invalid.');
+  }
+}
+
+function encodeMessageCursor(message: TripMessageResponse): string {
+  return btoa(
+    JSON.stringify({
+      id: message.id,
+      createdAt: message.createdAt,
+    }),
+  );
+}
+
 function sortSummariesDescending(left: TripSummaryResponse, right: TripSummaryResponse): number {
   if (left.updatedAt !== right.updatedAt) {
     return right.updatedAt.localeCompare(left.updatedAt);
@@ -324,6 +399,21 @@ function afterCursor(cursor: { id: string; updatedAt: string } | null, summary: 
   }
 
   return summary.updatedAt.localeCompare(cursor.updatedAt) < 0;
+}
+
+function afterMessageCursor(
+  cursor: { createdAt: string; id: string } | null,
+  message: TripMessageResponse,
+): boolean {
+  if (!cursor) {
+    return true;
+  }
+
+  if (message.createdAt === cursor.createdAt) {
+    return message.id.localeCompare(cursor.id) < 0;
+  }
+
+  return message.createdAt.localeCompare(cursor.createdAt) < 0;
 }
 
 export class TripsService {
@@ -378,6 +468,24 @@ export class TripsService {
       expectedVersion: parsed.data.expectedVersion,
       itinerary: normalizeItineraryForStorage(parsed.data.itinerary),
     };
+  }
+
+  parsePatchTripInput(input: unknown): PatchTripInput {
+    const parsed = patchTripSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppError(422, 'validation_error', 'Request validation failed.', parsed.error.flatten());
+    }
+
+    return parsed.data;
+  }
+
+  parseListMessagesQuery(input: unknown) {
+    const parsed = listMessagesQuerySchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppError(422, 'validation_error', 'Query validation failed.', parsed.error.flatten());
+    }
+
+    return parsed.data;
   }
 
   async createTrip(user: AuthUser, input: CreateTripInput): Promise<TripDetailResult> {
@@ -748,5 +856,163 @@ export class TripsService {
       currentItinerary: input.itinerary,
       recentMessages: [],
     };
+  }
+
+  async patchTrip(
+    userId: string,
+    tripId: string,
+    input: PatchTripInput,
+  ): Promise<TripDetailResult> {
+    const [summaryDocument, membership] = await Promise.all([
+      this.repository.getTripSummaryDocument(tripId),
+      this.repository.getTripMember(tripId, userId),
+    ]);
+
+    if (!summaryDocument) {
+      throw new AppError(404, 'trip_not_found', 'Trip not found.');
+    }
+
+    requireOwnerMembership(membership);
+    assertExpectedVersion(input.expectedVersion, summaryDocument.data.version);
+
+    const summary = summaryDocument.data;
+    const nextVisibility = input.visibility ?? summary.visibility;
+    const shouldArchive = input.archived ?? (summary.archivedAt !== null);
+
+    if (nextVisibility === 'private' && summary.memberCount > 1) {
+      throw new AppError(422, 'validation_error', 'Private trips cannot have multiple active members.');
+    }
+
+    const now = nowIsoString();
+    const nextSummary: TripSummaryDoc = {
+      ...summary,
+      title: input.title ?? summary.title,
+      visibility: nextVisibility,
+      status: shouldArchive ? 'archived' : 'ready',
+      archivedAt: shouldArchive ? summary.archivedAt ?? now : null,
+      version: summary.version + 1,
+      updatedAt: now,
+    };
+    const members = (await this.repository.listMembers(tripId)).filter((member) => member.status === 'active');
+
+    await this.repository.commitTripMutation({
+      tripId,
+      summary: nextSummary,
+      summaryUpdateTime: summaryDocument.updateTime,
+      membershipMirrorUpserts: members.map((member) => ({
+        userId: member.userId,
+        mirror: buildMembershipMirror(tripId, nextSummary, member),
+      })),
+    });
+
+    const snapshot = await this.repository.getSnapshot(tripId, nextSummary.currentSnapshotId);
+    if (!snapshot) {
+      throw new AppError(500, 'internal_error', 'Trip snapshot is missing.');
+    }
+
+    return {
+      id: tripId,
+      summary: mapTripSummary(tripId, nextSummary, 'owner'),
+      permissions: buildPermissions('owner'),
+      currentItinerary: snapshot.itinerary,
+      recentMessages: [],
+    };
+  }
+
+  async listTripMessages(
+    userId: string,
+    tripId: string,
+    query: z.infer<typeof listMessagesQuerySchema>,
+  ): Promise<ListMessagesResult> {
+    const [summary, membership] = await Promise.all([
+      this.repository.getTripSummary(tripId),
+      this.repository.getTripMember(tripId, userId),
+    ]);
+
+    if (!summary) {
+      throw new AppError(404, 'trip_not_found', 'Trip not found.');
+    }
+
+    requireActiveMembership(membership);
+
+    const cursor = decodeMessageCursor(query.cursor);
+    const filteredMessages = (await this.repository.listMessages(tripId, 200))
+      .map(({ id, message }) => toTripMessageResponse(id, message))
+      .filter((message) => afterMessageCursor(cursor, message));
+
+    const page = filteredMessages.slice(0, query.limit + 1);
+    const hasMore = page.length > query.limit;
+    const selected = hasMore ? page.slice(0, query.limit) : page;
+
+    return {
+      data: [...selected].reverse(),
+      meta: {
+        limit: query.limit,
+        nextCursor: hasMore ? encodeMessageCursor(selected[selected.length - 1]) : null,
+      },
+    };
+  }
+
+  async deleteTrip(userId: string, tripId: string): Promise<void> {
+    const [summaryDocument, membership, members, snapshots, messages] = await Promise.all([
+      this.repository.getTripSummaryDocument(tripId),
+      this.repository.getTripMember(tripId, userId),
+      this.repository.listMembers(tripId),
+      this.repository.listSnapshots(tripId, 500),
+      this.repository.listMessages(tripId, 500),
+    ]);
+
+    if (!summaryDocument) {
+      throw new AppError(404, 'trip_not_found', 'Trip not found.');
+    }
+
+    requireOwnerMembership(membership);
+
+    const activeMembers = members.filter((member) => member.status === 'active');
+    const userProfiles = await Promise.all(
+      activeMembers.map(async (member) => ({
+        user: await this.repository.getUser(member.userId),
+        userId: member.userId,
+      })),
+    );
+    const now = nowIsoString();
+
+    await this.repository.commitTripMutation({
+      tripId,
+      deleteTrip: true,
+      memberDeletes: members.map((member) => member.userId),
+      membershipMirrorDeletes: members.map((member) => member.userId),
+      snapshotDeletes: snapshots.map((snapshot) => snapshot.id),
+      messageDeletes: messages.map((message) => message.id),
+      userProfileUpserts: userProfiles.flatMap(({ user, userId: memberUserId }) => {
+        if (!user) {
+          return [];
+        }
+
+        if (memberUserId === summaryDocument.data.ownerId) {
+          return [
+            {
+              userId: memberUserId,
+              user: {
+                ...user,
+                ownedTripCount: Math.max(0, user.ownedTripCount - 1),
+                updatedAt: now,
+              },
+            },
+          ];
+        }
+
+        return [
+          {
+            userId: memberUserId,
+            user: {
+              ...user,
+              sharedTripCount: Math.max(0, user.sharedTripCount - 1),
+              updatedAt: now,
+            },
+          },
+        ];
+      }),
+    });
   }
 }

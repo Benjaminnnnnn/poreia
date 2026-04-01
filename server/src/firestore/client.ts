@@ -14,13 +14,20 @@ interface RawFirestoreDocument {
   updateTime?: string;
 }
 
-interface CommitWrite {
+interface CommitUpdateWrite {
   currentDocument?: { exists?: boolean; updateTime?: string };
   update: {
     fields: Record<string, unknown>;
     name: string;
   };
 }
+
+interface CommitDeleteWrite {
+  currentDocument?: { exists?: boolean; updateTime?: string };
+  delete: string;
+}
+
+type CommitWrite = CommitUpdateWrite | CommitDeleteWrite;
 
 interface ListDocumentsResponse {
   documents?: RawFirestoreDocument[];
@@ -135,7 +142,7 @@ export class FirestoreClient {
   }
 
   async listDocuments<T>(
-    parentPath: string,
+    parentPath: string | undefined,
     collectionId: string,
     options?: {
       orderBy?: string;
@@ -143,7 +150,9 @@ export class FirestoreClient {
     },
   ): Promise<Array<FirestoreDocument<T>>> {
     const url = new URL(
-      `${this.documentsBaseUrl}/${parentPath}/${collectionId}`,
+      parentPath
+        ? `${this.documentsBaseUrl}/${parentPath}/${collectionId}`
+        : `${this.documentsBaseUrl}/${collectionId}`,
     );
 
     if (options?.orderBy) {
@@ -178,13 +187,23 @@ export class FirestoreClient {
     path: string,
     data: Record<string, unknown>,
     currentDocument?: { exists?: boolean; updateTime?: string },
-  ): CommitWrite {
+  ): CommitUpdateWrite {
     return {
       currentDocument,
       update: {
         name: this.documentName(path),
         fields: encodeFields(data as never),
       },
+    };
+  }
+
+  buildDeleteWrite(
+    path: string,
+    currentDocument?: { exists?: boolean; updateTime?: string },
+  ): CommitDeleteWrite {
+    return {
+      currentDocument,
+      delete: this.documentName(path),
     };
   }
 }

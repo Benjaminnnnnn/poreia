@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 import { getAppEnv, type EnvBindings } from '../core/env';
-import { jsonData } from '../core/http';
+import { emptyResponse, jsonData } from '../core/http';
 import { FirestoreClient } from '../firestore/client';
 import { TripsRepository } from '../firestore/tripsRepository';
 import { requireAuth } from '../http/auth';
 import { ItineraryProvider } from '../itinerary/provider';
+import { TripMembersService } from '../services/tripMembersService';
 import { TripsService } from '../services/tripsService';
 
 function buildTripsService(env: EnvBindings): TripsService {
@@ -13,6 +14,11 @@ function buildTripsService(env: EnvBindings): TripsService {
     new TripsRepository(new FirestoreClient(appEnv)),
     new ItineraryProvider(appEnv.pollinationsApiKey),
   );
+}
+
+function buildTripMembersService(env: EnvBindings): TripMembersService {
+  const appEnv = getAppEnv(env);
+  return new TripMembersService(new TripsRepository(new FirestoreClient(appEnv)));
 }
 
 export function createTripsRoutes() {
@@ -40,7 +46,7 @@ export function createTripsRoutes() {
     });
 
     const result = await tripsService.listTrips(context.get('authUser').uid, query);
-    return context.json(result, 200);
+    return jsonData(context, result.data, 200, result.meta);
   });
 
   app.get('/trips/:tripId', async (context) => {
@@ -82,6 +88,96 @@ export function createTripsRoutes() {
     );
 
     return jsonData(context, result);
+  });
+
+  app.patch('/trips/:tripId', async (context) => {
+    const tripsService = buildTripsService(context.env);
+    const input = tripsService.parsePatchTripInput(await context.req.json());
+    const result = await tripsService.patchTrip(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+      input,
+    );
+
+    return jsonData(context, result);
+  });
+
+  app.get('/trips/:tripId/messages', async (context) => {
+    const tripsService = buildTripsService(context.env);
+    const url = new URL(context.req.url);
+    const query = tripsService.parseListMessagesQuery({
+      cursor: url.searchParams.get('cursor') ?? undefined,
+      limit: url.searchParams.get('limit') ?? undefined,
+    });
+    const result = await tripsService.listTripMessages(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+      query,
+    );
+
+    return jsonData(context, result.data, 200, result.meta);
+  });
+
+  app.get('/trips/:tripId/members', async (context) => {
+    const membersService = buildTripMembersService(context.env);
+    const result = await membersService.listMembers(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+    );
+
+    return jsonData(context, result);
+  });
+
+  app.post('/trips/:tripId/members', async (context) => {
+    const membersService = buildTripMembersService(context.env);
+    const input = membersService.parseAddMemberInput(await context.req.json());
+    const result = await membersService.addMember(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+      input,
+    );
+
+    return jsonData(
+      context,
+      result,
+      201,
+      undefined,
+      { Location: `/api/v1/trips/${context.req.param('tripId')}/members/${result.member.userId}` },
+    );
+  });
+
+  app.patch('/trips/:tripId/members/:userId', async (context) => {
+    const membersService = buildTripMembersService(context.env);
+    const input = membersService.parseUpdateMemberInput(await context.req.json());
+    const result = await membersService.updateMember(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+      context.req.param('userId'),
+      input,
+    );
+
+    return jsonData(context, result);
+  });
+
+  app.delete('/trips/:tripId/members/:userId', async (context) => {
+    const membersService = buildTripMembersService(context.env);
+    await membersService.removeMember(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+      context.req.param('userId'),
+    );
+
+    return emptyResponse(context);
+  });
+
+  app.delete('/trips/:tripId', async (context) => {
+    const tripsService = buildTripsService(context.env);
+    await tripsService.deleteTrip(
+      context.get('authUser').uid,
+      context.req.param('tripId'),
+    );
+
+    return emptyResponse(context);
   });
 
   return app;
