@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
 import { createApp } from '../../src/app';
 import { getAppEnv, type EnvBindings } from '../../src/core/env';
+import { AppError } from '../../src/core/errors';
 import { FirestoreClient } from '../../src/firestore/client';
 import { TripsRepository } from '../../src/firestore/tripsRepository';
 import { ItineraryProvider } from '../../src/itinerary/provider';
@@ -10,10 +11,10 @@ import type {
   AuthUser,
   MessageDoc,
   SnapshotDoc,
+  TravelItinerary,
   TripMemberDoc,
   TripMembershipMirrorDoc,
   TripSummaryDoc,
-  TravelItinerary,
   UserProfileDoc,
 } from '../../src/types/domain';
 
@@ -33,12 +34,18 @@ const appEnv = getAppEnv(testEnv);
 
 function parseTestUser(testUserHeader: string | undefined | null): AuthUser {
   if (!testUserHeader) {
-    throw new Error('x-test-user is required for integration tests.');
+    throw new AppError(401, 'unauthorized', 'Missing authorization token.');
   }
 
-  const parsed = JSON.parse(testUserHeader) as Partial<AuthUser>;
+  let parsed: Partial<AuthUser>;
+  try {
+    parsed = JSON.parse(testUserHeader) as Partial<AuthUser>;
+  } catch {
+    throw new AppError(401, 'unauthorized', 'Invalid authorization token.');
+  }
+
   if (typeof parsed.uid !== 'string' || parsed.uid.trim().length === 0) {
-    throw new Error('x-test-user must include a uid.');
+    throw new AppError(401, 'unauthorized', 'Invalid authorization token.');
   }
 
   return {
@@ -131,13 +138,29 @@ function defaultItinerary(prompt: string, currentItinerary?: TravelItinerary | n
   };
 }
 
-export const app = createApp({
-  tripsRoutes: {
-    authMiddleware: testAuthMiddleware,
-    buildTripMembersService: () => createTripMembersService(),
-    buildTripsService: () => createTripsService(defaultItinerary),
-  },
-});
+interface CreateTestAppOptions {
+  authMiddleware?: MiddlewareHandler<{ Bindings: EnvBindings }>;
+  buildTripMembersService?: () => TripMembersService;
+  buildTripsService?: () => TripsService;
+  itineraryFactory?: (
+    prompt: string,
+    currentItinerary?: TravelItinerary | null,
+  ) => TravelItinerary | Promise<TravelItinerary>;
+}
+
+export function createTestApp(options: CreateTestAppOptions = {}) {
+  return createApp({
+    tripsRoutes: {
+      authMiddleware: options.authMiddleware ?? testAuthMiddleware,
+      buildTripMembersService: options.buildTripMembersService ?? (() => createTripMembersService()),
+      buildTripsService:
+        options.buildTripsService ??
+        (() => createTripsService(options.itineraryFactory ?? defaultItinerary)),
+    },
+  });
+}
+
+export const app = createTestApp();
 
 export const firestoreClient = createAdminFirestoreClient();
 export const tripsRepository = new TripsRepository(firestoreClient);
@@ -170,8 +193,12 @@ export function testUserHeader(user: {
   };
 }
 
-export async function appRequest(path: string, init: RequestInit = {}): Promise<Response> {
-  return app.request(`http://localhost${path}`, init, testEnv);
+export async function appRequest(
+  path: string,
+  init: RequestInit = {},
+  targetApp: ReturnType<typeof createTestApp> = app,
+): Promise<Response> {
+  return targetApp.request(`http://localhost${path}`, init, testEnv);
 }
 
 export async function upsertUser(userId: string, user: UserProfileDoc): Promise<void> {
