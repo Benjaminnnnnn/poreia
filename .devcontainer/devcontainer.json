@@ -49,10 +49,7 @@
       "onAutoForward": "notify"
     }
   },
-  "mounts": [
-    "source=poreia-node-modules,target=/workspaces/${localWorkspaceFolderBasename}/node_modules,type=volume"
-  ],
-  "postCreateCommand": "npm ci",
+  "postCreateCommand": "npm install",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -134,7 +134,7 @@ This repository includes a shared VS Code dev container in `.devcontainer/devcon
 - Root `npm ci` installs both `client` and `server` through npm workspaces.
 - The backend dev server is exposed on `http://localhost:8787`.
 - The Firestore emulator and Emulator UI are exposed on `http://localhost:8080` and `http://localhost:4000`.
-- `node_modules` lives in a Docker volume so host OS differences do not leak into dependencies.
+- Root `npm ci` still installs both `client` and `server` through npm workspaces, but `node_modules` now lives in the workspace mount instead of a Docker volume.
 - `client/.env.local` and `server/.dev.vars` stay in your local checkout and are mounted into the container workspace.
 - Running directly on the host OS is still supported.
 
