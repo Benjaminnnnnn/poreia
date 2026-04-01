@@ -1,0 +1,190 @@
+import type { AppEnv } from '../core/env';
+import { AppError } from '../core/errors';
+import { getGoogleAccessToken } from './googleAccessToken';
+import {
+  decodeDocument,
+  type FirestoreDocument,
+  encodeFields,
+} from './values';
+
+interface RawFirestoreDocument {
+  createTime?: string;
+  fields?: Record<string, unknown>;
+  name: string;
+  updateTime?: string;
+}
+
+interface CommitWrite {
+  currentDocument?: { exists?: boolean; updateTime?: string };
+  update: {
+    fields: Record<string, unknown>;
+    name: string;
+  };
+}
+
+interface ListDocumentsResponse {
+  documents?: RawFirestoreDocument[];
+}
+
+interface FirestoreErrorResponse {
+  error?: {
+    code?: number;
+    message?: string;
+    status?: string;
+  };
+}
+
+function parseFirestoreError(body: string): FirestoreErrorResponse | null {
+  if (!body.trim()) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(body) as FirestoreErrorResponse;
+  } catch {
+    return null;
+  }
+}
+
+export class FirestoreClient {
+  private readonly databasePath: string;
+  private readonly documentsBaseUrl: string;
+  private readonly projectId: string;
+
+  constructor(private readonly env: AppEnv) {
+    this.projectId = env.firebaseProjectId;
+    this.databasePath = `projects/${this.projectId}/databases/(default)`;
+
+    const apiBase = env.firestoreEmulatorHost
+      ? `http://${env.firestoreEmulatorHost}/v1`
+      : 'https://firestore.googleapis.com/v1';
+
+    this.documentsBaseUrl = `${apiBase}/${this.databasePath}/documents`;
+  }
+
+  private documentName(path: string): string {
+    return `${this.databasePath}/documents/${path}`;
+  }
+
+  private async request<T>(url: string, init?: RequestInit): Promise<T> {
+    const headers = new Headers(init?.headers);
+
+    if (!this.env.firestoreEmulatorHost) {
+      const accessToken = await getGoogleAccessToken(this.env);
+      headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+
+    const response = await fetch(url, {
+      ...init,
+      headers,
+    });
+
+    if (response.status === 404) {
+      throw new AppError(404, 'trip_not_found', 'Document not found.');
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      const parsedError = parseFirestoreError(body);
+      const firestoreStatus = parsedError?.error?.status;
+      const firestoreMessage = parsedError?.error?.message?.trim();
+
+      if (firestoreStatus === 'FAILED_PRECONDITION' || firestoreStatus === 'ABORTED') {
+        throw new AppError(409, 'stale_write', 'Trip has changed. Refresh and retry.');
+      }
+
+      throw new AppError(
+        503,
+        'provider_unavailable',
+        firestoreMessage || body.trim() || `Firestore request failed with ${response.status}.`,
+      );
+    }
+
+    if (response.status === 204) {
+      return undefined as T;
+    }
+
+    return (await response.json()) as T;
+  }
+
+  async getDocument<T>(path: string): Promise<FirestoreDocument<T> | null> {
+    const url = `${this.documentsBaseUrl}/${path}`;
+    const headers = new Headers();
+
+    if (!this.env.firestoreEmulatorHost) {
+      const accessToken = await getGoogleAccessToken(this.env);
+      headers.set('Authorization', `Bearer ${accessToken}`);
+    }
+
+    const response = await fetch(url, { headers });
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new AppError(
+        503,
+        'provider_unavailable',
+        body.trim() || `Firestore request failed with ${response.status}.`,
+      );
+    }
+
+    const payload = (await response.json()) as RawFirestoreDocument;
+    return decodeDocument<T>(payload as never);
+  }
+
+  async listDocuments<T>(
+    parentPath: string,
+    collectionId: string,
+    options?: {
+      orderBy?: string;
+      pageSize?: number;
+    },
+  ): Promise<Array<FirestoreDocument<T>>> {
+    const url = new URL(
+      `${this.documentsBaseUrl}/${parentPath}/${collectionId}`,
+    );
+
+    if (options?.orderBy) {
+      url.searchParams.set('orderBy', options.orderBy);
+    }
+
+    if (options?.pageSize) {
+      url.searchParams.set('pageSize', String(options.pageSize));
+    }
+
+    const payload = await this.request<ListDocumentsResponse>(url.toString(), {
+      method: 'GET',
+    });
+
+    return (payload.documents ?? []).map((document) =>
+      decodeDocument<T>(document as never),
+    );
+  }
+
+  async commit(writes: CommitWrite[]): Promise<void> {
+    const url = `${this.documentsBaseUrl}:commit`;
+    await this.request(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ writes }),
+    });
+  }
+
+  buildUpdateWrite(
+    path: string,
+    data: Record<string, unknown>,
+    currentDocument?: { exists?: boolean; updateTime?: string },
+  ): CommitWrite {
+    return {
+      currentDocument,
+      update: {
+        name: this.documentName(path),
+        fields: encodeFields(data as never),
+      },
+    };
+  }
+}
