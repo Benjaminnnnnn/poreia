@@ -15,7 +15,7 @@ import { auth, signInWithGoogle, signOutUser } from "../lib/firebase";
 import {
   getCurrentUserProfile,
   updateCurrentUserProfile,
-} from "../services/profileApi";
+} from "../services/profileService";
 import Button from "./ui/Button";
 import Surface from "./ui/Surface";
 

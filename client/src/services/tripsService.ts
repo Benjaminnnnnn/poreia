@@ -12,7 +12,7 @@ import type {
   TripDetailResponse,
   TripSummaryResponse,
 } from "@poreia/shared";
-import { ApiError, apiRequest } from "./apiClient";
+import { ApiServiceError, apiRequest } from "./apiService";
 
 function toTripSession(
   summary: TripSummaryResponse,
@@ -43,24 +43,24 @@ export async function listTrips(authUser: User): Promise<TripSession[]> {
     scope: "all",
     status: "all",
   });
-  const response = await apiRequest<TripSummaryResponse[]>(
-    authUser,
-    `/api/v1/trips?${params.toString()}`,
-  );
+  const summaries = await apiRequest<TripSummaryResponse[]>(authUser, {
+    method: "GET",
+    url: `/api/v1/trips?${params.toString()}`,
+  });
 
-  return response.data.map((summary) => toTripSession(summary));
+  return summaries.map((summary) => toTripSession(summary));
 }
 
 export async function getTripDetail(
   authUser: User,
   tripId: string,
 ): Promise<TripSession> {
-  const response = await apiRequest<TripDetailResponse>(
-    authUser,
-    `/api/v1/trips/${tripId}`,
-  );
+  const detail = await apiRequest<TripDetailResponse>(authUser, {
+    method: "GET",
+    url: `/api/v1/trips/${tripId}`,
+  });
 
-  return fromTripDetail(response.data);
+  return fromTripDetail(detail);
 }
 
 export async function createTrip(
@@ -71,12 +71,13 @@ export async function createTrip(
     clientRequestId: crypto.randomUUID(),
     prompt,
   };
-  const response = await apiRequest<TripDetailResponse>(authUser, "/api/v1/trips", {
+  const detail = await apiRequest<TripDetailResponse>(authUser, {
     method: "POST",
-    body: JSON.stringify(request),
+    url: "/api/v1/trips",
+    data: request,
   });
 
-  return fromTripDetail(response.data);
+  return fromTripDetail(detail);
 }
 
 export async function refineTrip(
@@ -91,16 +92,13 @@ export async function refineTrip(
     clientRequestId: crypto.randomUUID(),
     ...input,
   };
-  const response = await apiRequest<TripDetailResponse>(
-    authUser,
-    `/api/v1/trips/${tripId}/refinements`,
-    {
-      method: "POST",
-      body: JSON.stringify(request),
-    },
-  );
+  const detail = await apiRequest<TripDetailResponse>(authUser, {
+    method: "POST",
+    url: `/api/v1/trips/${tripId}/refinements`,
+    data: request,
+  });
 
-  return fromTripDetail(response.data);
+  return fromTripDetail(detail);
 }
 
 export async function replaceTripItinerary(
@@ -112,22 +110,20 @@ export async function replaceTripItinerary(
   },
 ): Promise<TripSession> {
   const request: ReplaceTripItineraryRequest = input;
-  const response = await apiRequest<TripDetailResponse>(
-    authUser,
-    `/api/v1/trips/${tripId}/itinerary`,
-    {
-      method: "PUT",
-      body: JSON.stringify(request),
-    },
-  );
+  const detail = await apiRequest<TripDetailResponse>(authUser, {
+    method: "PUT",
+    url: `/api/v1/trips/${tripId}/itinerary`,
+    data: request,
+  });
 
-  return fromTripDetail(response.data);
+  return fromTripDetail(detail);
 }
 
 export async function deleteTrip(authUser: User, tripId: string): Promise<void> {
-  await apiRequest<void>(authUser, `/api/v1/trips/${tripId}`, {
+  await apiRequest<void>(authUser, {
     method: "DELETE",
+    url: `/api/v1/trips/${tripId}`,
   });
 }
 
-export { ApiError as TripsApiError };
+export { ApiServiceError as TripsApiError };

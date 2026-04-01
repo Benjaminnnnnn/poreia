@@ -15,7 +15,7 @@ import {
   listTrips,
   refineTrip as refineTripRequest,
   replaceTripItinerary,
-} from "../services/tripsApi";
+} from "../services/tripsService";
 import type { TripSession, TravelItinerary } from "../types";
 
 interface TripsContextValue {

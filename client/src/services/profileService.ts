@@ -3,31 +3,24 @@ import type {
   UpdateUserProfileRequest,
   UserProfileResponse,
 } from "@poreia/shared";
-import { apiRequest } from "./apiClient";
+import { apiRequest } from "./apiService";
 
 export async function getCurrentUserProfile(
   authUser: User,
 ): Promise<UserProfileResponse> {
-  const response = await apiRequest<UserProfileResponse>(
-    authUser,
-    "/api/v1/me/profile",
-  );
-
-  return response.data;
+  return apiRequest<UserProfileResponse>(authUser, {
+    method: "GET",
+    url: "/api/v1/me/profile",
+  });
 }
 
 export async function updateCurrentUserProfile(
   authUser: User,
   input: UpdateUserProfileRequest,
 ): Promise<UserProfileResponse> {
-  const response = await apiRequest<UserProfileResponse>(
-    authUser,
-    "/api/v1/me/profile",
-    {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    },
-  );
-
-  return response.data;
+  return apiRequest<UserProfileResponse>(authUser, {
+    method: "PATCH",
+    url: "/api/v1/me/profile",
+    data: input,
+  });
 }
