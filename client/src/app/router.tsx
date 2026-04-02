@@ -14,8 +14,8 @@ const AppRouter: React.FC = () => {
     return (
       <RouteErrorBoundary
         key={`trip:${currentTripId}`}
-        description="Return home and reopen the trip once the app is back in a clean state."
-        title="This trip view ran into a problem."
+        description="Go back to your trips and open this itinerary again."
+        title="We could not load this trip."
       >
         <TripRoute tripId={currentTripId} />
       </RouteErrorBoundary>
@@ -26,8 +26,8 @@ const AppRouter: React.FC = () => {
     return (
       <RouteErrorBoundary
         key="profile"
-        description="Return to the home view and reopen your profile from the account menu."
-        title="The profile view is unavailable right now."
+        description="Go back home and open your profile again."
+        title="We could not load your profile."
       >
         <ProfileRoute />
       </RouteErrorBoundary>
@@ -37,9 +37,9 @@ const AppRouter: React.FC = () => {
   return (
     <RouteErrorBoundary
       key="home"
-      actionLabel="Reset home view"
-      description="Reset the home screen and start again from a clean state."
-      title="The home view is unavailable right now."
+      actionLabel="Try again"
+      description="Please return to the home page and try again."
+      title="We could not load the home page."
     >
       <HomeRoute />
     </RouteErrorBoundary>

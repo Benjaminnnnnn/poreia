@@ -57,7 +57,7 @@ class RouteErrorBoundary extends React.Component<
         <div className="w-full max-w-[31rem]">
           <Surface variant="card" radius="2xl" padding="xl">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(196,102,60,0.8)]">
-              Poreia route error
+              Something went wrong
             </p>
             <h2 className="mt-3 font-display text-[clamp(1.8rem,4vw,2.5rem)] leading-[0.94] tracking-[-0.05em] text-[rgba(74,43,26,0.98)]">
               {title}
@@ -69,7 +69,7 @@ class RouteErrorBoundary extends React.Component<
             {message ? (
               <div className="mt-6 border-l-2 border-[rgba(228,172,138,0.72)] pl-4">
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(132,88,63,0.72)]">
-                  Error message
+                  Details
                 </p>
                 <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-[rgba(117,76,54,0.9)]">
                   {message}
