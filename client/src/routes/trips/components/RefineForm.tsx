@@ -22,11 +22,21 @@ const RefineForm: React.FC<RefineFormProps> = ({
           <div className="absolute inset-0 rounded-[0.7rem] border border-[rgba(228,215,201,0.95)] bg-[rgba(255,250,245,0.97)] shadow-[0_14px_36px_rgba(108,62,26,0.12)]" />
           <div className="relative flex items-center p-1.5">
             <div className="pl-2.5 pr-2 text-[rgba(217,102,58,0.92)]">
-              {isRefining ? (
-                <Sparkles className="animate-spin-slow" size={18} />
-              ) : (
-                <LayoutList size={18} />
-              )}
+              <span
+                className={`search-status-icon ${
+                  isRefining ? "search-status-icon-loading" : ""
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="search-status-icon-glow"
+                />
+                {isRefining ? (
+                  <Sparkles className="search-status-sparkles" size={18} />
+                ) : (
+                  <LayoutList className="search-status-search" size={18} />
+                )}
+              </span>
             </div>
             <label htmlFor="trip-refine-input" className="sr-only">
               Refine your itinerary

@@ -1,11 +1,11 @@
-import { ArrowUpRight, Clock3, Search, Sparkles, Trash2 } from "lucide-react";
-import React, { useState } from "react";
-import { SUGGESTED_PROMPTS } from "@/constants";
 import { useAppNavigation } from "@/app/navigation";
-import { useTrips } from "@/features/trips/state/TripsContext";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Surface from "@/components/ui/Surface";
+import { SUGGESTED_PROMPTS } from "@/constants";
+import { useTrips } from "@/features/trips/state/TripsContext";
+import { ArrowUpRight, Clock3, Search, Sparkles, Trash2 } from "lucide-react";
+import React, { useState } from "react";
 
 const SEARCH_OVERLAY_IMAGE =
   "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
@@ -122,11 +122,27 @@ const HomeRoute: React.FC = () => {
                     <div className="px-4 py-4 sm:px-5">
                       <div className="relative">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex w-14 items-center justify-center text-[rgba(211,98,57,0.96)]">
-                          {isGenerating ? (
-                            <Sparkles className="animate-spin-slow" size={18} />
-                          ) : (
-                            <Search size={18} />
-                          )}
+                          <span
+                            className={`search-status-icon ${
+                              isGenerating ? "search-status-icon-loading" : ""
+                            }`}
+                          >
+                            <span
+                              aria-hidden="true"
+                              className="search-status-icon-glow"
+                            />
+                            {isGenerating ? (
+                              <Sparkles
+                                className="search-status-sparkles"
+                                size={18}
+                              />
+                            ) : (
+                              <Search
+                                className="search-status-search"
+                                size={18}
+                              />
+                            )}
+                          </span>
                         </div>
                         <input
                           id="trip-search-input"
@@ -148,10 +164,19 @@ const HomeRoute: React.FC = () => {
                           id={searchHintId}
                           role="status"
                           aria-live="polite"
-                          className="mt-2 text-[0.9375rem] leading-6 text-[rgba(125,86,61,0.78)]"
+                          className="loading-status mt-2 text-[0.9375rem] leading-6 text-[rgba(125,86,61,0.78)]"
                         >
-                          Generation might take a while. Hang tight while Poreia
-                          builds the first draft.
+                          <span
+                            className="loading-status-copy"
+                            data-text="Generation might take a while. Hang tight while Poreia builds the first draft."
+                          >
+                            Generation might take a while, hang tight
+                          </span>
+                          <span aria-hidden="true" className="loading-ellipsis">
+                            <span>.</span>
+                            <span>.</span>
+                            <span>.</span>
+                          </span>
                         </p>
                       ) : (
                         <p
