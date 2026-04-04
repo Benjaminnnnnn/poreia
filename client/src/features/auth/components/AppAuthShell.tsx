@@ -1,6 +1,28 @@
+import { useAppNavigation } from "@/app/navigation";
+import Button from "@/components/ui/Button";
+import Surface from "@/components/ui/Surface";
+import { auth, signInWithGoogle, signOutUser } from "@/lib/firebase";
+import {
+  getCurrentUserProfile,
+  updateCurrentUserProfile,
+} from "@/services/profileService";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-import { Loader2, LogOut, Plus, UserRound } from "lucide-react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionTemplate,
+  useReducedMotion,
+  useSpring,
+} from "framer-motion";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Loader2,
+  LogOut,
+  Plus,
+  UserRound,
+} from "lucide-react";
 import React, {
   createContext,
   use,
@@ -10,17 +32,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useAppNavigation } from "@/app/navigation";
-import { auth, signInWithGoogle, signOutUser } from "@/lib/firebase";
-import {
-  getCurrentUserProfile,
-  updateCurrentUserProfile,
-} from "@/services/profileService";
-import Button from "@/components/ui/Button";
-import Surface from "@/components/ui/Surface";
 
 const SIGN_IN_BACKGROUND_VIDEO_URL = "/background-web.mp4";
 const APP_LOGO_SRC = "/logo.svg";
+const AUTH_GATE_REVEAL_EASE = [0.22, 1, 0.36, 1] as const;
 
 const getDefaultTravelerName = (user: User | null) =>
   user?.displayName?.trim() || user?.email?.split("@")[0] || "Traveler";
@@ -243,130 +258,312 @@ interface AuthGateProps {
   onSignIn: () => Promise<void>;
 }
 
+interface TravelerPassCardProps extends AuthGateProps {
+  prefersReducedMotion: boolean;
+}
+
+const TravelerPassCard: React.FC<TravelerPassCardProps> = ({
+  errorMessage,
+  isSigningIn,
+  onSignIn,
+  prefersReducedMotion,
+}) => {
+  const rotateX = useSpring(0, { stiffness: 120, damping: 18, mass: 0.9 });
+  const rotateY = useSpring(0, { stiffness: 120, damping: 18, mass: 0.9 });
+  const glowX = useSpring(50, { stiffness: 120, damping: 18, mass: 0.9 });
+  const glowY = useSpring(50, { stiffness: 120, damping: 18, mass: 0.9 });
+  const passGlow = useMotionTemplate`radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,255,255,0.96) 0%, rgba(255,247,238,0.62) 16%, rgba(255,255,255,0) 48%)`;
+
+  const resetTilt = useCallback(() => {
+    rotateX.set(0);
+    rotateY.set(0);
+    glowX.set(50);
+    glowY.set(50);
+  }, [glowX, glowY, rotateX, rotateY]);
+
+  const handlePointerMove = useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (prefersReducedMotion || isSigningIn) {
+        return;
+      }
+
+      const rect = event.currentTarget.getBoundingClientRect();
+      const pointerX = (event.clientX - rect.left) / rect.width;
+      const pointerY = (event.clientY - rect.top) / rect.height;
+
+      rotateX.set((0.5 - pointerY) * 10);
+      rotateY.set((pointerX - 0.5) * 14);
+      glowX.set(pointerX * 100);
+      glowY.set(pointerY * 100);
+    },
+    [glowX, glowY, isSigningIn, prefersReducedMotion, rotateX, rotateY],
+  );
+
+  const handlePointerLeave = useCallback(() => {
+    if (prefersReducedMotion) {
+      return;
+    }
+
+    resetTilt();
+  }, [prefersReducedMotion, resetTilt]);
+
+  const statusLabel = isSigningIn
+    ? "Verifying traveler identity"
+    : "Traveler pass ready";
+
+  return (
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0, x: 24, rotate: -2 }}
+      animate={{ opacity: 1, x: 0, rotate: 0 }}
+      transition={{ duration: 0.85, ease: AUTH_GATE_REVEAL_EASE, delay: 0.12 }}
+      className="relative mx-auto w-full max-w-[34rem]"
+    >
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-[12%] top-8 h-24 rounded-full bg-[radial-gradient(circle,rgba(237,152,92,0.34)_0%,rgba(237,152,92,0.08)_58%,rgba(237,152,92,0)_100%)] blur-2xl"
+        animate={
+          prefersReducedMotion
+            ? { opacity: 0.85 }
+            : {
+                opacity: [0.72, 1, 0.8],
+                scale: [0.98, 1.03, 0.99],
+              }
+        }
+        transition={{ duration: 7.2, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      <motion.div
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+        style={
+          prefersReducedMotion
+            ? undefined
+            : {
+                rotateX,
+                rotateY,
+                transformPerspective: 1600,
+                transformStyle: "preserve-3d",
+              }
+        }
+        animate={
+          prefersReducedMotion
+            ? { y: 0, scale: 1 }
+            : isSigningIn
+              ? { y: -4, scale: 0.992 }
+              : { y: [0, -6, 0], scale: 1 }
+        }
+        transition={
+          isSigningIn
+            ? { duration: 0.42, ease: AUTH_GATE_REVEAL_EASE }
+            : { duration: 8.6, repeat: Infinity, ease: "easeInOut" }
+        }
+        className="relative overflow-hidden rounded-[2rem] border border-[rgba(236,215,194,0.84)] bg-[linear-gradient(135deg,rgba(255,252,247,0.92)_0%,rgba(248,238,228,0.96)_48%,rgba(244,231,220,0.94)_100%)] p-[1px] shadow-[0_34px_100px_rgba(122,76,42,0.18)]"
+      >
+        <div className="relative overflow-hidden rounded-[calc(2rem-1px)] bg-[linear-gradient(160deg,rgba(255,252,248,0.98)_0%,rgba(251,242,233,0.98)_48%,rgba(245,235,225,0.98)_100%)] px-5 pb-5 pt-5 sm:px-6 sm:pb-6 sm:pt-6">
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-80"
+            style={{ background: passGlow }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-[24%] top-[-8%] h-[130%] w-[42%] rotate-[18deg] bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.72)_42%,rgba(255,245,235,0.22)_72%,rgba(255,255,255,0)_100%)] opacity-65 blur-xl"
+            animate={
+              prefersReducedMotion ? { x: "42%" } : { x: ["-10%", "185%"] }
+            }
+            transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
+          />
+
+          <div className="relative mt-8">
+            <p className="mt-2 max-w-[12ch] font-display text-[clamp(2.4rem,5vw,3.55rem)] leading-[0.9] tracking-[-0.08em] text-[rgba(79,45,27,0.98)]">
+              Enter Poreia with your traveler pass.
+            </p>
+            <p className="mt-4 max-w-[30rem] text-[0.98rem] leading-7 text-[rgba(108,71,49,0.8)]">
+              Sign in with Google to recover saved trips and start shaping your
+              next itinerary immediately.
+            </p>
+          </div>
+
+          <div className="relative mt-6">
+            <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 border-t border-dashed border-[rgba(216,193,173,0.9)]" />
+            <div className="absolute -left-8 top-1/2 h-12 w-12 -translate-y-1/2 rounded-full bg-[rgba(247,240,231,0.96)]" />
+            <div className="absolute -right-8 top-1/2 h-12 w-12 -translate-y-1/2 rounded-full bg-[rgba(247,240,231,0.96)]" />
+          </div>
+
+          <div className="relative mt-9 grid gap-3">
+            <div className="grid grid-cols-2 gap-2 text-[0.72rem] text-[rgba(112,75,53,0.82)] sm:grid-cols-3">
+              <span className="flex min-h-[2.6rem] items-center justify-center rounded-full border border-[rgba(234,216,198,0.9)] bg-[rgba(255,252,248,0.72)] px-2.5 py-1.5 text-center leading-5">
+                Plan trip in one tap
+              </span>
+              <span className="flex min-h-[2.6rem] items-center justify-center rounded-full border border-[rgba(234,216,198,0.9)] bg-[rgba(255,252,248,0.72)] px-2.5 py-1.5 text-center leading-5">
+                No setup flow
+              </span>
+              <span className="col-span-2 flex min-h-[2.6rem] items-center justify-center rounded-full border border-[rgba(234,216,198,0.9)] bg-[rgba(255,252,248,0.72)] px-2.5 py-1.5 text-center leading-5 sm:col-span-1">
+                Travel with your friends
+              </span>
+            </div>
+
+            <motion.button
+              type="button"
+              onClick={() => {
+                void onSignIn();
+              }}
+              disabled={isSigningIn}
+              whileHover={
+                prefersReducedMotion || isSigningIn
+                  ? undefined
+                  : { y: -2, scale: 1.01 }
+              }
+              whileTap={
+                prefersReducedMotion || isSigningIn
+                  ? undefined
+                  : { scale: 0.99 }
+              }
+              className="focus-ring relative flex min-h-[66px] w-full items-center overflow-hidden rounded-[1.35rem] border border-[rgba(213,121,74,0.88)] bg-[linear-gradient(135deg,rgba(224,116,68,0.96)_0%,rgba(214,99,55,0.98)_45%,rgba(194,88,51,0.98)_100%)] px-4 py-3 text-left text-white shadow-[0_18px_36px_rgba(183,94,54,0.26)] transition-[transform,box-shadow] duration-200 disabled:cursor-not-allowed disabled:opacity-80 sm:px-5"
+            >
+              <motion.span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0)_18%,rgba(255,230,205,0.26)_46%,rgba(255,255,255,0)_72%)]"
+                animate={
+                  prefersReducedMotion
+                    ? { opacity: 0.3 }
+                    : { x: ["-115%", "135%"] }
+                }
+                transition={{
+                  duration: 2.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              <span className="relative flex min-w-0 flex-1 items-center gap-3.5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(255,224,206,0.38)] bg-[rgba(255,255,255,0.14)] backdrop-blur-sm sm:h-11 sm:w-11">
+                  {isSigningIn ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    <GoogleMark className="h-[18px] w-[18px]" />
+                  )}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[1.02rem] tracking-[-0.02em]">
+                    {isSigningIn
+                      ? "Validating traveler pass"
+                      : "Continue with Google"}
+                  </span>
+                </span>
+              </span>
+
+              <motion.span
+                aria-hidden="true"
+                animate={
+                  prefersReducedMotion || isSigningIn
+                    ? { x: 0 }
+                    : { x: [0, 4, 0] }
+                }
+                transition={{
+                  duration: 1.9,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="relative ml-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[rgba(255,224,206,0.24)] bg-[rgba(255,255,255,0.12)] sm:h-11 sm:w-11"
+              >
+                <ArrowRight size={18} />
+              </motion.span>
+            </motion.button>
+          </div>
+
+          <AnimatePresence>
+            {isSigningIn ? (
+              <motion.div
+                initial={
+                  prefersReducedMotion
+                    ? false
+                    : { opacity: 0, scale: 0.88, rotate: -8 }
+                }
+                animate={{ opacity: 1, scale: 1, rotate: -8 }}
+                exit={{ opacity: 0, scale: 0.92, rotate: -8 }}
+                transition={{ duration: 0.38, ease: AUTH_GATE_REVEAL_EASE }}
+                className="pointer-events-none absolute right-4 top-[41%] z-20 rounded-[1.2rem] border border-[rgba(214,108,64,0.24)] bg-[rgba(255,243,232,0.9)] px-4 py-2 text-center shadow-[0_18px_42px_rgba(181,92,52,0.18)] backdrop-blur-sm"
+              >
+                <div className="flex items-center gap-2 text-[rgba(185,94,53,0.92)]">
+                  <BadgeCheck size={16} />
+                  <span className="text-[0.68rem] font-semibold uppercase tracking-[0.24em]">
+                    Cleared to Enter
+                  </span>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {errorMessage ? (
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.28, ease: AUTH_GATE_REVEAL_EASE }}
+          >
+            <Surface
+              as="div"
+              variant="subtle"
+              padding="none"
+              radius="lg"
+              className="mt-4 border-[rgba(226,172,145,0.55)] bg-[rgba(255,241,235,0.92)] px-4 py-3 text-sm font-medium text-[rgba(150,69,45,0.92)]"
+            >
+              {errorMessage}
+            </Surface>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
 const AuthGate: React.FC<AuthGateProps> = ({
   errorMessage,
   isSigningIn,
   onSignIn,
-}) => (
-  <section className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-6 sm:px-6 lg:px-8">
-    <div className="absolute inset-0 overflow-hidden">
-      <video
-        className="auth-motion-video h-full w-full object-cover"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        aria-hidden="true"
-      >
-        <source src={SIGN_IN_BACKGROUND_VIDEO_URL} type="video/mp4" />
-      </video>
-      <div
-        aria-hidden="true"
-        className="auth-motion-fallback absolute inset-0 bg-[linear-gradient(135deg,rgba(246,238,228,0.9)_0%,rgba(248,243,236,0.96)_48%,rgba(239,234,224,0.92)_100%)]"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,240,231,0.16)_0%,rgba(247,240,231,0.38)_100%)]" />
-    </div>
+}) => {
+  const prefersReducedMotion = useReducedMotion();
 
-    <Surface
-      as="div"
-      variant="glass"
-      padding="none"
-      radius="3xl"
-      className="relative z-10 w-full max-w-[35rem] overflow-hidden border-[rgba(230,216,200,0.76)] bg-[rgba(255,251,246,0.62)] shadow-[0_28px_80px_rgba(134,83,37,0.16)] backdrop-blur-[12px]"
-    >
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.78)_50%,rgba(255,255,255,0)_100%)]"
-      />
-
-      <div className="px-5 py-6 sm:px-7 sm:py-8">
-        <div className="mt-5 max-w-[28rem]">
-          <h1 className="font-display text-[clamp(2.4rem,5vw,4.15rem)] leading-[0.9] tracking-[-0.06em] text-[rgba(74,43,26,0.98)]">
-            Build your travel plan in a single tap.
-          </h1>
-          <p className="mt-4 max-w-lg text-[1rem] leading-7 text-[rgba(104,69,47,0.8)] sm:text-[1.02rem]">
-            Sign in with Google to open Poreia and turn a rough trip idea into a
-            warm, editable itinerary in seconds.
-          </p>
-        </div>
-
-        <div className="mt-8 grid gap-3 text-[0.82rem] font-medium text-[rgba(116,79,56,0.74)] sm:grid-cols-3">
-          <Surface
-            as="div"
-            variant="subtle"
-            padding="none"
-            radius="lg"
-            className="px-3.5 py-3"
-          >
-            Start from one sentence
-          </Surface>
-          <Surface
-            as="div"
-            variant="subtle"
-            padding="none"
-            radius="lg"
-            className="px-3.5 py-3"
-          >
-            Refine plans on the go
-          </Surface>
-          <Surface
-            as="div"
-            variant="subtle"
-            padding="none"
-            radius="lg"
-            className="px-3.5 py-3"
-          >
-            Keep every trip in reach
-          </Surface>
-        </div>
-
-        <Surface
-          as="div"
-          variant="glass"
-          padding="sm"
-          radius="xl"
-          className="mt-8 bg-[rgba(255,252,248,0.78)] shadow-[0_14px_36px_rgba(129,84,46,0.08)]"
+  return (
+    <section className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 overflow-hidden">
+        <video
+          className="auth-motion-video h-full w-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
         >
-          <Button
-            onClick={onSignIn}
-            disabled={isSigningIn}
-            fullWidth
-            size="lg"
-            variant="secondary"
-            className="rounded-[0.95rem] border-[rgba(225,207,188,0.96)] bg-[rgba(255,252,248,0.98)] text-base text-[rgba(84,54,37,0.94)] hover:-translate-y-[1px] hover:bg-white disabled:opacity-60"
-          >
-            {isSigningIn ? (
-              <Loader2
-                className="animate-spin text-[rgba(217,102,58,0.92)]"
-                size={18}
-              />
-            ) : (
-              <GoogleMark className="h-[18px] w-[18px]" />
-            )}
-            Continue with Google
-          </Button>
-
-          <p className="px-2 pb-1 pt-3 text-center text-[0.8rem] leading-6 text-[rgba(118,80,57,0.72)]">
-            No setup flow. Just sign in and start the trip.
-          </p>
-        </Surface>
-
-        {errorMessage ? (
-          <Surface
-            as="div"
-            variant="subtle"
-            padding="none"
-            radius="lg"
-            className="mt-4 border-[rgba(226,172,145,0.55)] bg-[rgba(255,241,235,0.92)] px-4 py-3 text-sm font-medium text-[rgba(150,69,45,0.92)]"
-          >
-            {errorMessage}
-          </Surface>
-        ) : null}
+          <source src={SIGN_IN_BACKGROUND_VIDEO_URL} type="video/mp4" />
+        </video>
+        <div
+          aria-hidden="true"
+          className="auth-motion-fallback absolute inset-0 bg-[linear-gradient(135deg,rgba(246,238,228,0.9)_0%,rgba(248,243,236,0.96)_48%,rgba(239,234,224,0.92)_100%)]"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,216,178,0.34)_0%,rgba(255,241,226,0)_38%),radial-gradient(circle_at_88%_12%,rgba(112,177,170,0.18)_0%,rgba(112,177,170,0)_24%),linear-gradient(180deg,rgba(247,240,231,0.12)_0%,rgba(247,240,231,0.56)_100%)]" />
       </div>
-    </Surface>
-  </section>
-);
+
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: AUTH_GATE_REVEAL_EASE }}
+        className="relative z-10 w-full max-w-[34rem]"
+      >
+        <TravelerPassCard
+          errorMessage={errorMessage}
+          isSigningIn={isSigningIn}
+          onSignIn={onSignIn}
+          prefersReducedMotion={prefersReducedMotion}
+        />
+      </motion.div>
+    </section>
+  );
+};
 
 const AuthLoadingFallback = () => (
   <Surface
@@ -447,32 +644,21 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
       void (async () => {
         try {
           const profile = await getCurrentUserProfile(user);
-          if (
-            isCancelled ||
-            authSyncVersionRef.current !== syncVersion
-          ) {
+          if (isCancelled || authSyncVersionRef.current !== syncVersion) {
             return;
           }
 
-          setTravelerName(
-            getResolvedTravelerName(user, profile.travelerName),
-          );
+          setTravelerName(getResolvedTravelerName(user, profile.travelerName));
         } catch (error) {
           console.error(error);
 
-          if (
-            isCancelled ||
-            authSyncVersionRef.current !== syncVersion
-          ) {
+          if (isCancelled || authSyncVersionRef.current !== syncVersion) {
             return;
           }
 
           setTravelerName(getDefaultTravelerName(user));
         } finally {
-          if (
-            !isCancelled &&
-            authSyncVersionRef.current === syncVersion
-          ) {
+          if (!isCancelled && authSyncVersionRef.current === syncVersion) {
             setIsAuthReady(true);
           }
         }

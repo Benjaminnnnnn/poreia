@@ -382,7 +382,7 @@ select {
   }
 }
 
-/* @media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   html:focus-within {
     scroll-behavior: auto;
   }
@@ -413,4 +413,4 @@ select {
     background-image: none;
     color: rgba(125, 86, 61, 0.78);
   }
-} */
+}
