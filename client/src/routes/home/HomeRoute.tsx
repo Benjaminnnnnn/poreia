@@ -271,7 +271,7 @@ const HomeRoute: React.FC = () => {
                         <Badge
                           tone="glass"
                           size="sm"
-                          className="rounded-[0.45rem] border-[rgba(255,255,255,0.82)] bg-[rgba(255,252,247,0.8)] tracking-[0.14em]"
+                          className="-ml-3 rounded-[0.45rem] border-[rgba(255,255,255,0.82)] bg-[rgba(255,252,247,0.8)] tracking-[0.14em]"
                         >
                           {trip.totalDays
                             ? `${trip.totalDays} days`
