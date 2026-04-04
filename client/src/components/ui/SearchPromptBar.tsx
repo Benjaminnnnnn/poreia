@@ -5,9 +5,9 @@ type SearchPromptBarVariant = "overlay" | "refine";
 
 const ROOT_CLASSES: Record<SearchPromptBarVariant, string> = {
   overlay:
-    "group/search-prompt relative flex items-center overflow-hidden rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-[border-color,box-shadow,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus-within:border-[rgba(223,147,93,0.92)] focus-within:bg-[rgba(255,252,248,0.98)] focus-within:shadow-[0_0_0_3px_rgba(223,147,93,0.18),inset_0_1px_0_rgba(255,255,255,0.75)]",
+    "group/search-prompt relative flex items-center overflow-hidden rounded-[calc(var(--radius-lg)+0.05rem)] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-base)] ease-[var(--ease-standard)] focus-within:border-[rgba(223,147,93,0.92)] focus-within:bg-[rgba(255,252,248,0.98)] focus-within:shadow-[0_0_0_3px_rgba(223,147,93,0.18),inset_0_1px_0_rgba(255,255,255,0.75)]",
   refine:
-    "group/search-prompt relative flex items-center overflow-hidden rounded-[0.7rem] border border-[rgba(228,215,201,0.95)] bg-[rgba(255,250,245,0.97)] p-1.5 shadow-[0_14px_36px_rgba(108,62,26,0.12)] transition-[border-color,box-shadow,background-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] focus-within:border-[rgba(223,147,93,0.92)] focus-within:bg-[rgba(255,252,248,0.98)] focus-within:shadow-[0_0_0_3px_rgba(223,147,93,0.16),0_14px_36px_rgba(108,62,26,0.12)]",
+    "group/search-prompt relative flex items-center overflow-hidden rounded-[var(--radius-md)] border border-[rgba(228,215,201,0.95)] bg-[rgba(255,250,245,0.97)] p-1.5 shadow-[0_14px_36px_rgba(108,62,26,0.12)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-base)] ease-[var(--ease-standard)] focus-within:border-[rgba(223,147,93,0.92)] focus-within:bg-[rgba(255,252,248,0.98)] focus-within:shadow-[0_0_0_3px_rgba(223,147,93,0.16),0_14px_36px_rgba(108,62,26,0.12)]",
 };
 
 const ICON_WRAPPER_CLASSES: Record<SearchPromptBarVariant, string> = {

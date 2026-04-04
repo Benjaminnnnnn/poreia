@@ -10,17 +10,78 @@ body,
 
 :root {
   color-scheme: light;
-  --bg-base: oklch(0.97 0.03 84);
-  --bg-surface: color-mix(in oklab, white 76%, oklch(0.9 0.04 75) 24%);
-  --bg-surface-strong: color-mix(in oklab, white 90%, oklch(0.88 0.06 62) 10%);
-  --text-primary: oklch(0.33 0.05 39);
-  --text-secondary: oklch(0.48 0.06 42);
-  --text-muted: oklch(0.61 0.04 45);
-  --brand-coral: oklch(0.69 0.19 38);
-  --brand-amber: oklch(0.84 0.16 82);
-  --brand-peach: oklch(0.87 0.1 58);
-  --brand-teal: oklch(0.69 0.11 188);
-  --brand-sea: oklch(0.57 0.1 213);
+  /* Color tokens */
+  --color-canvas: oklch(0.97 0.03 84);
+  --color-surface: color-mix(in oklab, white 76%, oklch(0.9 0.04 75) 24%);
+  --color-surface-strong: color-mix(in oklab, white 90%, oklch(0.88 0.06 62) 10%);
+  --color-ink-primary: oklch(0.33 0.05 39);
+  --color-ink-secondary: oklch(0.48 0.06 42);
+  --color-ink-muted: oklch(0.61 0.04 45);
+  --color-accent-coral: oklch(0.69 0.19 38);
+  --color-accent-amber: oklch(0.84 0.16 82);
+  --color-accent-peach: oklch(0.87 0.1 58);
+  --color-accent-teal: oklch(0.69 0.11 188);
+  --color-accent-sea: oklch(0.57 0.1 213);
+  --color-line-soft: rgba(229, 214, 198, 0.98);
+  --color-line-strong: rgba(223, 204, 186, 0.98);
+  --color-focus-ring: rgba(223, 147, 93, 0.36);
+
+  /* Legacy aliases */
+  --bg-base: var(--color-canvas);
+  --bg-surface: var(--color-surface);
+  --bg-surface-strong: var(--color-surface-strong);
+  --text-primary: var(--color-ink-primary);
+  --text-secondary: var(--color-ink-secondary);
+  --text-muted: var(--color-ink-muted);
+  --brand-coral: var(--color-accent-coral);
+  --brand-amber: var(--color-accent-amber);
+  --brand-peach: var(--color-accent-peach);
+  --brand-teal: var(--color-accent-teal);
+  --brand-sea: var(--color-accent-sea);
+
+  /* Spacing tokens */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Radius tokens */
+  --radius-sm: 0.45rem;
+  --radius-md: 0.7rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.45rem;
+  --radius-3xl: 1.9rem;
+  --radius-pill: 999px;
+
+  /* Typography tokens */
+  --font-size-label: 0.72rem;
+  --font-size-body-sm: 0.9375rem;
+  --font-size-body-md: 1rem;
+  --font-size-body-lg: 1.0625rem;
+  --font-size-display-sm: clamp(1.65rem, 3vw, 2.35rem);
+  --font-size-display-md: clamp(2.2rem, 6vw, 4.25rem);
+  --tracking-label: 0.18em;
+  --tracking-display: -0.05em;
+
+  /* Motion tokens */
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Elevation tokens */
+  --shadow-surface-card: 0 12px 24px rgba(108, 62, 26, 0.04);
+  --shadow-surface-float: 0 22px 52px rgba(118, 74, 36, 0.08);
+  --shadow-surface-inline: 0 8px 18px rgba(108, 62, 26, 0.06);
+
+  /* Component tokens */
   --surface-card-border: rgba(232, 222, 211, 0.96);
   --surface-card-bg: rgba(255, 251, 246, 0.96);
   --surface-subtle-border: rgba(229, 214, 198, 0.98);
@@ -31,8 +92,6 @@ body,
   --surface-glass-bg: rgba(255, 251, 246, 0.92);
   --surface-dashed-border: rgba(228, 204, 188, 0.95);
   --surface-dashed-bg: rgba(255, 250, 245, 0.74);
-  --shadow-surface-card: 0 12px 24px rgba(108, 62, 26, 0.04);
-  --shadow-surface-float: 0 22px 52px rgba(118, 74, 36, 0.08);
   --action-primary-bg: rgba(230, 106, 63, 0.96);
   --action-primary-bg-hover: rgba(217, 98, 56, 1);
   --action-primary-border: rgba(214, 98, 54, 0.18);
@@ -48,7 +107,7 @@ body,
   --badge-neutral-border: rgba(236, 220, 204, 0.96);
   --badge-neutral-bg: rgba(255, 252, 248, 0.92);
   --badge-neutral-text: rgba(102, 68, 47, 0.82);
-  --focus-ring: rgba(223, 147, 93, 0.36);
+  --focus-ring: var(--color-focus-ring);
 }
 
 * {
@@ -92,6 +151,36 @@ select {
   font-family: "Fraunces", serif;
 }
 
+.ui-kicker {
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(126, 82, 54, 0.72);
+}
+
+.ui-display-title {
+  font-family: "Fraunces", serif;
+  font-size: var(--font-size-display-md);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+  color: var(--text-primary);
+}
+
+.ui-section-title {
+  font-family: "Fraunces", serif;
+  font-size: var(--font-size-display-sm);
+  line-height: 0.96;
+  letter-spacing: var(--tracking-display);
+  color: var(--text-primary);
+}
+
+.ui-body-copy {
+  font-size: var(--font-size-body-md);
+  line-height: 1.75;
+  color: rgba(103, 67, 46, 0.82);
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -118,9 +207,9 @@ select {
 
 .field-focus {
   transition:
-    border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    background-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1);
+    border-color var(--duration-base) var(--ease-standard),
+    background-color var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
 }
 
 .field-focus:focus,

@@ -27,11 +27,11 @@ const PADDING_CLASSES: Record<SurfacePadding, string> = {
 };
 
 const RADIUS_CLASSES: Record<SurfaceRadius, string> = {
-  md: "rounded-[0.7rem]",
-  lg: "rounded-[1rem]",
-  xl: "rounded-[1.25rem]",
-  "2xl": "rounded-[1.45rem]",
-  "3xl": "rounded-[1.9rem]",
+  md: "rounded-[var(--radius-md)]",
+  lg: "rounded-[var(--radius-lg)]",
+  xl: "rounded-[var(--radius-xl)]",
+  "2xl": "rounded-[var(--radius-2xl)]",
+  "3xl": "rounded-[var(--radius-3xl)]",
 };
 
 export interface SurfaceProps extends React.HTMLAttributes<HTMLElement> {

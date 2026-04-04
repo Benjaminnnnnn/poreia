@@ -45,7 +45,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       type={type}
       className={cx(
-        "focus-ring inline-flex cursor-pointer items-center justify-center rounded-[0.55rem] border font-semibold transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] disabled:cursor-not-allowed disabled:opacity-55",
+        "focus-ring inline-flex cursor-pointer items-center justify-center rounded-[var(--radius-md)] border font-semibold transition-all duration-[var(--duration-base)] ease-[var(--ease-standard)] disabled:cursor-not-allowed disabled:opacity-55",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
         fullWidth && "w-full",

@@ -16,9 +16,9 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
 };
 
 const SIZE_CLASSES: Record<BadgeSize, string> = {
-  xs: "rounded-[0.35rem] px-2.5 py-1 text-[11px]",
-  sm: "rounded-[0.45rem] px-3 py-1 text-[0.68rem]",
-  md: "rounded-[0.75rem] px-3 py-1.5 text-[0.68rem]",
+  xs: "rounded-[calc(var(--radius-sm)-0.1rem)] px-2.5 py-1 text-[11px]",
+  sm: "rounded-[var(--radius-sm)] px-3 py-1 text-[0.68rem]",
+  md: "rounded-[var(--radius-md)] px-3 py-1.5 text-[0.68rem]",
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
