@@ -27,7 +27,7 @@ import {
 } from "recharts";
 import { ResolvedActivityImage } from "../../services/activityImageService";
 import { Activity, BudgetBreakdown, DayPlan } from "../../types";
-import { COLORS } from "./constants";
+import { COLORS, DAY_MARKER_COLORS } from "./constants";
 import {
   ActivityDragOverlayCard,
   SortableActivityItem,
@@ -86,9 +86,11 @@ const BudgetChartCard: React.FC<{
 }> = ({ breakdown, currency, hasRecordedCosts }) => (
   <Surface
     as="section"
+    id="itinerary-section-cost-breakdown"
+    data-itinerary-section="cost-breakdown"
     variant="card"
     radius="md"
-    className="shadow-[0_12px_24px_rgba(108,62,26,0.04)]"
+    className="scroll-mt-24 shadow-[0_12px_24px_rgba(108,62,26,0.04)]"
   >
     <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
       <Wallet size={16} />{" "}
@@ -243,8 +245,21 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
       >
         <div className="relative space-y-6 md:space-y-7 md:border-l md:border-[rgba(239,215,193,0.92)] md:pl-4">
           {days.map((dayPlan, dayIndex) => (
-            <div key={dayPlan.day} className="relative">
-              <div className="absolute -left-[18px] top-1 hidden h-2.5 w-2.5 rounded-full bg-[rgba(230,106,63,1)] ring-4 ring-white md:block" />
+            <div
+              key={dayPlan.day}
+              id={`itinerary-section-day-${dayPlan.day}`}
+              data-itinerary-section={`day-${dayPlan.day}`}
+              className="relative scroll-mt-24"
+            >
+              <div
+                className="absolute -left-[18px] top-1 hidden h-2.5 w-2.5 rounded-full ring-4 ring-white md:block"
+                style={{
+                  backgroundColor:
+                    DAY_MARKER_COLORS[
+                      (dayPlan.day - 1) % DAY_MARKER_COLORS.length
+                    ],
+                }}
+              />
 
               <div className="mb-4 border-b border-[rgba(239,215,193,0.72)] pb-3 md:border-b-0 md:pb-0">
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.68)]">
@@ -361,7 +376,14 @@ const ItineraryPlanView: React.FC<ItineraryPlanViewProps> = ({
 }) => (
   <>
     <div className="flex flex-col gap-4">
-      <Surface as="section" variant="subtle" radius="md" className="h-full">
+      <Surface
+        as="section"
+        id="itinerary-section-overview"
+        data-itinerary-section="overview"
+        variant="subtle"
+        radius="md"
+        className="h-full scroll-mt-24"
+      >
         <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
           Overview
         </h3>

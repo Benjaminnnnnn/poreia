@@ -1,6 +1,7 @@
 import { useAppNavigation } from "@/app/navigation";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import SearchPromptBar from "@/components/ui/SearchPromptBar";
 import Surface from "@/components/ui/Surface";
 import { SUGGESTED_PROMPTS } from "@/constants";
 import { useTrips } from "@/features/trips/state/TripsContext";
@@ -120,45 +121,26 @@ const HomeRoute: React.FC = () => {
                     </div>
 
                     <div className="px-4 py-4 sm:px-5">
-                      <div className="relative">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex w-14 items-center justify-center text-[rgba(211,98,57,0.96)]">
-                          <span
-                            className={`search-status-icon ${
-                              isGenerating ? "search-status-icon-loading" : ""
-                            }`}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="search-status-icon-glow"
-                            />
-                            {isGenerating ? (
-                              <Sparkles
-                                className="search-status-sparkles"
-                                size={18}
-                              />
-                            ) : (
-                              <Search
-                                className="search-status-search"
-                                size={18}
-                              />
-                            )}
-                          </span>
-                        </div>
-                        <input
-                          id="trip-search-input"
-                          type="text"
-                          value={query}
-                          onChange={(e) => setQuery(e.target.value)}
-                          aria-describedby={searchHintId}
-                          onFocus={() => setIsFocused(true)}
-                          onBlur={() =>
-                            setTimeout(() => setIsFocused(false), 200)
-                          }
-                          placeholder="3 relaxed days in Lisbon with ocean views and late dinners"
-                          className="field-focus h-14 w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] pl-14 pr-4 text-base font-medium text-[rgba(74,43,26,0.97)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] placeholder:text-base placeholder:font-medium placeholder:text-[rgba(150,112,82,0.52)] sm:text-[1.05rem] sm:placeholder:text-[1.05rem]"
-                          disabled={isGenerating}
-                        />
-                      </div>
+                      <SearchPromptBar
+                        aria-describedby={searchHintId}
+                        disabled={isGenerating}
+                        id="trip-search-input"
+                        isLoading={isGenerating}
+                        label="Where should we start?"
+                        leadingIcon={
+                          <Search className="search-status-search" size={18} />
+                        }
+                        loadingIcon={
+                          <Sparkles
+                            className="search-status-sparkles"
+                            size={18}
+                          />
+                        }
+                        onFocusStateChange={setIsFocused}
+                        onValueChange={setQuery}
+                        placeholder="3 relaxed days in Lisbon with ocean views and late dinners"
+                        value={query}
+                      />
                       {isGenerating ? (
                         <p
                           id={searchHintId}

@@ -6,6 +6,7 @@ import React, {
   useDeferredValue,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
@@ -25,6 +26,7 @@ import {
 import {
   ItineraryHeader,
   ItineraryNotesView,
+  ItinerarySectionNav,
   ItinerarySidePanel,
 } from "./itinerary/ItineraryContent";
 import {
@@ -35,6 +37,14 @@ import {
 
 const ItineraryPlanView = lazy(() => import("./itinerary/ItineraryPlanView"));
 const WorldMap = lazy(() => import("./WorldMap"));
+
+const ITINERARY_SECTION_TOP_OFFSET = 132;
+const SECTION_SCROLL_SETTLE_TOLERANCE = 6;
+const SECTION_SCROLL_LOCK_TIMEOUT_MS = 1200;
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 interface ItineraryResultProps {
   itinerary: TravelItinerary;
@@ -70,11 +80,33 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
   const [activityImages, setActivityImages] = useState<
     Record<string, ResolvedActivityImage>
   >({});
+  const [activeSectionId, setActiveSectionId] = useState("overview");
+  const [isSectionNavCollapsed, setIsSectionNavCollapsed] = useState(false);
   const deferredSelectedActivityId = useDeferredValue(selectedActivityId);
+  const mainScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingSectionIdRef = useRef<string | null>(null);
+  const lockedSectionIdRef = useRef<string | null>(null);
+  const lockedScrollTopRef = useRef<number | null>(null);
+  const scrollLockTimeoutRef = useRef<number | null>(null);
+
+  const clearSectionScrollLock = useCallback(() => {
+    lockedSectionIdRef.current = null;
+    lockedScrollTopRef.current = null;
+    if (scrollLockTimeoutRef.current !== null) {
+      window.clearTimeout(scrollLockTimeoutRef.current);
+      scrollLockTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => clearSectionScrollLock, [clearSectionScrollLock]);
 
   useEffect(() => {
     onWorkspaceTabChange?.(activeTab);
   }, [activeTab, onWorkspaceTabChange]);
+
+  useEffect(() => {
+    setActiveSectionId(activeTab === "notes" ? "notes" : "overview");
+  }, [activeTab]);
 
   useEffect(() => {
     if (!activeDragId) {
@@ -429,55 +461,222 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     ? recordedSpendByDay.reduce((sum, entry) => sum + entry.amount, 0)
     : localItinerary.totalBudget;
 
+  const sectionNavItems = useMemo(
+    () => [
+      { id: "overview", label: "Overview" },
+      { id: "cost-breakdown", label: "Cost Breakdown" },
+      ...localItinerary.days.map((day) => ({
+        id: `day-${day.day}`,
+        label: `Day ${day.day}`,
+      })),
+      { id: "notes", label: "Notes" },
+    ],
+    [localItinerary.days],
+  );
+
+  const scrollToSection = useCallback((sectionId: string) => {
+    const scrollContainer = mainScrollRef.current;
+    if (!scrollContainer) {
+      return;
+    }
+
+    const target = scrollContainer.querySelector<HTMLElement>(
+      `[data-itinerary-section="${sectionId}"]`,
+    );
+
+    if (!target) {
+      return;
+    }
+
+    const containerRect = scrollContainer.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const nextTop =
+      scrollContainer.scrollTop +
+      (targetRect.top - containerRect.top) -
+      ITINERARY_SECTION_TOP_OFFSET;
+    const boundedTop = Math.max(0, nextTop);
+
+    lockedSectionIdRef.current = sectionId;
+    lockedScrollTopRef.current = boundedTop;
+    if (scrollLockTimeoutRef.current !== null) {
+      window.clearTimeout(scrollLockTimeoutRef.current);
+    }
+    scrollLockTimeoutRef.current = window.setTimeout(() => {
+      clearSectionScrollLock();
+    }, SECTION_SCROLL_LOCK_TIMEOUT_MS);
+
+    scrollContainer.scrollTo({
+      top: boundedTop,
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  }, [clearSectionScrollLock]);
+
+  useEffect(() => {
+    if (!pendingSectionIdRef.current) {
+      return;
+    }
+
+    const pendingSectionId = pendingSectionIdRef.current;
+    pendingSectionIdRef.current = null;
+
+    const frameId = window.requestAnimationFrame(() => {
+      scrollToSection(pendingSectionId);
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeTab, scrollToSection]);
+
+  useEffect(() => {
+    const scrollContainer = mainScrollRef.current;
+    if (!scrollContainer) {
+      return;
+    }
+
+    const updateActiveSection = () => {
+      const lockedSectionId = lockedSectionIdRef.current;
+      const lockedScrollTop = lockedScrollTopRef.current;
+      if (lockedSectionId && lockedScrollTop !== null) {
+        if (
+          Math.abs(scrollContainer.scrollTop - lockedScrollTop) <=
+          SECTION_SCROLL_SETTLE_TOLERANCE
+        ) {
+          clearSectionScrollLock();
+          setActiveSectionId(lockedSectionId);
+        }
+        return;
+      }
+
+      const visibleSections = Array.from(
+        scrollContainer.querySelectorAll<HTMLElement>("[data-itinerary-section]"),
+      ).filter((section) =>
+        activeTab === "notes"
+          ? section.dataset.itinerarySection === "notes"
+          : section.dataset.itinerarySection !== "notes",
+      );
+
+      if (!visibleSections.length) {
+        return;
+      }
+
+      const containerTop = scrollContainer.getBoundingClientRect().top;
+      const targetLine = containerTop + ITINERARY_SECTION_TOP_OFFSET + 8;
+
+      let nextActiveSection = visibleSections[0].dataset.itinerarySection ?? "overview";
+
+      for (const section of visibleSections) {
+        if (section.getBoundingClientRect().top <= targetLine) {
+          nextActiveSection = section.dataset.itinerarySection ?? nextActiveSection;
+          continue;
+        }
+
+        break;
+      }
+
+      setActiveSectionId(nextActiveSection);
+    };
+
+    updateActiveSection();
+    scrollContainer.addEventListener("scroll", updateActiveSection, {
+      passive: true,
+    });
+
+    return () => {
+      scrollContainer.removeEventListener("scroll", updateActiveSection);
+    };
+  }, [activeTab, clearSectionScrollLock, localItinerary.days, scrollToSection]);
+
+  const handleSectionSelect = useCallback(
+    (sectionId: string) => {
+      setActiveSectionId(sectionId);
+
+      if (sectionId === "notes") {
+        if (activeTab === "notes") {
+          scrollToSection("notes");
+          return;
+        }
+
+        pendingSectionIdRef.current = "notes";
+        setActiveTab("notes");
+        return;
+      }
+
+      if (activeTab === "itinerary") {
+        scrollToSection(sectionId);
+        return;
+      }
+
+      pendingSectionIdRef.current = sectionId;
+      setActiveTab("itinerary");
+    },
+    [activeTab, scrollToSection],
+  );
+
   return (
     <div
-      className={`flex w-full flex-col overflow-hidden bg-[rgba(248,245,240,0.98)] xl:flex-row ${className}`}
+      className={`flex w-full min-h-0 flex-col overflow-hidden bg-[rgba(248,245,240,0.98)] lg:flex-row ${className}`}
     >
-      <div className="relative z-20 min-h-0 flex-1 overflow-y-auto overflow-x-hidden bg-[rgba(252,250,247,0.98)]">
-        <ItineraryHeader
-          activeTab={activeTab}
-          currency={localItinerary.currency}
-          destination={localItinerary.destination}
-          journaledDaysCount={journaledDaysCount}
-          onTabChange={setActiveTab}
-          title={localItinerary.title}
-          totalBudget={displayedTotalBudget}
-          totalDays={localItinerary.totalDays}
-        />
+      <div className="relative z-20 min-h-0 min-w-0 flex-1 bg-[rgba(252,250,247,0.98)]">
+        <div className="flex h-full min-h-0">
+          <ItinerarySectionNav
+            activeSectionId={activeSectionId}
+            isCollapsed={isSectionNavCollapsed}
+            items={sectionNavItems}
+            onSelect={handleSectionSelect}
+            onToggleCollapsed={() =>
+              setIsSectionNavCollapsed((collapsed) => !collapsed)
+            }
+          />
 
-        <div className="space-y-7 p-4 pb-32 sm:px-5 md:p-6 md:pb-28">
-          {activeTab === "itinerary" ? (
-            <Suspense
-              fallback={<PanelFallback label="Loading itinerary planner..." />}
-            >
-              <ItineraryPlanView
-                activeActivity={activeActivity}
-                activeActivityImage={activeActivityImage}
-                activityImages={activityImages}
-                budgetBreakdown={displayedBudgetBreakdown}
-                currency={localItinerary.currency}
-                days={localItinerary.days}
-                hasRecordedCosts={hasRecordedCosts}
-                onDeleteActivity={handleDeleteActivity}
-                onDragEnd={handleDragEnd}
-                onDragOver={handleDragOver}
-                onDragStart={handleDragStart}
-                onSaveActivity={handleSaveActivity}
-                onSelectActivity={handleSelectActivity}
-                overview={localItinerary.overview}
-                selectedActivityId={selectedActivityId}
-              />
-            </Suspense>
-          ) : (
-            <ItineraryNotesView
-              days={localItinerary.days}
-              onUpdateDayReflection={updateDayReflection}
+          <div
+            ref={mainScrollRef}
+            className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden"
+          >
+            <ItineraryHeader
+              currency={localItinerary.currency}
+              destination={localItinerary.destination}
+              journaledDaysCount={journaledDaysCount}
+              title={localItinerary.title}
+              totalBudget={displayedTotalBudget}
+              totalDays={localItinerary.totalDays}
             />
-          )}
+
+            <div className="p-4 pb-32 sm:px-5 md:p-6 md:pb-28">
+              <div className="min-w-0 space-y-7">
+                {activeTab === "itinerary" ? (
+                  <Suspense
+                    fallback={<PanelFallback label="Loading itinerary planner..." />}
+                  >
+                    <ItineraryPlanView
+                      activeActivity={activeActivity}
+                      activeActivityImage={activeActivityImage}
+                      activityImages={activityImages}
+                      budgetBreakdown={displayedBudgetBreakdown}
+                      currency={localItinerary.currency}
+                      days={localItinerary.days}
+                      hasRecordedCosts={hasRecordedCosts}
+                      onDeleteActivity={handleDeleteActivity}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={handleDragOver}
+                      onDragStart={handleDragStart}
+                      onSaveActivity={handleSaveActivity}
+                      onSelectActivity={handleSelectActivity}
+                      overview={localItinerary.overview}
+                      selectedActivityId={selectedActivityId}
+                    />
+                  </Suspense>
+                ) : (
+                  <ItineraryNotesView
+                    days={localItinerary.days}
+                    onUpdateDayReflection={updateDayReflection}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="relative z-10 hidden h-[20rem] shrink-0 border-t border-[rgba(229,218,204,0.92)] bg-[rgba(243,237,228,0.65)] md:block xl:h-full xl:w-[52%] xl:border-l xl:border-t-0">
+      <div className="relative z-10 hidden h-[20rem] shrink-0 border-t border-[rgba(229,218,204,0.92)] bg-[rgba(243,237,228,0.65)] md:block lg:h-auto lg:min-h-0 lg:w-[46vw] lg:min-w-[28rem] lg:max-w-[46vw] lg:border-l lg:border-t-0 xl:w-[44vw] xl:max-w-[44vw]">
         <ItinerarySidePanel activeTab={activeTab} itinerary={localItinerary}>
           <Suspense
             fallback={

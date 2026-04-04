@@ -30,13 +30,13 @@ const Badge: React.FC<BadgeProps> = ({
   children,
   className,
   size = "sm",
-  tone = "neutral",
+  tone,
   ...props
 }) => (
   <span
     className={cx(
       "inline-flex items-center border font-semibold uppercase tracking-[0.16em]",
-      TONE_CLASSES[tone],
+      tone && TONE_CLASSES[tone],
       SIZE_CLASSES[size],
       className,
     )}

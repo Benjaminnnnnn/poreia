@@ -1,19 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { BookText, Calendar, NotebookPen } from "lucide-react";
+import {
+  BookText,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { DayPlan, TravelItinerary } from "../../types";
 import Badge from "../ui/Badge";
 import Surface from "../ui/Surface";
+import Tooltip from "../ui/Tooltip";
 import {
   MOOD_OPTIONS,
   MOOD_OPTION_LOOKUP,
-  WorkspaceTab,
 } from "./constants";
 
+export interface ItinerarySectionNavItem {
+  id: string;
+  label: string;
+}
+
 interface ItineraryHeaderProps {
-  activeTab: WorkspaceTab;
   destination: string;
   journaledDaysCount: number;
-  onTabChange: (tab: WorkspaceTab) => void;
   title: string;
   totalBudget: number;
   totalDays: number;
@@ -21,17 +28,15 @@ interface ItineraryHeaderProps {
 }
 
 export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
-  activeTab,
   currency,
   destination,
   journaledDaysCount,
-  onTabChange,
   title,
   totalBudget,
   totalDays,
 }) => (
   <div className="relative shrink-0 border-b border-[rgba(232,221,207,0.92)] bg-[rgba(252,248,242,0.96)] px-4 py-4 sm:px-6 md:px-7 md:py-4">
-    <div className="flex flex-col gap-4 pr-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="flex flex-col gap-4 pr-4">
       <div className="max-w-2xl">
         <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[rgba(200,97,55,0.82)]">
           Trip plan
@@ -56,39 +61,6 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
         <p className="mt-1 max-w-lg line-clamp-2 text-sm leading-6 text-[rgba(105,70,48,0.82)]">
           {title}
         </p>
-      </div>
-
-      <div
-        className="inline-flex w-full rounded-[1rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,252,248,0.92)] p-1 lg:w-auto"
-        role="tablist"
-        aria-label="Trip workspace views"
-      >
-        <button
-          type="button"
-          onClick={() => onTabChange("itinerary")}
-          aria-pressed={activeTab === "itinerary"}
-          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.8rem] px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] lg:min-w-[8rem] ${
-            activeTab === "itinerary"
-              ? "bg-[rgba(230,106,63,0.96)] text-white shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
-              : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
-          }`}
-        >
-          <Calendar size={15} />
-          Itinerary
-        </button>
-        <button
-          type="button"
-          onClick={() => onTabChange("notes")}
-          aria-pressed={activeTab === "notes"}
-          className={`focus-ring flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-[0.8rem] px-4 text-sm font-semibold transition-[background-color,color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] lg:min-w-[8rem] ${
-            activeTab === "notes"
-              ? "bg-[rgba(230,106,63,0.96)] text-white shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
-              : "text-[rgba(109,74,52,0.82)] hover:bg-[rgba(247,239,230,0.92)]"
-          }`}
-        >
-          <NotebookPen size={15} />
-          Notes
-        </button>
       </div>
     </div>
   </div>
@@ -117,7 +89,11 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
   }, [days]);
 
   return (
-    <section className="space-y-5">
+    <section
+      id="itinerary-section-notes"
+      data-itinerary-section="notes"
+      className="scroll-mt-24 space-y-5"
+    >
       <div className="max-w-2xl">
         <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
           <BookText size={16} /> Notes by day
@@ -215,6 +191,100 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
   );
 };
 
+export const ItinerarySectionNav: React.FC<{
+  activeSectionId: string;
+  isCollapsed: boolean;
+  items: ItinerarySectionNavItem[];
+  onSelect: (sectionId: string) => void;
+  onToggleCollapsed: () => void;
+}> = ({
+  activeSectionId,
+  isCollapsed,
+  items,
+  onSelect,
+  onToggleCollapsed,
+}) => {
+  const renderItem = (item: ItinerarySectionNavItem) => {
+    const isActive = item.id === activeSectionId;
+
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => onSelect(item.id)}
+        aria-pressed={isActive}
+        className={`focus-ring relative flex min-h-[44px] w-full items-center rounded-[0.95rem] px-4 py-3 text-left text-[0.96rem] font-semibold tracking-[-0.02em] transition-[background-color,color,transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isActive
+            ? "bg-[rgba(230,106,63,0.96)] text-[rgba(255,251,246,0.98)] shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
+            : "text-[rgba(94,72,57,0.76)] hover:bg-[rgba(246,240,232,0.92)] hover:text-[rgba(78,55,42,0.92)]"
+        }`}
+      >
+        <span className="truncate">{item.label}</span>
+      </button>
+    );
+  };
+
+  return (
+    <nav
+      aria-label="Itinerary sections"
+      className={`hidden lg:relative lg:z-30 lg:flex lg:h-full lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:border-r lg:border-[rgba(232,221,207,0.94)] lg:bg-[rgba(249,246,241,0.98)] ${
+        isCollapsed ? "lg:w-[4.5rem]" : "lg:w-[12.5rem]"
+      }`}
+    >
+      {isCollapsed ? (
+        <div className="flex min-h-full w-full flex-col items-center gap-4 overflow-visible px-2.5 py-5">
+          <div className="flex flex-col items-center gap-2.5">
+            {items.map((item) => {
+              const isActive = item.id === activeSectionId;
+              return (
+                <Tooltip key={item.id} content={item.label} side="right">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(item.id)}
+                    aria-label={item.label}
+                    aria-pressed={isActive}
+                    className={`focus-ring inline-flex h-3 w-3 rounded-full border transition-[transform,background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                      isActive
+                        ? "border-[rgba(230,106,63,0.96)] bg-[rgba(230,106,63,0.96)] shadow-[0_0_0_4px_rgba(233,175,141,0.22)]"
+                        : "border-[rgba(210,188,169,0.96)] bg-[rgba(255,251,246,0.95)] hover:border-[rgba(214,103,58,0.56)] hover:bg-[rgba(255,245,237,0.96)]"
+                    }`}
+                  />
+                </Tooltip>
+              );
+            })}
+          </div>
+
+          <div className="mt-auto">
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              aria-label="Expand section navigation"
+              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full text-[rgba(130,86,62,0.74)] transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[rgba(244,238,230,0.92)] hover:text-[rgba(84,57,43,0.92)]"
+            >
+              <ChevronRight size={17} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="flex min-h-full w-full flex-col px-2.5 py-5">
+          <div className="flex flex-col gap-1.5">{items.map(renderItem)}</div>
+
+          <div className="mt-auto pt-4">
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              className="focus-ring inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.95rem] px-3.5 text-sm font-semibold text-[rgba(118,79,57,0.76)] transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[rgba(244,238,230,0.92)] hover:text-[rgba(84,57,43,0.92)]"
+            >
+              <ChevronLeft size={16} />
+              Hide sidebar
+            </button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
 export const ItinerarySidePanel: React.FC<{
   activeTab: WorkspaceTab;
   children: React.ReactNode;
@@ -265,7 +335,7 @@ export const ItinerarySidePanel: React.FC<{
                   </p>
                 </div>
                 <Badge
-                  tone="neutral"
+                  tone={moodOption ? undefined : "neutral"}
                   size="sm"
                   className={
                     moodOption

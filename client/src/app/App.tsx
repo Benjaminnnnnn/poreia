@@ -23,14 +23,6 @@ export default function App() {
         </AppShell>
 
         <style>{`
-          @keyframes progress {
-            0% { width: 0%; opacity: 1; }
-            50% { width: 70%; }
-            100% { width: 100%; opacity: 0; }
-          }
-          .animate-progress {
-            animation: progress 2s ease-in-out infinite;
-          }
           .animate-spin-slow {
             animation: spin 3s linear infinite;
           }

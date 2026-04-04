@@ -216,6 +216,16 @@ select {
   display: none;
 }
 
+@keyframes search-prompt-progress-sweep {
+  from {
+    transform: translateX(-130%);
+  }
+
+  to {
+    transform: translateX(430%);
+  }
+}
+
 @keyframes search-icon-glow {
   0%,
   100% {
@@ -260,6 +270,26 @@ select {
   40% {
     opacity: 0.92;
     transform: translateY(-0.04em);
+  }
+}
+
+.search-prompt-progress-sweep {
+  animation: search-prompt-progress-sweep 1.55s
+    cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-status-icon-loading .search-status-icon-glow,
+  .search-status-sparkles,
+  .search-prompt-progress-sweep,
+  .loading-status-copy,
+  .loading-ellipsis span {
+    animation: none;
+  }
+
+  .search-prompt-progress-sweep {
+    opacity: 0;
   }
 }
 
