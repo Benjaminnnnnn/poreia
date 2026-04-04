@@ -10,6 +10,8 @@ import type {
   RefineTripRequest,
   ReplaceTripItineraryRequest,
   TripDetailResponse,
+  TripMemberResponse,
+  TripRole,
   TripSummaryResponse,
 } from "@poreia/shared";
 import { ApiServiceError, apiRequest } from "@/services/apiService";
@@ -38,6 +40,21 @@ function fromTripDetail(detail: TripDetailResponse): TripSession {
   });
 }
 
+export interface AddTripMemberInput {
+  email: string;
+  role: Exclude<TripRole, "owner">;
+}
+
+export interface UpdateTripMemberInput {
+  revoked?: boolean;
+  role?: Exclude<TripRole, "owner">;
+}
+
+export interface TripMemberMutationResult {
+  member: TripMemberResponse;
+  summary: TripSummaryResponse;
+}
+
 export async function listTrips(authUser: User): Promise<TripSession[]> {
   const params = new URLSearchParams({
     scope: "all",
@@ -61,6 +78,52 @@ export async function getTripDetail(
   });
 
   return fromTripDetail(detail);
+}
+
+export async function listTripMembers(
+  authUser: User,
+  tripId: string,
+): Promise<TripMemberResponse[]> {
+  return apiRequest<TripMemberResponse[]>(authUser, {
+    method: "GET",
+    url: `/api/v1/trips/${tripId}/members`,
+  });
+}
+
+export async function addTripMember(
+  authUser: User,
+  tripId: string,
+  input: AddTripMemberInput,
+): Promise<TripMemberMutationResult> {
+  return apiRequest<TripMemberMutationResult>(authUser, {
+    method: "POST",
+    url: `/api/v1/trips/${tripId}/members`,
+    data: input,
+  });
+}
+
+export async function updateTripMember(
+  authUser: User,
+  tripId: string,
+  userId: string,
+  input: UpdateTripMemberInput,
+): Promise<TripMemberMutationResult> {
+  return apiRequest<TripMemberMutationResult>(authUser, {
+    method: "PATCH",
+    url: `/api/v1/trips/${tripId}/members/${userId}`,
+    data: input,
+  });
+}
+
+export async function removeTripMember(
+  authUser: User,
+  tripId: string,
+  userId: string,
+): Promise<void> {
+  await apiRequest<void>(authUser, {
+    method: "DELETE",
+    url: `/api/v1/trips/${tripId}/members/${userId}`,
+  });
 }
 
 export async function createTrip(

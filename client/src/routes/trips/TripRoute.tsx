@@ -1,6 +1,8 @@
 import { Loader2 } from "lucide-react";
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import { useAppNavigation } from "@/app/navigation";
+import TripCollaborationPanel from "@/features/trip-collaboration/components/TripCollaborationPanel";
+import TripInviteButton from "@/features/trip-collaboration/components/TripInviteButton";
 import { useTrips } from "@/features/trips/state/TripsContext";
 import type { TravelItinerary } from "@/types";
 import Surface from "@/components/ui/Surface";
@@ -53,6 +55,7 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
   const [inputValue, setInputValue] = useState("");
   const [activeWorkspaceTab, setActiveWorkspaceTab] =
     useState<WorkspaceTab>("itinerary");
+  const [isInvitePanelOpen, setIsInvitePanelOpen] = useState(false);
 
   useEffect(() => {
     if (!trip && !isRefining && !isLoadingTrips) {
@@ -63,6 +66,7 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
 
   useEffect(() => {
     setActiveWorkspaceTab("itinerary");
+    setIsInvitePanelOpen(false);
   }, [tripId]);
 
   if (!trip) {
@@ -104,6 +108,14 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
             }
           >
             <ItineraryResult
+              headerActions={
+                trip.permissions?.canManageMembers ? (
+                  <TripInviteButton
+                    memberCount={trip.memberCount}
+                    onClick={() => setIsInvitePanelOpen(true)}
+                  />
+                ) : null
+              }
               itinerary={trip.currentItinerary}
               onUpdate={handleManualItineraryUpdate}
               onWorkspaceTabChange={setActiveWorkspaceTab}
@@ -124,6 +136,14 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
           onSubmit={handleRefine}
         />
       ) : null}
+
+      <TripCollaborationPanel
+        canManageMembers={trip.permissions?.canManageMembers ?? false}
+        memberCount={trip.memberCount}
+        onClose={() => setIsInvitePanelOpen(false)}
+        open={isInvitePanelOpen}
+        tripId={tripId}
+      />
     </div>
   );
 };

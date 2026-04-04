@@ -19,6 +19,7 @@ export interface ItinerarySectionNavItem {
 }
 
 interface ItineraryHeaderProps {
+  actions?: React.ReactNode;
   destination: string;
   journaledDaysCount: number;
   title: string;
@@ -28,6 +29,7 @@ interface ItineraryHeaderProps {
 }
 
 export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
+  actions,
   currency,
   destination,
   journaledDaysCount,
@@ -36,8 +38,8 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
   totalDays,
 }) => (
   <div className="relative shrink-0 border-b border-[rgba(232,221,207,0.92)] bg-[rgba(252,248,242,0.96)] px-4 py-4 sm:px-6 md:px-7 md:py-4">
-    <div className="flex flex-col gap-4 pr-4">
-      <div className="max-w-2xl">
+    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="min-w-0 max-w-2xl">
         <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[rgba(200,97,55,0.82)]">
           Trip plan
         </p>
@@ -62,6 +64,9 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
           {title}
         </p>
       </div>
+      {actions ? (
+        <div className="flex shrink-0 items-center md:pt-1">{actions}</div>
+      ) : null}
     </div>
   </div>
 );

@@ -16,13 +16,15 @@ import {
   refineTrip as refineTripRequest,
   replaceTripItinerary,
 } from "@/features/trips/services/tripsService";
-import type { TripSession, TravelItinerary } from "@/types";
+import type { TripSession, TravelItinerary, TripSummaryResponse } from "@/types";
 
 interface TripsContextValue {
   actions: {
     createTrip: (prompt: string) => Promise<TripSession | null>;
     deleteTrip: (tripId: string) => Promise<void>;
+    refreshTrip: (tripId: string) => Promise<void>;
     refineTrip: (tripId: string, prompt: string) => Promise<void>;
+    syncTripSummary: (summary: TripSummaryResponse) => void;
     updateTripItinerary: (
       tripId: string,
       itinerary: TravelItinerary,
@@ -121,6 +123,19 @@ export const TripsProvider: React.FC<{
   const replaceTrip = useCallback((incomingTrip: TripSession) => {
     replaceTrips([incomingTrip]);
   }, [replaceTrips]);
+
+  const syncTripSummary = useCallback((summary: TripSummaryResponse) => {
+    setTrips((currentTrips) =>
+      currentTrips.map((currentTrip) =>
+        currentTrip.id === summary.id
+          ? {
+              ...currentTrip,
+              ...summary,
+            }
+          : currentTrip,
+      ),
+    );
+  }, []);
 
   const getTripById = useCallback(
     (tripId: string) => trips.find((trip) => trip.id === tripId),
@@ -248,6 +263,24 @@ export const TripsProvider: React.FC<{
     [authUser, getTripByIdFromRef, queueTripOperation],
   );
 
+  const refreshTrip = useCallback(
+    async (tripId: string) => {
+      const trip = getTripByIdFromRef(tripId);
+      if (!trip) {
+        return;
+      }
+
+      try {
+        const refreshedTrip = await getTripDetail(authUser, tripId);
+        replaceTrip(refreshedTrip);
+      } catch (error) {
+        console.error(error);
+        alert(getErrorMessage(error, "Failed to refresh trip details."));
+      }
+    },
+    [authUser, getTripByIdFromRef, replaceTrip],
+  );
+
   const refineTrip = useCallback(
     async (tripId: string, prompt: string) => {
       const trimmedPrompt = prompt.trim();
@@ -345,10 +378,12 @@ export const TripsProvider: React.FC<{
     () => ({
       createTrip,
       deleteTrip,
+      refreshTrip,
       refineTrip,
+      syncTripSummary,
       updateTripItinerary,
     }),
-    [createTrip, deleteTrip, refineTrip, updateTripItinerary],
+    [createTrip, deleteTrip, refreshTrip, refineTrip, syncTripSummary, updateTripItinerary],
   );
 
   const state = useMemo<TripsContextValue["state"]>(

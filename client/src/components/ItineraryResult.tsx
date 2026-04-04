@@ -49,6 +49,7 @@ const prefersReducedMotion = () =>
 interface ItineraryResultProps {
   itinerary: TravelItinerary;
   className?: string;
+  headerActions?: React.ReactNode;
   onUpdate?: (updatedItinerary: TravelItinerary) => void;
   onWorkspaceTabChange?: (tab: WorkspaceTab) => void;
 }
@@ -67,6 +68,7 @@ const PanelFallback: React.FC<{ className?: string; label: string }> = ({
 const ItineraryResult: React.FC<ItineraryResultProps> = ({
   itinerary,
   className = "",
+  headerActions,
   onUpdate,
   onWorkspaceTabChange,
 }) => {
@@ -632,6 +634,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
             className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden"
           >
             <ItineraryHeader
+              actions={headerActions}
               currency={localItinerary.currency}
               destination={localItinerary.destination}
               journaledDaysCount={journaledDaysCount}
