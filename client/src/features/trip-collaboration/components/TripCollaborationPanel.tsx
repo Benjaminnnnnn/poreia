@@ -1,7 +1,9 @@
 import {
+  Crown,
+  Eye,
   Loader2,
   Mail,
-  ShieldCheck,
+  Pencil,
   UserMinus,
   UserRoundPlus,
   UsersRound,
@@ -9,9 +11,8 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import Button from "@/components/ui/Button";
-import Surface from "@/components/ui/Surface";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { cn } from "@/lib/utils";
 import type { TripMemberResponse, TripRole } from "@/types";
 import { useTripMembers } from "../hooks/useTripMembers";
 
@@ -30,23 +31,25 @@ const formatRoleLabel = (role: TripRole) => {
     case "owner":
       return "Owner";
     case "editor":
-      return "Can edit";
+      return "Co-Traveler";
     case "viewer":
     default:
-      return "Can view";
+      return "Guest";
   }
 };
 
 const ROLE_OPTIONS = [
   {
-    description: "Can refine and edit the trip together.",
+    description: "Can refine and edit the itinerary together.",
+    icon: Pencil,
     role: "editor",
-    title: "Can edit",
+    title: "Co-Traveler",
   },
   {
     description: "Can follow along without changing anything.",
+    icon: Eye,
     role: "viewer",
-    title: "Can view",
+    title: "Guest",
   },
 ] as const;
 
@@ -186,270 +189,231 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
 
   return createPortal(
     <div className="fixed inset-0 z-[70]">
+      {/* Backdrop */}
       <button
         type="button"
         aria-label="Close collaboration panel"
-        className="absolute inset-0 bg-[rgba(72,45,27,0.16)] backdrop-blur-[3px]"
+        className="absolute inset-0 bg-[rgba(72,45,27,0.18)] backdrop-blur-[3px]"
         onClick={onClose}
       />
 
+      {/* Panel */}
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Invite collaborators"
         tabIndex={-1}
-        className={`absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden border-l border-[rgba(229,214,198,0.92)] bg-[linear-gradient(180deg,rgba(255,252,247,0.98)_0%,rgba(247,241,232,0.98)_100%)] shadow-[0_28px_64px_rgba(100,63,34,0.14)] outline-none ${
-          isMobileViewport ? "" : "max-w-[32rem]"
-        }`}
+        className={cn(
+          "absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden bg-[rgba(255,252,248,0.99)] shadow-[0_28px_64px_rgba(100,63,34,0.16)] outline-none",
+          !isMobileViewport && "max-w-[30rem] border-l border-[rgba(229,214,198,0.9)]",
+        )}
       >
-        <div className="border-b border-[rgba(231,217,201,0.94)] px-5 py-5 sm:px-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="max-w-[25rem]">
-              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[rgba(205,99,57,0.84)]">
-                Collaboration
-              </p>
-              <h2 className="font-display mt-3 max-w-[12ch] text-[clamp(1.95rem,4vw,2.55rem)] leading-[0.92] tracking-[-0.045em] text-[rgba(74,43,26,0.96)]">
-                Invite people into the same trip.
-              </h2>
-            </div>
+        {/* ── Header ─────────────────────────────────────────── */}
+        <div className="relative shrink-0 px-6 pb-6 pt-7 sm:px-8">
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="focus-ring absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-[rgba(130,90,65,0.56)] transition-colors duration-150 hover:bg-[rgba(244,236,226,0.88)] hover:text-[rgba(90,57,40,0.9)]"
+          >
+            <X size={17} />
+          </button>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="focus-ring inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[rgba(232,219,205,0.92)] bg-[rgba(255,251,246,0.96)] text-[rgba(118,79,57,0.78)] transition-[background-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-[1px] hover:bg-[rgba(249,241,232,0.98)] hover:text-[rgba(84,57,43,0.96)]"
-            >
-              <X size={18} />
-            </button>
-          </div>
+          {/* Eyebrow */}
+          <p className="text-[0.62rem] font-bold uppercase tracking-[0.26em] text-primary/70">
+            Trip Collaboration
+          </p>
 
-          {canManageMembers ? (
-            <div className="mt-5 grid gap-2 sm:grid-cols-3">
-              <Surface
-                variant="subtle"
-                radius="md"
-                className="px-3.5 py-3"
-              >
-                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-[rgba(125,84,59,0.68)]">
-                  Active
-                </p>
-                <p className="mt-2 text-[1.2rem] font-semibold leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
-                  {activeMembers.length}
-                </p>
-              </Surface>
-              <Surface
-                variant="subtle"
-                radius="md"
-                className="px-3.5 py-3"
-              >
-                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-[rgba(125,84,59,0.68)]">
-                  Editors
-                </p>
-                <p className="mt-2 text-[1.2rem] font-semibold leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
-                  {editorCount}
-                </p>
-              </Surface>
-              <Surface
-                variant="subtle"
-                radius="md"
-                className="px-3.5 py-3"
-              >
-                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-[rgba(125,84,59,0.68)]">
-                  Viewers
-                </p>
-                <p className="mt-2 text-[1.2rem] font-semibold leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
-                  {viewerCount}
-                </p>
-              </Surface>
+          {/* Display title */}
+          <h2 className="font-display mt-3 text-[clamp(1.85rem,4.5vw,2.4rem)] leading-[0.94] tracking-[-0.045em] text-[rgba(55,32,17,0.96)]">
+            Share the journey.
+          </h2>
+
+          {/* Stats — divider layout */}
+          {canManageMembers && (
+            <div className="mt-6 flex divide-x divide-[rgba(224,209,192,0.72)]">
+              {[
+                { label: "Active", value: activeMembers.length },
+                { label: "Editors", value: editorCount },
+                { label: "Viewers", value: viewerCount },
+              ].map(({ label, value }) => (
+                <div key={label} className="flex-1 px-4 first:pl-0 last:pr-0">
+                  <p className="text-[0.58rem] font-bold uppercase tracking-[0.22em] text-[rgba(130,90,65,0.58)]">
+                    {label}
+                  </p>
+                  <p className="mt-1.5 text-[1.6rem] font-semibold leading-none tracking-[-0.04em] text-[rgba(55,32,17,0.94)]">
+                    {value}
+                  </p>
+                </div>
+              ))}
             </div>
-          ) : null}
+          )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">
+        <div className="h-px bg-[rgba(222,208,192,0.7)]" />
+
+        {/* ── Scrollable body ─────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto px-6 py-7 sm:px-8">
           {!canManageMembers ? (
-            <Surface
-              variant="card"
-              radius="lg"
-              className="px-5 py-5 text-sm leading-7 text-[rgba(102,68,47,0.8)]"
-            >
+            <p className="rounded-xl border border-border bg-card px-5 py-5 text-sm leading-7 text-[rgba(102,68,47,0.8)]">
               You do not have permission to manage trip collaborators.
-            </Surface>
+            </p>
           ) : (
-            <div className="space-y-6">
-              <Surface
-                as="section"
-                variant="card"
-                radius="lg"
-                className="px-4 py-4 sm:px-5"
-              >
-                <div className="flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.74)]">
-                  <Mail size={14} />
-                  Add collaborator
+            <div className="space-y-8">
+              {/* ── Invite form ──────────────────────────────── */}
+              <form onSubmit={handleInviteSubmit} className="space-y-6">
+                {/* Section label */}
+                <div className="flex items-center gap-2.5 text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[rgba(120,83,58,0.66)]">
+                  <Mail size={13} />
+                  Send Invitation
                 </div>
 
-                <form onSubmit={handleInviteSubmit} className="mt-4 space-y-5">
-                  <div>
-                    <label
-                      htmlFor="invite-collaborator-email"
-                      className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]"
-                    >
-                      Account email
-                    </label>
-                    <input
-                      id="invite-collaborator-email"
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(event) => setInviteEmail(event.target.value)}
-                      placeholder="teammate@example.com"
-                      className="field-focus mt-2 min-h-[3.25rem] w-full rounded-[0.95rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 text-[0.97rem] text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(150,112,82,0.54)]"
-                      disabled={isAdding}
-                      required
-                    />
-                  </div>
+                {/* Email — underline style */}
+                <div className="border-b border-[rgba(210,193,175,0.84)] pb-1 focus-within:border-primary/60">
+                  <label htmlFor="invite-collaborator-email" className="sr-only">
+                    Email address
+                  </label>
+                  <input
+                    id="invite-collaborator-email"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(event) => setInviteEmail(event.target.value)}
+                    placeholder="companion@example.com"
+                    className="w-full bg-transparent py-2 text-[0.97rem] text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(160,122,92,0.48)] focus:outline-none"
+                    disabled={isAdding}
+                    required
+                  />
+                </div>
 
-                  <div>
-                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
-                      Access
-                    </p>
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      {ROLE_OPTIONS.map((option) => {
-                        const isActive = selectedRole === option.role;
-                        return (
-                          <button
-                            key={option.role}
-                            type="button"
-                            onClick={() => setSelectedRole(option.role)}
-                            className={`focus-ring rounded-[1rem] border px-4 py-3.5 text-left transition-[border-color,background-color,color,box-shadow,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                              isActive
-                                ? "border-[rgba(223,147,93,0.42)] bg-[rgba(255,245,236,0.98)] text-[rgba(86,56,39,0.96)] shadow-[0_12px_24px_rgba(117,74,36,0.08)]"
-                                : "border-[rgba(234,221,207,0.92)] bg-[rgba(255,251,246,0.94)] text-[rgba(101,68,47,0.82)] hover:border-[rgba(226,170,126,0.56)] hover:bg-[rgba(255,248,240,0.98)]"
-                            }`}
-                          >
-                            <p className="text-[0.92rem] font-semibold tracking-[-0.01em]">
-                              {option.title}
-                            </p>
-                            <p className="mt-1.5 text-[0.8rem] leading-5 text-[rgba(119,80,57,0.72)]">
-                              {option.description}
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                {/* Role cards */}
+                <div className="grid grid-cols-2 gap-3">
+                  {ROLE_OPTIONS.map((option) => {
+                    const isActive = selectedRole === option.role;
+                    const Icon = option.icon;
+                    return (
+                      <button
+                        key={option.role}
+                        type="button"
+                        onClick={() => setSelectedRole(option.role)}
+                        className={cn(
+                          "focus-ring rounded-[1.1rem] border px-4 py-4 text-left transition-[border-color,background-color,box-shadow] duration-200",
+                          isActive
+                            ? "border-primary/30 bg-[rgba(255,244,236,0.98)] shadow-[0_0_0_1px_rgba(230,106,63,0.15),0_8px_20px_rgba(117,74,36,0.07)]"
+                            : "border-[rgba(228,214,198,0.88)] bg-[rgba(255,251,246,0.92)] hover:border-[rgba(210,170,130,0.6)] hover:bg-[rgba(255,248,240,0.98)]",
+                        )}
+                      >
+                        <div className={cn(
+                          "mb-2.5 flex items-center gap-2 text-[0.93rem] font-semibold",
+                          isActive ? "text-primary/90" : "text-[rgba(74,43,26,0.84)]",
+                        )}>
+                          <Icon size={15} strokeWidth={2} />
+                          {option.title}
+                        </div>
+                        <p className="text-[0.78rem] leading-5 text-[rgba(110,76,54,0.68)]">
+                          {option.description}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
 
-                  <div className="flex flex-col gap-3 border-t border-[rgba(239,223,207,0.82)] pt-4 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="max-w-[28ch] text-[0.8rem] leading-5 text-[rgba(118,80,57,0.72)]">
-                      {memberCount > 1
-                        ? `${memberCount} people already have access.`
-                        : "Only you have access right now."}
-                    </p>
-                    <Button
-                      type="submit"
-                      disabled={!inviteEmail.trim() || isAdding}
-                      className="rounded-[0.9rem] px-4"
-                    >
-                      {isAdding ? (
-                        <>
-                          <Loader2 className="animate-spin" size={15} />
-                          Adding...
-                        </>
-                      ) : (
-                        <>
-                          <UserRoundPlus size={15} />
-                          Add collaborator
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </Surface>
-
-              {errorMessage ? (
-                <Surface
-                  variant="subtle"
-                  radius="md"
-                  className="border-[rgba(230,191,177,0.92)] bg-[rgba(253,242,238,0.96)] px-4 py-3 text-[0.88rem] leading-6 text-[rgba(142,78,67,0.92)]"
-                >
-                  {errorMessage}
-                </Surface>
-              ) : null}
-
-              {successMessage ? (
-                <Surface
-                  variant="subtle"
-                  radius="md"
-                  className="border-[rgba(188,217,195,0.92)] bg-[rgba(240,249,242,0.96)] px-4 py-3 text-[0.88rem] leading-6 text-[rgba(68,112,78,0.92)]"
-                >
-                  {successMessage}
-                </Surface>
-              ) : null}
-
-              <section className="space-y-3">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
-                    Current access
+                {/* Footer row */}
+                <div className="flex items-center justify-between gap-4 pt-1">
+                  <p className="text-[0.78rem] italic leading-5 text-[rgba(130,90,65,0.62)]">
+                    {memberCount > 1
+                      ? `${memberCount} people already have access.`
+                      : "Only you have access right now."}
                   </p>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(231,216,201,0.94)] bg-[rgba(255,249,243,0.92)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,84,59,0.78)]">
-                    <UsersRound size={12} />
+                  <button
+                    type="submit"
+                    disabled={!inviteEmail.trim() || isAdding}
+                    className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-full bg-[rgba(42,26,14,0.93)] px-5 py-2.5 text-[0.85rem] font-semibold text-[rgba(255,248,240,0.96)] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {isAdding ? (
+                      <Loader2 className="animate-spin" size={14} />
+                    ) : (
+                      <UserRoundPlus size={14} />
+                    )}
+                    {isAdding ? "Adding…" : "Send Invite"}
+                  </button>
+                </div>
+              </form>
+
+              {/* Messages */}
+              {errorMessage && (
+                <p className="rounded-xl border border-[rgba(230,191,177,0.86)] bg-[rgba(253,242,238,0.96)] px-4 py-3 text-[0.87rem] leading-6 text-[rgba(142,78,67,0.92)]">
+                  {errorMessage}
+                </p>
+              )}
+              {successMessage && (
+                <p className="rounded-xl border border-[rgba(188,217,195,0.88)] bg-[rgba(240,249,242,0.96)] px-4 py-3 text-[0.87rem] leading-6 text-[rgba(68,112,78,0.92)]">
+                  {successMessage}
+                </p>
+              )}
+
+              <div className="h-px bg-[rgba(222,208,192,0.7)]" />
+
+              {/* ── Current guests ───────────────────────────── */}
+              <section className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[rgba(55,32,17,0.78)]">
+                    Current Guests
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(222,208,192,0.88)] bg-[rgba(248,242,234,0.92)] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[rgba(120,83,58,0.72)]">
+                    <UsersRound size={11} />
                     {activeMembers.length} active
                   </span>
                 </div>
 
                 {isLoading ? (
-                  <Surface
-                    variant="card"
-                    radius="lg"
-                    className="px-5 py-6 text-sm text-[rgba(103,67,46,0.82)]"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Loader2
-                        className="animate-spin text-[rgba(217,102,58,0.92)]"
-                        size={18}
-                      />
-                      Loading collaborators...
-                    </div>
-                  </Surface>
+                  <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-5 text-sm text-[rgba(103,67,46,0.82)]">
+                    <Loader2 className="animate-spin text-primary/80" size={17} />
+                    Loading collaborators…
+                  </div>
                 ) : activeMembers.length ? (
-                  activeMembers.map((member) => {
-                    const isOwner = member.role === "owner";
-                    const isBusy = busyMemberId === member.userId;
+                  <div className="space-y-3">
+                    {activeMembers.map((member) => {
+                      const isOwner = member.role === "owner";
+                      const isBusy = busyMemberId === member.userId;
 
-                    return (
-                      <Surface
-                        as="article"
-                        key={member.userId}
-                        variant="card"
-                        radius="lg"
-                        className="px-4 py-4 sm:px-5"
-                      >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="flex min-w-0 items-start gap-3.5">
-                            <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[rgba(230,106,63,0.12)] text-[0.92rem] font-semibold text-[rgba(203,95,55,0.92)]">
-                              {getMemberInitial(member)}
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="truncate text-[0.98rem] font-semibold tracking-[-0.015em] text-[rgba(74,43,26,0.96)]">
-                                  {getMemberDisplayName(member)}
-                                </p>
-                                <div className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(234,221,207,0.9)] bg-[rgba(255,251,246,0.9)] px-2.5 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,84,59,0.78)]">
-                                  <ShieldCheck size={11} />
-                                  {formatRoleLabel(member.role)}
-                                </div>
-                              </div>
-                              <p className="mt-1 truncate text-[0.87rem] leading-6 text-[rgba(106,72,49,0.74)]">
-                                {member.email}
-                              </p>
-                            </div>
+                      return (
+                        <article
+                          key={member.userId}
+                          className="flex items-center gap-4 rounded-2xl border border-[rgba(228,214,198,0.88)] bg-[rgba(255,251,246,0.96)] px-4 py-4"
+                        >
+                          {/* Avatar */}
+                          <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[rgba(230,106,63,0.10)] text-[1rem] font-bold text-primary/80">
+                            {getMemberInitial(member)}
                           </div>
 
+                          {/* Name + email */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-[rgba(55,32,17,0.95)]">
+                                {getMemberDisplayName(member)}
+                              </span>
+                              {isOwner && (
+                                <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(210,165,110,0.5)] bg-[rgba(255,243,224,0.92)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.18em] text-[rgba(174,108,42,0.92)]">
+                                  <Crown size={9} />
+                                  Owner
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-0.5 truncate text-[0.82rem] text-[rgba(110,76,54,0.66)]">
+                              {member.email}
+                            </p>
+                          </div>
+
+                          {/* Right side */}
                           {isOwner ? (
-                            <span className="rounded-full border border-[rgba(235,214,196,0.96)] bg-[rgba(255,249,243,0.96)] px-3 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(205,99,57,0.84)]">
+                            <span className="shrink-0 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[rgba(130,90,65,0.54)]">
                               Owner
                             </span>
                           ) : (
-                            <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-                              <div className="inline-flex self-start rounded-[0.9rem] border border-[rgba(233,219,204,0.92)] bg-[rgba(255,252,248,0.92)] p-1 sm:self-auto">
+                            <div className="flex shrink-0 flex-col items-end gap-2">
+                              {/* Role toggle */}
+                              <div className="inline-flex rounded-[0.8rem] border border-[rgba(224,209,193,0.88)] bg-[rgba(250,244,236,0.92)] p-0.5">
                                 {(["editor", "viewer"] as const).map((role) => {
                                   const isActive = member.role === role;
                                   return (
@@ -458,11 +422,12 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                                       type="button"
                                       onClick={() => handleRoleChange(member, role)}
                                       disabled={isBusy}
-                                      className={`focus-ring rounded-[0.7rem] px-3.5 py-1.5 text-[0.8rem] font-semibold leading-none tracking-[-0.01em] transition-[background-color,color] duration-150 ${
+                                      className={cn(
+                                        "focus-ring rounded-[0.65rem] px-3 py-1.5 text-[0.75rem] font-semibold leading-none transition-[background-color,color] duration-150",
                                         isActive
-                                          ? "bg-[rgba(230,106,63,0.92)] text-[rgba(255,251,246,0.98)]"
-                                          : "text-[rgba(120,83,58,0.78)] hover:bg-[rgba(247,239,228,0.88)]"
-                                      }`}
+                                          ? "bg-primary/90 text-white"
+                                          : "text-[rgba(110,76,54,0.7)] hover:bg-[rgba(238,226,212,0.88)]",
+                                      )}
                                     >
                                       {role === "editor" ? "Edit" : "View"}
                                     </button>
@@ -470,34 +435,31 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                                 })}
                               </div>
 
+                              {/* Remove */}
                               <button
                                 type="button"
                                 onClick={() => handleRemoveMember(member)}
                                 disabled={isBusy}
-                                className="focus-ring inline-flex min-h-[40px] items-center justify-center gap-2 rounded-full border border-[rgba(233,219,204,0.92)] bg-[rgba(255,252,248,0.92)] px-3.5 py-1.5 text-[0.8rem] font-semibold leading-none tracking-[-0.01em] text-[rgba(152,82,70,0.86)] transition-[background-color,color,border-color] duration-150 hover:border-[rgba(226,170,126,0.5)] hover:bg-[rgba(251,238,234,0.94)] hover:text-[rgba(133,63,52,0.96)] disabled:cursor-not-allowed disabled:opacity-60"
+                                className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-semibold text-[rgba(152,82,70,0.78)] transition-colors duration-150 hover:bg-[rgba(251,238,234,0.9)] hover:text-[rgba(133,63,52,0.96)] disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {isBusy ? (
-                                  <Loader2 className="animate-spin" size={13} />
+                                  <Loader2 className="animate-spin" size={12} />
                                 ) : (
-                                  <UserMinus size={13} />
+                                  <UserMinus size={12} />
                                 )}
                                 Remove
                               </button>
                             </div>
                           )}
-                        </div>
-                      </Surface>
-                    );
-                  })
+                        </article>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <Surface
-                    variant="dashed"
-                    radius="lg"
-                    className="px-5 py-6 text-[0.92rem] leading-6 text-[rgba(118,80,57,0.74)]"
-                  >
+                  <p className="rounded-xl border border-dashed border-[rgba(218,202,184,0.86)] px-5 py-6 text-[0.9rem] leading-6 text-[rgba(118,80,57,0.66)]">
                     No collaborators yet. Add someone by their account email to
                     start co-editing this trip.
-                  </Surface>
+                  </p>
                 )}
               </section>
             </div>

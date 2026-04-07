@@ -10,7 +10,7 @@ const TONE_CLASSES: Record<SectionIntroTone, string> = {
 };
 
 export interface SectionIntroProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   actions?: React.ReactNode;
   align?: SectionIntroAlign;
   description?: React.ReactNode;

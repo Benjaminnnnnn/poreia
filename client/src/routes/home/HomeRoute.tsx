@@ -5,7 +5,7 @@ import SearchPromptBar from "@/components/ui/SearchPromptBar";
 import Surface from "@/components/ui/Surface";
 import { SUGGESTED_PROMPTS } from "@/constants";
 import { useTrips } from "@/features/trips/state/TripsContext";
-import { ArrowUpRight, Clock3, Search, Sparkles, Trash2 } from "lucide-react";
+import { ArrowUpRight, Clock3, Search, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
 const SEARCH_OVERLAY_IMAGE =
@@ -70,12 +70,12 @@ const HomeRoute: React.FC = () => {
           />
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-[rgba(248,243,236,0.28)]"
+            className="absolute inset-0 bg-[rgba(0,0,0,0.38)]"
           />
-          <div
+          {/* <div
             aria-hidden="true"
             className="absolute left-[max(10rem,16vw)] top-[max(1rem,2vw)] h-[16rem] w-[min(50rem,78vw)] bg-[rgba(251,247,241,0.62)] blur-2xl"
-          />
+          /> */}
 
           <div
             className={`relative transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
@@ -88,12 +88,12 @@ const HomeRoute: React.FC = () => {
               aria-busy={isGenerating}
             >
               <div className="px-4 py-7 sm:px-6 lg:px-8 lg:py-9">
-                <div className="mx-auto max-w-5xl">
-                  <div className="max-w-3xl">
-                    <h1 className="font-display mt-5 text-[clamp(2.25rem,6vw,4.35rem)] leading-[0.92] tracking-[-0.055em] text-[rgba(63,36,22,0.98)] [text-shadow:0_1px_0_rgba(255,250,244,0.35)]">
+                <div className="mx-auto max-w-3xl">
+                  <div>
+                    <h1 className="font-display text-[clamp(2.25rem,6vw,4.35rem)] leading-[0.92] tracking-[-0.055em] text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.4)]">
                       Start with one clear idea.
                     </h1>
-                    <p className="mt-4 max-w-[52ch] text-base leading-7 text-[rgba(79,52,35,0.88)]">
+                    <p className="mt-4 max-w-[52ch] text-base leading-7 text-white/85">
                       Tell Poreia where you want to go, what kind of trip you
                       want, or how much you want to spend.
                     </p>
@@ -104,7 +104,7 @@ const HomeRoute: React.FC = () => {
                     variant="glass"
                     padding="none"
                     radius="xl"
-                    className="mt-8 max-w-4xl overflow-hidden border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]"
+                    className="mt-8 overflow-hidden border-[rgba(236,220,204,0.96)] bg-[rgba(255,252,248,0.94)] shadow-[0_20px_48px_rgba(118,74,36,0.1)] backdrop-blur-[3px]"
                   >
                     <div className="border-b border-[rgba(240,226,210,0.94)] bg-[rgba(255,249,243,0.7)] px-4 py-3 sm:px-5">
                       <div>
@@ -127,18 +127,12 @@ const HomeRoute: React.FC = () => {
                         id="trip-search-input"
                         isLoading={isGenerating}
                         label="Where should we start?"
-                        leadingIcon={
-                          <Search className="search-status-search" size={18} />
-                        }
-                        loadingIcon={
-                          <Sparkles
-                            className="search-status-sparkles"
-                            size={18}
-                          />
-                        }
+                        leadingIcon={<Search size={18} />}
+                        loadingLabel="Planning…"
                         onFocusStateChange={setIsFocused}
                         onValueChange={setQuery}
                         placeholder="3 relaxed days in Lisbon with ocean views and late dinners"
+                        submitLabel="Start planning"
                         value={query}
                       />
                       {isGenerating ? (
@@ -169,37 +163,23 @@ const HomeRoute: React.FC = () => {
                         </p>
                       )}
 
-                      <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                        <div className="max-w-3xl">
-                          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.72)]">
-                            Try one of these
-                          </p>
-                          <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-                            {SUGGESTED_PROMPTS.slice(0, 4).map((prompt) => (
-                              <Button
-                                key={prompt}
-                                onClick={() => handleSuggestionClick(prompt)}
-                                disabled={isGenerating}
-                                variant="secondary"
-                                size="md"
-                                className="h-full min-h-[44px] w-full justify-start whitespace-normal border-[rgba(239,215,193,0.96)] bg-[rgba(255,252,247,0.95)] px-4 py-2.5 text-left text-[0.95rem] font-medium leading-6 text-[rgba(89,58,38,0.94)] hover:-translate-y-0.5 hover:border-[rgba(234,160,100,0.78)] hover:text-[rgba(208,95,54,0.96)] disabled:hover:translate-y-0 disabled:hover:border-[rgba(239,215,193,0.96)] disabled:hover:text-[rgba(89,58,38,0.94)]"
-                              >
-                                {prompt}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="flex lg:justify-end">
-                          <Button
-                            type="submit"
-                            disabled={!query.trim() || isGenerating}
-                            fullWidth
-                            className="min-h-[3.25rem] shrink-0 hover:-translate-y-0.5 disabled:opacity-50 sm:w-auto sm:min-w-[10.5rem] lg:min-w-[11.5rem]"
-                          >
-                            {isGenerating ? "Planning..." : "Start planning"}
-                            <ArrowUpRight size={18} />
-                          </Button>
+                      <div className="mt-5">
+                        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground/72">
+                          Try one of these
+                        </p>
+                        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                          {SUGGESTED_PROMPTS.slice(0, 4).map((prompt) => (
+                            <Button
+                              key={prompt}
+                              onClick={() => handleSuggestionClick(prompt)}
+                              disabled={isGenerating}
+                              variant="secondary"
+                              size="sm"
+                              className="h-full min-h-[44px] w-full justify-start whitespace-normal px-4 py-2.5 text-left text-[0.95rem] font-medium leading-6 hover:-translate-y-0.5 disabled:hover:translate-y-0"
+                            >
+                              {prompt}
+                            </Button>
+                          ))}
                         </div>
                       </div>
                     </div>

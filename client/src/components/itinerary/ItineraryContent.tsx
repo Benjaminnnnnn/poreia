@@ -11,6 +11,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/Tooltip";
 import {
   MOOD_OPTIONS,
   MOOD_OPTION_LOOKUP,
+  WorkspaceTab,
 } from "./constants";
 
 export interface ItinerarySectionNavItem {

@@ -1,4 +1,6 @@
-import React, { useId, useState } from "react";
+import { cn } from "@/lib/utils";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Check,
   Clock,
@@ -10,18 +12,30 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Activity } from "../../types";
+import React, { useId, useState } from "react";
 import { ResolvedActivityImage } from "../../services/activityImageService";
+import { Activity } from "../../types";
 import Button from "../ui/Button";
+
+/** Format a cost amount using the currency code's symbol (e.g. "USD" → "$40"). */
+function formatCost(amount: number, currencyCode: string): string {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currencyCode,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currencyCode}${amount}`;
+  }
+}
 
 interface ActivityCardLayoutProps {
   activity: Activity;
   cardRef?: React.Ref<HTMLDivElement>;
   cardProps?: React.HTMLAttributes<HTMLDivElement>;
   children?: React.ReactNode;
-  className: string;
+  className?: string;
   currency: string;
   dragHandleProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   dragHandleRef?: React.Ref<HTMLButtonElement>;
@@ -48,108 +62,131 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
     {...cardProps}
     onClick={onClick}
     style={style}
-    className={`focus-ring group relative rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,255,253,0.98)] p-3 shadow-[0_8px_20px_rgba(108,62,26,0.04)] ${className}`}
+    className={cn(
+      "focus-ring group relative flex overflow-hidden rounded-xl border border-border bg-card shadow-sm",
+      className,
+    )}
   >
+    {/* Left image — absolute so it doesn't drive card height */}
+    <div className="relative w-28 shrink-0 self-stretch overflow-hidden bg-muted sm:w-36">
+      {image?.url ? (
+        <img
+          src={image.url}
+          alt={activity.description}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/35">
+          <ImageIcon size={22} />
+        </div>
+      )}
+    </div>
+
+    {/* Drag handle strip */}
     <button
       ref={dragHandleRef}
       type="button"
       data-drag-handle="true"
       {...dragHandleProps}
-      onClick={(event) => {
-        event.stopPropagation();
-        dragHandleProps?.onClick?.(event);
+      onClick={(e) => {
+        e.stopPropagation();
+        dragHandleProps?.onClick?.(e);
       }}
-      className={`focus-ring absolute left-1 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 touch-none items-center justify-center rounded-[0.7rem] border border-[rgba(239,215,193,0.9)] bg-[rgba(255,246,239,0.96)] text-[rgba(204,139,99,0.9)] transition-[background-color,border-color,color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] active:cursor-grabbing active:scale-[0.98] md:left-1.5 md:h-9 md:w-9 md:border-transparent md:bg-transparent ${
-        dragHandleProps?.className ?? ""
-      }`}
+      className={cn(
+        "focus-ring flex w-7 shrink-0 touch-none items-center justify-center text-muted-foreground/30 transition-colors active:cursor-grabbing md:hover:text-muted-foreground/60",
+        dragHandleProps?.className ?? "",
+      )}
       aria-label={`Reorder ${activity.description}`}
       title="Drag to reorder"
     >
-      <GripVertical size={18} />
+      <GripVertical size={14} />
     </button>
 
-    <div className="flex items-start gap-2.5 pl-8 pr-3 sm:gap-3 sm:pl-10 sm:pr-8">
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[0.45rem] border border-[rgba(239,215,193,0.92)] bg-[rgba(255,242,227,0.86)] sm:h-20 sm:w-20">
-        {image?.url ? (
-          <img
-            src={image.url}
-            alt={activity.description}
-            className="h-full w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[rgba(188,156,131,0.8)]">
-            <ImageIcon size={20} />
-          </div>
-        )}
-      </div>
-
-      <div className="min-w-0 flex-1 py-0.5">
-        <div className="mb-1 flex flex-wrap items-center justify-between gap-x-2">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-[rgba(63,138,140,0.96)]">
-            <Clock size={12} />
-            {activity.time}
-          </div>
-          {activity.costEstimate !== undefined && activity.costEstimate > 0 ? (
-            <div className="flex items-center gap-1 whitespace-nowrap rounded-[0.35rem] bg-[rgba(255,235,214,0.88)] px-2 py-0.5 text-[10px] font-bold text-[rgba(217,102,58,0.96)]">
-              <DollarSign size={10} />
-              {currency}
-              {activity.costEstimate}
-            </div>
-          ) : null}
-        </div>
-        <p className="mb-1 line-clamp-3 text-sm font-semibold leading-snug text-[rgba(74,43,26,0.96)] sm:mb-1.5 sm:line-clamp-2">
-          {activity.description}
-        </p>
-        <div className="flex items-center gap-1 truncate text-xs text-[rgba(116,79,56,0.66)]">
-          <MapPin size={12} className="shrink-0" />
-          <span className="truncate">{activity.location}</span>
-        </div>
-        {image?.sourceLabel ? (
-          <div className="mt-2 min-w-0 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[rgba(134,101,77,0.58)]">
-            {image.sourceUrl ? (
-              <a
-                href={image.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                onClick={(event) => event.stopPropagation()}
-                className="rounded-[0.3rem] bg-[rgba(255,242,227,0.82)] px-1.5 py-0.5 text-[rgba(145,104,73,0.7)] transition-colors hover:bg-[rgba(244,233,220,0.96)] hover:text-[rgba(117,81,56,0.84)]"
-              >
-                {image.sourceLabel}
-              </a>
-            ) : (
-              <span className="rounded-[0.3rem] bg-[rgba(255,242,227,0.82)] px-1.5 py-0.5 text-[rgba(145,104,73,0.7)]">
-                {image.sourceLabel}
-              </span>
-            )}
-            {image.licenseLabel ? <span>{image.licenseLabel}</span> : null}
-            {image.attributionLabel ? (
-              image.attributionUrl ? (
-                <a
-                  href={image.attributionUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(event) => event.stopPropagation()}
-                  className="block min-w-0 max-w-full truncate whitespace-nowrap normal-case tracking-normal text-[rgba(116,79,56,0.72)] underline decoration-[rgba(191,153,126,0.45)] underline-offset-2 transition-colors hover:text-[rgba(88,58,38,0.84)]"
-                  title={image.attributionLabel}
-                >
-                  {image.attributionLabel}
-                </a>
-              ) : (
-                <span
-                  className="block min-w-0 max-w-full truncate whitespace-nowrap normal-case tracking-normal text-[rgba(116,79,56,0.72)]"
-                  title={image.attributionLabel}
-                >
-                  {image.attributionLabel}
-                </span>
-              )
-            ) : null}
-          </div>
+    {/* Content area — height driven by text, not image */}
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-3 pr-3">
+      {/* Time chip + cost */}
+      <div className="flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+          <Clock size={10} />
+          {activity.time}
+        </span>
+        {activity.costEstimate !== undefined && activity.costEstimate > 0 ? (
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+            {formatCost(activity.costEstimate, currency)}
+          </span>
         ) : null}
       </div>
+
+      {/* Activity title */}
+      <p className="text-sm font-bold leading-snug text-primary sm:text-[0.95rem]">
+        {activity.description}
+      </p>
+
+      {/* Location */}
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <MapPin size={10} className="shrink-0" />
+        <span className="truncate">{activity.location}</span>
+      </div>
+
+      {/* Attribution */}
+      {image?.sourceLabel ? (
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/50">
+          {image.sourceUrl ? (
+            <a
+              href={image.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="rounded bg-muted px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              {image.sourceLabel}
+            </a>
+          ) : (
+            <span className="rounded bg-muted px-1.5 py-0.5">
+              {image.sourceLabel}
+            </span>
+          )}
+          {image.licenseLabel ? (
+            <span className="text-muted-foreground/40">
+              {image.licenseLabel}
+            </span>
+          ) : null}
+          {image.attributionLabel ? (
+            image.attributionUrl ? (
+              <a
+                href={image.attributionUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60 underline underline-offset-2 transition-colors hover:text-foreground"
+                title={image.attributionLabel}
+              >
+                {image.attributionLabel}
+              </a>
+            ) : (
+              <span
+                className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60"
+                title={image.attributionLabel}
+              >
+                {image.attributionLabel}
+              </span>
+            )
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Mobile-only actions (rendered by children) */}
+      {children}
     </div>
 
-    {children}
+    {/* Desktop action buttons — top-right, hover-only */}
+    <div
+      className="pointer-events-none absolute right-2 top-2 hidden flex-col gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 md:flex"
+      aria-hidden="true"
+    >
+      {/* Injected via renderDesktopActions prop pattern — see SortableActivityCard */}
+    </div>
   </div>
 );
 
@@ -184,57 +221,182 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
   sortableCardProps,
   style,
 }) => (
-  <ActivityCardLayout
-    activity={activity}
-    cardRef={cardRef}
-    currency={currency}
-    cardProps={sortableCardProps}
-    dragHandleProps={isHandleOnly ? dragHandleProps : undefined}
-    dragHandleRef={isHandleOnly ? dragHandleRef : undefined}
-    image={image}
+  <div
+    ref={cardRef}
+    {...sortableCardProps}
     onClick={onClick}
     style={style}
-    className={`will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-      isHandleOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-    } ${
+    className={cn(
+      "focus-ring group relative flex overflow-hidden rounded-xl border border-border bg-card shadow-sm will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+      isHandleOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
       isSelected
-        ? "border-[rgba(77,169,165,0.62)] ring-2 ring-[rgba(127,198,194,0.42)] shadow-[0_18px_28px_rgba(91,133,129,0.12)]"
-        : "border-white hover:border-[rgba(237,170,118,0.65)] hover:shadow-[0_16px_28px_rgba(108,62,26,0.08)]"
-    }`}
+        ? "border-primary/40 shadow-md ring-2 ring-primary/20"
+        : "hover:border-primary/40 hover:shadow-md",
+    )}
   >
-    <div className="mt-3 flex items-center justify-end gap-2 border-t border-[rgba(239,215,193,0.72)] pt-2.5 md:pointer-events-none md:absolute md:right-2 md:top-2 md:mt-0 md:flex-col md:gap-1 md:border-t-0 md:pt-0 md:opacity-0 md:transition-opacity md:group-hover:pointer-events-auto md:group-hover:opacity-100 md:group-focus-within:pointer-events-auto md:group-focus-within:opacity-100">
+    {/* Left image with drag handle overlaid */}
+    <div className="relative w-28 shrink-0 self-stretch bg-muted sm:w-36">
+      {image?.url ? (
+        <img
+          src={image.url}
+          alt={activity.description}
+          className="absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/35">
+          <ImageIcon size={22} />
+        </div>
+      )}
+      {/* Drag handle — left-center of image, fade in on card hover */}
+      <button
+        ref={dragHandleRef}
+        type="button"
+        data-drag-handle="true"
+        {...(isHandleOnly ? dragHandleProps : undefined)}
+        onClick={(e) => {
+          e.stopPropagation();
+          isHandleOnly && dragHandleProps?.onClick?.(e);
+        }}
+        className="focus-ring absolute left-1.5 top-1/2 z-10 flex h-7 w-6 -translate-y-1/2 touch-none items-center justify-center rounded-md bg-black/30 text-white/80 opacity-0 backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 hover:bg-black/45 active:cursor-grabbing"
+        aria-label={`Reorder ${activity.description}`}
+        title="Drag to reorder"
+      >
+        <GripVertical size={13} />
+      </button>
+    </div>
+
+    {/* Content — height driven by text, not image */}
+    <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-3 pl-3 pr-3 md:pr-10">
+      {/* Time chip + cost */}
+      <div className="flex items-center gap-1.5">
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+          <Clock size={10} />
+          {activity.time}
+        </span>
+        {activity.costEstimate !== undefined && activity.costEstimate > 0 ? (
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+            {formatCost(activity.costEstimate, currency)}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Title — neutral by default, coral on hover */}
+      <p className="text-sm font-bold leading-snug text-foreground transition-colors duration-150 group-hover:text-primary sm:text-[0.95rem]">
+        {activity.description}
+      </p>
+
+      {/* Location */}
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <MapPin size={10} className="shrink-0" />
+        <span className="truncate">{activity.location}</span>
+      </div>
+
+      {/* Attribution */}
+      {image?.sourceLabel ? (
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/50">
+          {image.sourceUrl ? (
+            <a
+              href={image.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="rounded bg-muted px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground"
+            >
+              {image.sourceLabel}
+            </a>
+          ) : (
+            <span className="rounded bg-muted px-1.5 py-0.5">
+              {image.sourceLabel}
+            </span>
+          )}
+          {image.licenseLabel ? (
+            <span className="text-muted-foreground/40">
+              {image.licenseLabel}
+            </span>
+          ) : null}
+          {image.attributionLabel ? (
+            image.attributionUrl ? (
+              <a
+                href={image.attributionUrl}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60 underline underline-offset-2 transition-colors hover:text-foreground"
+                title={image.attributionLabel}
+              >
+                {image.attributionLabel}
+              </a>
+            ) : (
+              <span className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60">
+                {image.attributionLabel}
+              </span>
+            )
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* Mobile-only action row */}
+      <div className="mt-2 flex items-center gap-2 border-t border-border pt-2 md:hidden">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit();
+          }}
+          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          aria-label={`Edit ${activity.description}`}
+        >
+          <Pencil size={12} />
+          <span className="font-semibold uppercase tracking-[0.08em]">
+            Edit
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/5 px-3 text-xs text-destructive/80 transition-colors hover:bg-destructive/10 hover:text-destructive"
+          aria-label={`Delete ${activity.description}`}
+        >
+          <Trash2 size={12} />
+          <span className="font-semibold uppercase tracking-[0.08em]">
+            Delete
+          </span>
+        </button>
+      </div>
+    </div>
+
+    {/* Desktop action buttons — top-right corner, fade in on hover */}
+    <div className="pointer-events-none absolute right-2 top-2 hidden flex-col gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 md:flex">
       <button
         type="button"
-        onClick={(event) => {
-          event.stopPropagation();
+        onClick={(e) => {
+          e.stopPropagation();
           onEdit();
         }}
-        className="focus-ring inline-flex min-h-[2.35rem] items-center gap-1.5 rounded-full border border-[rgba(229,216,202,0.94)] bg-[rgba(255,250,245,0.98)] px-3 text-[rgba(153,118,93,0.84)] transition-colors hover:bg-[rgba(227,242,239,0.86)] hover:text-[rgba(42,140,142,0.92)] md:h-10 md:w-10 md:justify-center md:rounded-[0.6rem] md:border-transparent md:bg-transparent md:px-0"
+        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         title="Edit"
         aria-label={`Edit ${activity.description}`}
       >
-        <Pencil size={14} />
-        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.08em] md:hidden">
-          Edit
-        </span>
+        <Pencil size={13} />
       </button>
       <button
         type="button"
-        onClick={(event) => {
-          event.stopPropagation();
+        onClick={(e) => {
+          e.stopPropagation();
           onDelete();
         }}
-        className="focus-ring inline-flex min-h-[2.35rem] items-center gap-1.5 rounded-full border border-[rgba(243,219,209,0.96)] bg-[rgba(255,248,244,0.98)] px-3 text-[rgba(177,108,78,0.9)] transition-colors hover:bg-red-50 hover:text-red-500 md:h-10 md:w-10 md:justify-center md:rounded-[0.6rem] md:border-transparent md:bg-transparent md:px-0"
+        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
         title="Delete"
         aria-label={`Delete ${activity.description}`}
       >
-        <Trash2 size={14} />
-        <span className="text-[0.68rem] font-semibold uppercase tracking-[0.08em] md:hidden">
-          Delete
-        </span>
+        <Trash2 size={13} />
       </button>
     </div>
-  </ActivityCardLayout>
+  </div>
 );
 
 const ActivityEditCard: React.FC<{
@@ -253,42 +415,40 @@ const ActivityEditCard: React.FC<{
     <div
       ref={setNodeRef}
       style={style}
-      className="space-y-3 rounded-[0.7rem] border-2 border-[rgba(77,169,165,0.62)] bg-[rgba(255,251,246,0.96)] p-4 shadow-lg"
+      className="space-y-3 rounded-xl border-2 border-primary/30 bg-card p-4 shadow-md"
     >
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label
             htmlFor={`${editFormId}-time`}
-            className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+            className="text-xs font-semibold text-muted-foreground"
           >
             Time
           </label>
           <input
             id={`${editFormId}-time`}
             type="text"
-            className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm"
+            className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
             value={editForm.time}
-            onChange={(event) =>
-              setEditForm({ ...editForm, time: event.target.value })
-            }
+            onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
           />
         </div>
         <div>
           <label
             htmlFor={`${editFormId}-cost`}
-            className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+            className="text-xs font-semibold text-muted-foreground"
           >
             Cost ({currency})
           </label>
           <input
             id={`${editFormId}-cost`}
             type="number"
-            className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm"
+            className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
             value={editForm.costEstimate || ""}
-            onChange={(event) =>
+            onChange={(e) =>
               setEditForm({
                 ...editForm,
-                costEstimate: parseFloat(event.target.value) || 0,
+                costEstimate: parseFloat(e.target.value) || 0,
               })
             }
           />
@@ -297,45 +457,44 @@ const ActivityEditCard: React.FC<{
       <div>
         <label
           htmlFor={`${editFormId}-activity`}
-          className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+          className="text-xs font-semibold text-muted-foreground"
         >
           Activity
         </label>
         <input
           id={`${editFormId}-activity`}
           type="text"
-          className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm font-medium"
+          className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground"
           value={editForm.description}
-          onChange={(event) =>
-            setEditForm({ ...editForm, description: event.target.value })
+          onChange={(e) =>
+            setEditForm({ ...editForm, description: e.target.value })
           }
         />
       </div>
       <div>
         <label
           htmlFor={`${editFormId}-location`}
-          className="text-xs font-semibold text-[rgba(120,83,58,0.78)]"
+          className="text-xs font-semibold text-muted-foreground"
         >
           Location
         </label>
         <input
           id={`${editFormId}-location`}
           type="text"
-          className="field-focus mt-1 min-h-[44px] w-full rounded-[0.65rem] border border-[rgba(233,213,193,0.92)] bg-[rgba(255,246,239,0.92)] px-3 py-2 text-sm"
+          className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
           value={editForm.location}
-          onChange={(event) =>
-            setEditForm({ ...editForm, location: event.target.value })
+          onChange={(e) =>
+            setEditForm({ ...editForm, location: e.target.value })
           }
         />
       </div>
-
-      <div className="flex justify-end gap-2 pt-2">
+      <div className="flex justify-end gap-2 pt-1">
         <Button
           onClick={onCancel}
           variant="ghost"
           size="icon-sm"
-          className="rounded-[0.45rem] text-[rgba(120,83,58,0.78)] hover:bg-[rgba(255,241,227,0.92)]"
-          aria-label="Cancel activity edits"
+          className="rounded-lg"
+          aria-label="Cancel"
         >
           <X size={16} />
         </Button>
@@ -343,7 +502,6 @@ const ActivityEditCard: React.FC<{
           onClick={() => {
             const nextLocation = editForm.location.trim();
             const locationChanged = nextLocation !== originalLocation;
-
             onSave({
               ...editForm,
               img_prompt:
@@ -353,8 +511,8 @@ const ActivityEditCard: React.FC<{
             });
           }}
           size="icon-sm"
-          className="rounded-[0.45rem]"
-          aria-label="Save activity edits"
+          className="rounded-lg"
+          aria-label="Save"
         >
           <Check size={16} />
         </Button>
@@ -372,7 +530,7 @@ export const ActivityDragOverlayCard: React.FC<{
     activity={activity}
     currency={currency}
     image={image}
-    className="origin-top-left cursor-grabbing border-[rgba(77,169,165,0.72)] shadow-[0_28px_70px_rgba(108,62,26,0.18)] will-change-transform"
+    className="cursor-grabbing border-primary/40 shadow-xl ring-2 ring-primary/20 will-change-transform"
   />
 );
 
@@ -423,8 +581,8 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
         setNodeRef={setNodeRef}
         style={style}
         onCancel={() => setIsEditing(false)}
-        onSave={(nextActivity) => {
-          onSave(nextActivity);
+        onSave={(next) => {
+          onSave(next);
           setIsEditing(false);
         }}
       />
@@ -436,7 +594,9 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
       activity={activity}
       cardRef={setNodeRef}
       currency={currency}
-      dragHandleProps={isHandleOnly ? { ...attributes, ...listeners } : undefined}
+      dragHandleProps={
+        isHandleOnly ? { ...attributes, ...listeners } : undefined
+      }
       dragHandleRef={isHandleOnly ? setActivatorNodeRef : undefined}
       image={image}
       isHandleOnly={isHandleOnly}
@@ -445,12 +605,7 @@ export const SortableActivityItem: React.FC<SortableActivityItemProps> = ({
       onDelete={onDelete}
       onClick={onClick}
       sortableCardProps={
-        isHandleOnly
-          ? undefined
-          : {
-              ...attributes,
-              ...listeners,
-            }
+        isHandleOnly ? undefined : { ...attributes, ...listeners }
       }
       style={style}
     />

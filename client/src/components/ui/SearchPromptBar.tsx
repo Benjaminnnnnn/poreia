@@ -1,35 +1,25 @@
-import React from "react";
-import { cx } from "./cx";
+import React, { useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
+// App-palette conic gradient — coral → amber → peach → teal → sea → coral
+const RING_GRADIENT =
+  "conic-gradient(from 0deg, oklch(0.64 0.17 36), oklch(0.84 0.16 82), oklch(0.87 0.10 58), oklch(0.69 0.11 188), oklch(0.57 0.10 213), oklch(0.64 0.17 36))";
 
 type SearchPromptBarVariant = "overlay" | "refine";
 
-const ROOT_CLASSES: Record<SearchPromptBarVariant, string> = {
-  overlay:
-    "group/search-prompt relative flex items-center overflow-hidden rounded-[calc(var(--radius-lg)+0.05rem)] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-base)] ease-[var(--ease-standard)] focus-within:border-[rgba(223,147,93,0.92)] focus-within:bg-[rgba(255,252,248,0.98)] focus-within:shadow-[0_0_0_3px_rgba(223,147,93,0.18),inset_0_1px_0_rgba(255,255,255,0.75)]",
-  refine:
-    "group/search-prompt relative flex items-center overflow-hidden rounded-[var(--radius-md)] border border-[rgba(228,215,201,0.95)] bg-[rgba(255,250,245,0.97)] p-1.5 shadow-[0_14px_36px_rgba(108,62,26,0.12)] transition-[border-color,box-shadow,background-color] duration-[var(--duration-base)] ease-[var(--ease-standard)] focus-within:border-[rgba(223,147,93,0.92)] focus-within:bg-[rgba(255,252,248,0.98)] focus-within:shadow-[0_0_0_3px_rgba(223,147,93,0.16),0_14px_36px_rgba(108,62,26,0.12)]",
-};
-
-const ICON_WRAPPER_CLASSES: Record<SearchPromptBarVariant, string> = {
-  overlay:
-    "pointer-events-none flex h-14 w-14 shrink-0 items-center justify-center text-[rgba(211,98,57,0.96)]",
-  refine: "pl-2.5 pr-2 text-[rgba(217,102,58,0.92)]",
-};
-
-const INPUT_CLASSES: Record<SearchPromptBarVariant, string> = {
-  overlay:
-    "h-14 min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap bg-transparent pr-4 text-base font-medium text-[rgba(74,43,26,0.97)] placeholder:text-base placeholder:font-medium placeholder:text-[rgba(150,112,82,0.52)] focus:outline-none sm:text-[1.05rem] sm:placeholder:text-[1.05rem]",
-  refine:
-    "h-11 min-w-0 flex-1 rounded-[0.45rem] border border-transparent bg-transparent px-1 text-sm font-medium text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(118,77,54,0.58)] focus:outline-none md:text-base",
-};
-
 export interface SearchPromptBarProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "size"> {
+  disableGlow?: boolean;
+  disableRing?: boolean;
+  isLoading?: boolean;
   label: string;
   leadingIcon: React.ReactNode;
   loadingIcon?: React.ReactNode;
+  loadingLabel?: string;
   onFocusStateChange?: (isFocused: boolean) => void;
   onValueChange: (value: string) => void;
+  submitLabel?: string;
   trailingContent?: React.ReactNode;
   value: string;
   variant?: SearchPromptBarVariant;
@@ -40,17 +30,21 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
     {
       className,
       disabled,
+      disableGlow = false,
+      disableRing = false,
       id,
       inputMode,
       isLoading = false,
       label,
       leadingIcon,
       loadingIcon,
+      loadingLabel = "Planning…",
       onBlur,
       onFocus,
       onFocusStateChange,
       onValueChange,
       placeholder,
+      submitLabel,
       trailingContent,
       type = "text",
       value,
@@ -59,71 +53,194 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
     },
     ref,
   ) => {
+    const [isFocused, setIsFocused] = useState(false);
+    const prefersReducedMotion = useReducedMotion();
+
+    const slowSpin = prefersReducedMotion
+      ? {}
+      : ({ duration: 4, repeat: Infinity, ease: "linear" } as const);
+
+    const fastSpin = prefersReducedMotion
+      ? {}
+      : ({ duration: 1, repeat: Infinity, ease: "linear" } as const);
+
     const handleFocusCapture = () => {
+      setIsFocused(true);
       onFocusStateChange?.(true);
     };
 
-    const handleBlurCapture = (event: React.FocusEvent<HTMLDivElement>) => {
-      const nextTarget = event.relatedTarget;
-      if (nextTarget instanceof Node && event.currentTarget.contains(nextTarget)) {
+    const handleBlurCapture = (e: React.FocusEvent<HTMLDivElement>) => {
+      if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) {
         return;
       }
-
+      setIsFocused(false);
       onFocusStateChange?.(false);
     };
 
+    /* ── Refine variant ──────────────────────────────────────── */
+    if (variant === "refine") {
+      return (
+        <div
+          className={cn(
+            "group/search-prompt relative flex items-center overflow-hidden rounded-[var(--radius-md)] border border-border bg-card p-1.5 shadow-md transition-[border-color,box-shadow] duration-200 ease-[var(--ease-standard)] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring)_16%,transparent),0_14px_36px_rgba(0,0,0,0.10)]",
+            className,
+          )}
+          onBlurCapture={handleBlurCapture}
+          onFocusCapture={handleFocusCapture}
+        >
+          <div className="pl-2.5 pr-2 text-primary">
+            <span className={`search-status-icon ${isLoading ? "search-status-icon-loading" : ""}`}>
+              <span aria-hidden="true" className="search-status-icon-glow" />
+              {isLoading ? (loadingIcon ?? leadingIcon) : leadingIcon}
+            </span>
+          </div>
+
+          <label htmlFor={id} className="sr-only">{label}</label>
+
+          <input
+            {...props}
+            ref={ref}
+            disabled={disabled}
+            id={id}
+            inputMode={inputMode}
+            onBlur={onBlur}
+            onChange={(e) => onValueChange(e.target.value)}
+            onFocus={onFocus}
+            placeholder={placeholder}
+            type={type}
+            value={value}
+            className="h-11 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-transparent bg-transparent px-1 text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none md:text-base"
+          />
+
+          {trailingContent ? <div className="shrink-0">{trailingContent}</div> : null}
+
+          {/* Bottom progress bar */}
+          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden">
+            <div className="absolute inset-0 bg-border" />
+            <div
+              className={cn(
+                "absolute inset-y-0 left-0 right-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-0 scale-x-[0.72] group-focus-within/search-prompt:scale-x-100 group-focus-within/search-prompt:opacity-100",
+                isLoading && "scale-x-100 opacity-100",
+              )}
+              style={{
+                background:
+                  "linear-gradient(90deg, transparent 0%, var(--primary) 16%, color-mix(in oklab, var(--primary) 60%, white) 50%, var(--primary) 84%, transparent 100%)",
+              }}
+            />
+            {isLoading && (
+              <div
+                className="search-prompt-progress-sweep absolute inset-y-0 left-0 w-[32%] opacity-95"
+                style={{
+                  background:
+                    "linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--primary) 70%, white) 18%, white 50%, color-mix(in oklab, var(--primary) 70%, white) 82%, transparent 100%)",
+                }}
+              />
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    /* ── Overlay variant — new pill ring design ──────────────── */
+    const glowActive = isFocused || isLoading;
+
     return (
       <div
-        className={cx(ROOT_CLASSES[variant], className)}
+        className={cn("relative w-full", className)}
         onBlurCapture={handleBlurCapture}
         onFocusCapture={handleFocusCapture}
       >
-        <div className={ICON_WRAPPER_CLASSES[variant]}>
-          <span
-            className={`search-status-icon ${
-              isLoading ? "search-status-icon-loading" : ""
-            }`}
-          >
-            <span aria-hidden="true" className="search-status-icon-glow" />
-            {isLoading ? loadingIcon ?? leadingIcon : leadingIcon}
-          </span>
-        </div>
-
-        <label htmlFor={id} className="sr-only">
-          {label}
-        </label>
-
-        <input
-          {...props}
-          ref={ref}
-          disabled={disabled}
-          id={id}
-          inputMode={inputMode}
-          onBlur={onBlur}
-          onChange={(event) => onValueChange(event.target.value)}
-          onFocus={onFocus}
-          placeholder={placeholder}
-          type={type}
-          value={value}
-          className={INPUT_CLASSES[variant]}
-        />
-
-        {trailingContent ? <div className="shrink-0">{trailingContent}</div> : null}
-
+        {/* Outer soft glow */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden"
+          className={cn(
+            "pointer-events-none absolute -inset-1 rounded-full blur-lg transition-opacity duration-500",
+            disableGlow ? "opacity-0" : glowActive ? "opacity-30" : "opacity-8",
+          )}
         >
-          <div className="absolute inset-0 bg-[rgba(226,199,174,0.72)]" />
-          <div
-            className={cx(
-              "absolute inset-y-0 left-0 right-0 bg-[linear-gradient(90deg,rgba(236,165,119,0)_0%,rgba(230,106,63,0.7)_16%,rgba(247,196,157,0.92)_50%,rgba(230,106,63,0.7)_84%,rgba(236,165,119,0)_100%)] shadow-[0_0_14px_rgba(230,106,63,0.32)] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-0 scale-x-[0.72] group-focus-within/search-prompt:scale-x-100 group-focus-within/search-prompt:opacity-100",
-              isLoading && "scale-x-100 opacity-100",
+          <div className="absolute inset-0 overflow-hidden rounded-full">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={slowSpin}
+              className="absolute left-1/2 top-1/2 aspect-square w-[200%] -translate-x-1/2 -translate-y-1/2"
+              style={{ background: RING_GRADIENT }}
+            />
+          </div>
+        </div>
+
+        {/* Pill shell — gradient ring or static border */}
+        <div className={cn("relative overflow-hidden rounded-full shadow-md", disableRing ? "border border-border p-0" : "p-[2px]")}>
+          {!disableRing && (
+            <motion.div
+              aria-hidden="true"
+              animate={{ rotate: 360 }}
+              transition={slowSpin}
+              className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[200%] -translate-x-1/2 -translate-y-1/2"
+              style={{ background: RING_GRADIENT }}
+            />
+          )}
+
+          {/* Inner content area */}
+          <div className="relative flex items-center gap-2 rounded-full bg-card px-2 py-2">
+
+            {/* Left circle icon / spinner */}
+            <div
+              aria-hidden="true"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-primary"
+            >
+              {isLoading ? (
+                <div className="relative h-5 w-5">
+                  {/* Blur glow behind ring */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={fastSpin}
+                    className="absolute inset-0 rounded-full opacity-60"
+                    style={{ background: RING_GRADIENT, filter: "blur(3px)" }}
+                  />
+                  {/* Crisp spinner ring */}
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={fastSpin}
+                    className="absolute inset-0 rounded-full p-[2px]"
+                    style={{ background: RING_GRADIENT }}
+                  >
+                    <div className="h-full w-full rounded-full bg-card" />
+                  </motion.div>
+                </div>
+              ) : (
+                leadingIcon
+              )}
+            </div>
+
+            <label htmlFor={id} className="sr-only">{label}</label>
+
+            <input
+              {...props}
+              ref={ref}
+              disabled={disabled}
+              id={id}
+              inputMode={inputMode}
+              onBlur={onBlur}
+              onChange={(e) => onValueChange(e.target.value)}
+              onFocus={onFocus}
+              placeholder={placeholder}
+              type={type}
+              value={value}
+              className="min-w-0 flex-1 border-none bg-transparent text-[1rem] font-medium text-foreground placeholder:text-muted-foreground/55 focus:outline-none sm:text-[1.05rem]"
+            />
+
+            {trailingContent && <div className="shrink-0">{trailingContent}</div>}
+
+            {submitLabel && (
+              <button
+                type="submit"
+                disabled={disabled || !value.trim()}
+                className="shrink-0 rounded-[1.25rem] bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50 sm:px-6 sm:text-[0.95rem]"
+              >
+                {isLoading ? loadingLabel : submitLabel}
+              </button>
             )}
-          />
-          {isLoading ? (
-            <div className="search-prompt-progress-sweep absolute inset-y-0 left-0 w-[32%] bg-[linear-gradient(90deg,rgba(230,106,63,0)_0%,rgba(235,146,95,0.7)_18%,rgba(255,231,212,0.96)_50%,rgba(235,146,95,0.7)_82%,rgba(230,106,63,0)_100%)] opacity-95 shadow-[0_0_18px_rgba(230,106,63,0.4)]" />
-          ) : null}
+          </div>
         </div>
       </div>
     );

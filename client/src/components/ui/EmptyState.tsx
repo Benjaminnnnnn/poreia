@@ -2,7 +2,7 @@ import React from "react";
 import Surface from "./Surface";
 import { cx } from "./cx";
 
-export interface EmptyStateProps extends React.HTMLAttributes<HTMLElement> {
+export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLElement>, "title"> {
   action?: React.ReactNode;
   description?: React.ReactNode;
   title: React.ReactNode;
