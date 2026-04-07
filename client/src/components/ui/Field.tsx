@@ -57,7 +57,7 @@ const Field: React.FC<FieldProps> = ({
         <label
           htmlFor={inputId}
           className={cx(
-            "block text-[var(--font-size-label)] font-semibold uppercase tracking-[var(--tracking-label)] text-[rgba(127,86,58,0.72)]",
+            "block text-[var(--font-size-label)] font-semibold uppercase tracking-[var(--tracking-label)] text-muted-foreground",
             visuallyHideLabel && "sr-only",
           )}
         >
@@ -66,7 +66,7 @@ const Field: React.FC<FieldProps> = ({
       ) : null}
 
       {description ? (
-        <p className="text-sm leading-6 text-[rgba(117,81,58,0.74)]">
+        <p className="text-sm leading-6 text-muted-foreground">
           {description}
         </p>
       ) : null}
@@ -80,7 +80,7 @@ const Field: React.FC<FieldProps> = ({
         )}
       >
         {leading ? (
-          <div className="shrink-0 text-[rgba(211,98,57,0.96)]">{leading}</div>
+          <div className="shrink-0 text-primary">{leading}</div>
         ) : null}
 
         <div className="min-w-0 flex-1">{children}</div>
@@ -92,9 +92,7 @@ const Field: React.FC<FieldProps> = ({
         <p
           className={cx(
             "text-sm leading-6",
-            error
-              ? "text-[rgba(150,69,45,0.92)]"
-              : "text-[rgba(118,80,57,0.72)]",
+            error ? "text-destructive" : "text-muted-foreground",
           )}
         >
           {supportingText}

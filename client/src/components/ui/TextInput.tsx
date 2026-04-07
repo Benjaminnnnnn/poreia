@@ -60,7 +60,7 @@ const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(
         id={id}
         type={type}
         className={cx(
-          "w-full border-none bg-transparent p-0 text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(118,77,54,0.58)] focus:outline-none",
+          "w-full border-none bg-transparent p-0 text-foreground placeholder:text-muted-foreground focus:outline-none",
           INPUT_SIZES[size],
           className,
         )}

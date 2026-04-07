@@ -7,7 +7,7 @@ import {
 import { DayPlan, TravelItinerary } from "../../types";
 import Badge from "../ui/Badge";
 import Surface from "../ui/Surface";
-import Tooltip from "../ui/Tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/Tooltip";
 import {
   MOOD_OPTIONS,
   MOOD_OPTION_LOOKUP,
@@ -242,18 +242,21 @@ export const ItinerarySectionNav: React.FC<{
             {items.map((item) => {
               const isActive = item.id === activeSectionId;
               return (
-                <Tooltip key={item.id} content={item.label} side="right">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(item.id)}
-                    aria-label={item.label}
-                    aria-pressed={isActive}
-                    className={`focus-ring inline-flex h-3 w-3 rounded-full border transition-[transform,background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                      isActive
-                        ? "border-[rgba(230,106,63,0.96)] bg-[rgba(230,106,63,0.96)] shadow-[0_0_0_4px_rgba(233,175,141,0.22)]"
-                        : "border-[rgba(210,188,169,0.96)] bg-[rgba(255,251,246,0.95)] hover:border-[rgba(214,103,58,0.56)] hover:bg-[rgba(255,245,237,0.96)]"
-                    }`}
-                  />
+                <Tooltip key={item.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(item.id)}
+                      aria-label={item.label}
+                      aria-pressed={isActive}
+                      className={`focus-ring inline-flex h-3 w-3 rounded-full border transition-[transform,background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                        isActive
+                          ? "border-primary bg-primary shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_22%,transparent)]"
+                          : "border-border bg-card hover:border-primary/56 hover:bg-accent"
+                      }`}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.label}</TooltipContent>
                 </Tooltip>
               );
             })}
