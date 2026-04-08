@@ -1,3 +1,6 @@
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { cn } from "@/lib/utils";
+import type { TripMemberResponse, TripRole } from "@/types";
 import {
   Crown,
   Eye,
@@ -11,9 +14,6 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { cn } from "@/lib/utils";
-import type { TripMemberResponse, TripRole } from "@/types";
 import { useTripMembers } from "../hooks/useTripMembers";
 
 const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
@@ -68,9 +68,8 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
 }) => {
   const isMobileViewport = useMediaQuery(MOBILE_MEDIA_QUERY);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Exclude<TripRole, "owner">>(
-    "editor",
-  );
+  const [selectedRole, setSelectedRole] =
+    useState<Exclude<TripRole, "owner">>("editor");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
@@ -184,7 +183,9 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
       return;
     }
 
-    setSuccessMessage(`Removed ${getMemberDisplayName(member)} from this trip.`);
+    setSuccessMessage(
+      `Removed ${getMemberDisplayName(member)} from this trip.`,
+    );
   };
 
   return createPortal(
@@ -205,44 +206,44 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
         aria-label="Invite collaborators"
         tabIndex={-1}
         className={cn(
-          "absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden bg-[rgba(255,252,248,0.99)] shadow-[0_28px_64px_rgba(100,63,34,0.16)] outline-none",
-          !isMobileViewport && "max-w-[30rem] border-l border-[rgba(229,214,198,0.9)]",
+          "absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden shadow-[0_28px_64px_rgba(100,63,34,0.16)] outline-none before:absolute before:inset-0 before:bg-white/60 before:-z-10 before:backdrop-blur after:absolute after:inset-0 after:bg-black/50 after:backdrop-blur-md after:mix-blend-overlay after:-z-10",
+          !isMobileViewport && "max-w-[30rem] border-l border-white/15",
         )}
       >
         {/* ── Header ─────────────────────────────────────────── */}
-        <div className="relative shrink-0 px-6 pb-6 pt-7 sm:px-8">
+        <div className="relative z-10 shrink-0 px-6 pb-6 pt-7 sm:px-8">
           {/* Close button */}
           <button
             type="button"
             onClick={onClose}
-            className="focus-ring absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-[rgba(130,90,65,0.56)] transition-colors duration-150 hover:bg-[rgba(244,236,226,0.88)] hover:text-[rgba(90,57,40,0.9)]"
+            className="focus-ring absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition-colors duration-150 hover:bg-white/10 hover:text-white"
           >
             <X size={17} />
           </button>
 
           {/* Eyebrow */}
-          <p className="text-[0.62rem] font-bold uppercase tracking-[0.26em] text-primary/70">
+          <p className="text-[0.62rem] font-bold uppercase tracking-[0.26em] text-white/80">
             Trip Collaboration
           </p>
 
           {/* Display title */}
-          <h2 className="font-display mt-3 text-[clamp(1.85rem,4.5vw,2.4rem)] leading-[0.94] tracking-[-0.045em] text-[rgba(55,32,17,0.96)]">
+          <h2 className="font-display mt-3 text-[clamp(1.85rem,4.5vw,2.4rem)] leading-[0.94] tracking-[-0.045em] text-white drop-shadow">
             Share the journey.
           </h2>
 
           {/* Stats — divider layout */}
           {canManageMembers && (
-            <div className="mt-6 flex divide-x divide-[rgba(224,209,192,0.72)]">
+            <div className="mt-6 flex divide-x divide-white/20">
               {[
                 { label: "Active", value: activeMembers.length },
                 { label: "Editors", value: editorCount },
                 { label: "Viewers", value: viewerCount },
               ].map(({ label, value }) => (
                 <div key={label} className="flex-1 px-4 first:pl-0 last:pr-0">
-                  <p className="text-[0.58rem] font-bold uppercase tracking-[0.22em] text-[rgba(130,90,65,0.58)]">
+                  <p className="text-[0.58rem] font-bold uppercase tracking-[0.22em] text-white/60">
                     {label}
                   </p>
-                  <p className="mt-1.5 text-[1.6rem] font-semibold leading-none tracking-[-0.04em] text-[rgba(55,32,17,0.94)]">
+                  <p className="mt-1.5 text-[1.6rem] font-semibold leading-none tracking-[-0.04em] text-white drop-shadow">
                     {value}
                   </p>
                 </div>
@@ -251,12 +252,12 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
           )}
         </div>
 
-        <div className="h-px bg-[rgba(222,208,192,0.7)]" />
+        <div className="relative z-10 h-px bg-white/20" />
 
         {/* ── Scrollable body ─────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-6 py-7 sm:px-8">
+        <div className="relative z-10 flex-1 overflow-y-auto px-6 py-7 sm:px-8">
           {!canManageMembers ? (
-            <p className="rounded-xl border border-border bg-card px-5 py-5 text-sm leading-7 text-[rgba(102,68,47,0.8)]">
+            <p className="rounded-xl border border-white/20 bg-white/10 px-5 py-5 text-sm leading-7 text-white/80">
               You do not have permission to manage trip collaborators.
             </p>
           ) : (
@@ -264,14 +265,17 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
               {/* ── Invite form ──────────────────────────────── */}
               <form onSubmit={handleInviteSubmit} className="space-y-6">
                 {/* Section label */}
-                <div className="flex items-center gap-2.5 text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[rgba(120,83,58,0.66)]">
+                <div className="flex items-center gap-2.5 text-[0.62rem] font-bold uppercase tracking-[0.22em] text-white/70">
                   <Mail size={13} />
                   Send Invitation
                 </div>
 
                 {/* Email — underline style */}
-                <div className="border-b border-[rgba(210,193,175,0.84)] pb-1 focus-within:border-primary/60">
-                  <label htmlFor="invite-collaborator-email" className="sr-only">
+                <div className="border-b border-white/30 pb-1 focus-within:border-white/60">
+                  <label
+                    htmlFor="invite-collaborator-email"
+                    className="sr-only"
+                  >
                     Email address
                   </label>
                   <input
@@ -280,7 +284,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                     value={inviteEmail}
                     onChange={(event) => setInviteEmail(event.target.value)}
                     placeholder="companion@example.com"
-                    className="w-full bg-transparent py-2 text-[0.97rem] text-[rgba(74,43,26,0.96)] placeholder:text-[rgba(160,122,92,0.48)] focus:outline-none"
+                    className="w-full bg-transparent py-2 text-[0.97rem] text-white placeholder:text-white/40 focus:outline-none"
                     disabled={isAdding}
                     required
                   />
@@ -299,18 +303,20 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                         className={cn(
                           "focus-ring rounded-[1.1rem] border px-4 py-4 text-left transition-[border-color,background-color,box-shadow] duration-200",
                           isActive
-                            ? "border-primary/30 bg-[rgba(255,244,236,0.98)] shadow-[0_0_0_1px_rgba(230,106,63,0.15),0_8px_20px_rgba(117,74,36,0.07)]"
-                            : "border-[rgba(228,214,198,0.88)] bg-[rgba(255,251,246,0.92)] hover:border-[rgba(210,170,130,0.6)] hover:bg-[rgba(255,248,240,0.98)]",
+                            ? "border-white/40 bg-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_8px_20px_rgba(0,0,0,0.15)]"
+                            : "border-white/20 bg-white/10 hover:border-white/30 hover:bg-white/15",
                         )}
                       >
-                        <div className={cn(
-                          "mb-2.5 flex items-center gap-2 text-[0.93rem] font-semibold",
-                          isActive ? "text-primary/90" : "text-[rgba(74,43,26,0.84)]",
-                        )}>
+                        <div
+                          className={cn(
+                            "mb-2.5 flex items-center gap-2 text-[0.93rem] font-semibold",
+                            isActive ? "text-white" : "text-white/90",
+                          )}
+                        >
                           <Icon size={15} strokeWidth={2} />
                           {option.title}
                         </div>
-                        <p className="text-[0.78rem] leading-5 text-[rgba(110,76,54,0.68)]">
+                        <p className="text-[0.78rem] leading-5 text-white/70">
                           {option.description}
                         </p>
                       </button>
@@ -320,7 +326,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
 
                 {/* Footer row */}
                 <div className="flex items-center justify-between gap-4 pt-1">
-                  <p className="text-[0.78rem] italic leading-5 text-[rgba(130,90,65,0.62)]">
+                  <p className="text-[0.78rem] italic leading-5 text-white/70">
                     {memberCount > 1
                       ? `${memberCount} people already have access.`
                       : "Only you have access right now."}
@@ -328,7 +334,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                   <button
                     type="submit"
                     disabled={!inviteEmail.trim() || isAdding}
-                    className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-full bg-[rgba(42,26,14,0.93)] px-5 py-2.5 text-[0.85rem] font-semibold text-[rgba(255,248,240,0.96)] transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e66a3f] px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all duration-150 hover:bg-[#e66a3f]/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {isAdding ? (
                       <Loader2 className="animate-spin" size={14} />
@@ -342,33 +348,33 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
 
               {/* Messages */}
               {errorMessage && (
-                <p className="rounded-xl border border-[rgba(230,191,177,0.86)] bg-[rgba(253,242,238,0.96)] px-4 py-3 text-[0.87rem] leading-6 text-[rgba(142,78,67,0.92)]">
+                <p className="rounded-xl border border-red-300/40 bg-red-500/10 px-4 py-3 text-[0.87rem] leading-6 text-red-200">
                   {errorMessage}
                 </p>
               )}
               {successMessage && (
-                <p className="rounded-xl border border-[rgba(188,217,195,0.88)] bg-[rgba(240,249,242,0.96)] px-4 py-3 text-[0.87rem] leading-6 text-[rgba(68,112,78,0.92)]">
+                <p className="rounded-xl border border-green-300/40 bg-green-500/10 px-4 py-3 text-[0.87rem] leading-6 text-green-200">
                   {successMessage}
                 </p>
               )}
 
-              <div className="h-px bg-[rgba(222,208,192,0.7)]" />
+              <div className="h-px bg-white/20" />
 
               {/* ── Current guests ───────────────────────────── */}
               <section className="space-y-4">
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[rgba(55,32,17,0.78)]">
+                  <p className="text-[0.62rem] font-bold uppercase tracking-[0.22em] text-white/80">
                     Current Guests
                   </p>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[rgba(222,208,192,0.88)] bg-[rgba(248,242,234,0.92)] px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[rgba(120,83,58,0.72)]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[0.62rem] font-bold uppercase tracking-[0.18em] text-white/70">
                     <UsersRound size={11} />
                     {activeMembers.length} active
                   </span>
                 </div>
 
                 {isLoading ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-5 text-sm text-[rgba(103,67,46,0.82)]">
-                    <Loader2 className="animate-spin text-primary/80" size={17} />
+                  <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 px-5 py-5 text-sm text-white/80">
+                    <Loader2 className="animate-spin text-white/80" size={17} />
                     Loading collaborators…
                   </div>
                 ) : activeMembers.length ? (
@@ -380,53 +386,55 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                       return (
                         <article
                           key={member.userId}
-                          className="flex items-center gap-4 rounded-2xl border border-[rgba(228,214,198,0.88)] bg-[rgba(255,251,246,0.96)] px-4 py-4"
+                          className="flex items-center gap-4 rounded-2xl border border-white/20 bg-white/10 px-4 py-4"
                         >
                           {/* Avatar */}
-                          <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[rgba(230,106,63,0.10)] text-[1rem] font-bold text-primary/80">
+                          <div className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#e66a3f]/20 text-[1rem] font-bold text-white/90">
                             {getMemberInitial(member)}
                           </div>
 
                           {/* Name + email */}
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <span className="truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-[rgba(55,32,17,0.95)]">
+                              <span className="truncate text-[0.95rem] font-semibold tracking-[-0.01em] text-white">
                                 {getMemberDisplayName(member)}
                               </span>
                               {isOwner && (
-                                <span className="inline-flex items-center gap-1 rounded-full border border-[rgba(210,165,110,0.5)] bg-[rgba(255,243,224,0.92)] px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.18em] text-[rgba(174,108,42,0.92)]">
+                                <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[0.6rem] font-bold uppercase tracking-[0.18em] text-white/80">
                                   <Crown size={9} />
                                   Owner
                                 </span>
                               )}
                             </div>
-                            <p className="mt-0.5 truncate text-[0.82rem] text-[rgba(110,76,54,0.66)]">
+                            <p className="mt-0.5 truncate text-[0.82rem] text-white/70">
                               {member.email}
                             </p>
                           </div>
 
                           {/* Right side */}
                           {isOwner ? (
-                            <span className="shrink-0 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-[rgba(130,90,65,0.54)]">
+                            <span className="shrink-0 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white/60">
                               Owner
                             </span>
                           ) : (
                             <div className="flex shrink-0 flex-col items-end gap-2">
                               {/* Role toggle */}
-                              <div className="inline-flex rounded-[0.8rem] border border-[rgba(224,209,193,0.88)] bg-[rgba(250,244,236,0.92)] p-0.5">
+                              <div className="inline-flex rounded-[0.8rem] border border-white/20 bg-white/10 p-0.5">
                                 {(["editor", "viewer"] as const).map((role) => {
                                   const isActive = member.role === role;
                                   return (
                                     <button
                                       key={role}
                                       type="button"
-                                      onClick={() => handleRoleChange(member, role)}
+                                      onClick={() =>
+                                        handleRoleChange(member, role)
+                                      }
                                       disabled={isBusy}
                                       className={cn(
                                         "focus-ring rounded-[0.65rem] px-3 py-1.5 text-[0.75rem] font-semibold leading-none transition-[background-color,color] duration-150",
                                         isActive
-                                          ? "bg-primary/90 text-white"
-                                          : "text-[rgba(110,76,54,0.7)] hover:bg-[rgba(238,226,212,0.88)]",
+                                          ? "bg-[#e66a3f] text-white"
+                                          : "text-white/70 hover:bg-white/20",
                                       )}
                                     >
                                       {role === "editor" ? "Edit" : "View"}
@@ -440,7 +448,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                                 type="button"
                                 onClick={() => handleRemoveMember(member)}
                                 disabled={isBusy}
-                                className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-semibold text-[rgba(152,82,70,0.78)] transition-colors duration-150 hover:bg-[rgba(251,238,234,0.9)] hover:text-[rgba(133,63,52,0.96)] disabled:cursor-not-allowed disabled:opacity-50"
+                                className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-semibold text-white/70 transition-colors duration-150 hover:bg-red-500/20 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
                               >
                                 {isBusy ? (
                                   <Loader2 className="animate-spin" size={12} />
@@ -456,7 +464,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                     })}
                   </div>
                 ) : (
-                  <p className="rounded-xl border border-dashed border-[rgba(218,202,184,0.86)] px-5 py-6 text-[0.9rem] leading-6 text-[rgba(118,80,57,0.66)]">
+                  <p className="rounded-xl border border-dashed border-white/20 px-5 py-6 text-[0.9rem] leading-6 text-white/70">
                     No collaborators yet. Add someone by their account email to
                     start co-editing this trip.
                   </p>

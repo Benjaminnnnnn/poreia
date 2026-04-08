@@ -138,10 +138,10 @@ const SavedTripsRoute: React.FC = () => {
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-white/60">
             Your itineraries
           </p>
-          <h1 className="font-display mt-2 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-[0.96] tracking-[-0.045em] text-white drop-shadow-lg">
+          <h1 className="mt-2 text-2xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-lg sm:text-3xl">
             Saved trips
           </h1>
-          <p className="mt-2 text-[0.9375rem] leading-6 text-white/75 drop-shadow-sm">
+          <p className="mt-2 text-sm leading-6 text-white/75 drop-shadow-sm sm:text-base">
             Keep multiple trips in progress and pick up where you left off.
           </p>
         </div>

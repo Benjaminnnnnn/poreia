@@ -101,10 +101,10 @@ const AuthGate: React.FC<AuthGateProps> = ({
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="flex flex-col items-center max-w-3xl"
         >
-          <h1 className="font-serif italic text-white text-5xl sm:text-7xl md:text-[7rem] lg:text-[8rem] tracking-tight mb-4 sm:mb-6 drop-shadow-lg leading-none [font-size:clamp(2.5rem,10vw,8rem)]">
+          <h1 className="mb-3 text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-lg sm:mb-4 sm:text-5xl md:text-6xl lg:text-7xl">
             The world is yours.
           </h1>
-          <p className="text-xs sm:text-sm md:text-base text-white/90 tracking-[0.15em] uppercase drop-shadow-md font-medium">
+          <p className="max-w-2xl text-sm font-light leading-relaxed text-white/90 drop-shadow-md sm:text-base md:text-lg md:leading-relaxed lg:text-xl">
             Shape your next itinerary with Poreia
           </p>
         </motion.div>

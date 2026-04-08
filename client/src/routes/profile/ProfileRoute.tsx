@@ -531,7 +531,7 @@ const ProfileRoute: React.FC = () => {
                 </form>
               ) : (
                 <>
-                  <h1 className="text-[2rem] font-bold leading-none tracking-tight text-white drop-shadow-lg">
+                  <h1 className="text-2xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-lg sm:text-3xl">
                     {travelerName}
                   </h1>
                   <p className="mt-1 text-sm text-white/60">{travelerHandle}</p>
@@ -546,9 +546,8 @@ const ProfileRoute: React.FC = () => {
               {!isEditingTravelerName && (
                 <Button
                   onClick={() => setIsEditingTravelerName(true)}
-                  variant="secondary"
-                  size="sm"
-                  className="mt-4 rounded-full px-4 text-white/90"
+                  size="icon"
+                  className="mt-4 h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
                 >
                   <Pencil size={14} />
                   Edit profile
@@ -599,7 +598,7 @@ const ProfileRoute: React.FC = () => {
                 <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[#D97757]">
                   Personal Atlas
                 </p>
-                <h2 className="font-display mt-1.5 text-[clamp(1.5rem,2.5vw,2rem)] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
+                <h2 className="mt-1.5 text-xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-lg sm:text-2xl">
                   Countries you've been
                 </h2>
               </div>
@@ -697,7 +696,7 @@ const ProfileRoute: React.FC = () => {
               <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[#D97757]">
                 Archive Feed
               </p>
-              <h2 className="font-display mt-1.5 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-none tracking-[-0.045em] text-white drop-shadow-lg">
+              <h2 className="mt-1.5 text-2xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-lg sm:text-3xl">
                 Resume your journeys
               </h2>
             </div>

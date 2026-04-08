@@ -133,7 +133,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           aria-label="Go to home page"
           className="focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-all duration-200 hover:bg-[#e66a3f]/20 hover:px-3 sm:hover:px-4"
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
             <img
               src={APP_LOGO_SRC}
               alt=""
@@ -178,7 +178,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/10 transition-all duration-150 hover:-translate-y-[1px] hover:bg-[#e66a3f]/20 hover:border-[#e66a3f]/50 sm:h-11 sm:w-11"
+                  className="focus-ring flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 hover:-translate-y-[1px] hover:bg-[#e66a3f]/20 hover:border-[#e66a3f]/50 sm:h-11 sm:w-11"
                 >
                   {authUser.photoURL ? (
                     <img
@@ -199,9 +199,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     variant="glass"
                     padding="none"
                     radius="lg"
-                    className="absolute right-0 top-[calc(100%+0.65rem)] z-30 min-w-[12rem] p-2 shadow-[0_24px_48px_rgba(120,78,42,0.14)]"
+                    className="absolute right-0 top-[calc(100%+0.65rem)] z-30 min-w-[12rem] p-2 shadow-[0_24px_48px_rgba(120,78,42,0.14)] before:absolute before:inset-0 before:bg-black/20 before:backdrop-blur before:mix-blend-overlay before:-z-10 before:rounded-[inherit]"
                   >
-                    <div className="border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
+                    <div className="relative z-10 border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
                       <p className="truncate text-sm font-semibold text-white">
                         {travelerName}
                       </p>
@@ -218,7 +218,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         setIsAccountMenuOpen(false);
                         onOpenProfile();
                       }}
-                      className="focus-ring mt-2 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25"
+                      className="focus-ring relative z-10 mt-2 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25"
                     >
                       <UserRound size={15} />
                       Profile
@@ -231,7 +231,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         await onSignOut();
                       }}
                       disabled={isAuthBusy}
-                      className="focus-ring mt-1 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="focus-ring relative z-10 mt-1 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <LogOut size={15} />
                       Sign out
