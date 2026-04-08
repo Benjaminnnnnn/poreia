@@ -374,7 +374,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <AppHeader
         authUser={authUser}
         isAuthBusy={isAuthBusy}
-        isHomePage={isHomePage || isProfilePage}
+        isHomePage={isHomePage}
         isSavedTripsPage={isSavedTripsPage}
         travelerName={travelerName}
         onNavigateHome={goHome}

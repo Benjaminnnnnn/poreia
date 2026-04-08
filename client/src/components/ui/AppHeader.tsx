@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import type { User } from "firebase/auth";
 import { LogOut, Plus, UserRound } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -125,35 +124,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [isAccountMenuOpen]);
 
   return (
-    <header
-      className={cn(
-        "z-20 w-full px-4 py-3 sm:px-6 lg:px-8 transition-colors duration-300",
-        isHomePage
-          ? "absolute left-0 right-0 top-0 border-b border-white/20 bg-transparent"
-          : "shrink-0 border-b border-[rgba(229,218,204,0.96)] bg-[rgba(252,248,242,0.96)]",
-      )}
-    >
-      <div className="flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
+    <header className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-black/20 before:backdrop-blur before:mix-blend-overlay before:-z-10">
+      <div className="relative flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
         {/* Left: circle logo + wordmark */}
         <button
           type="button"
           onClick={onNavigateHome}
           aria-label="Go to home page"
-          className={cn(
-            "focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-all duration-200 hover:px-3 sm:hover:px-4",
-            isHomePage
-              ? "hover:bg-white/10"
-              : "hover:bg-[rgba(247,239,228,0.78)]",
-          )}
+          className="focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-all duration-200 hover:bg-[#e66a3f]/20 hover:px-3 sm:hover:px-4"
         >
-          <div
-            className={cn(
-              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border",
-              isHomePage
-                ? "border-white/30 bg-white/10"
-                : "border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_4px_12px_rgba(120,78,42,0.08)]",
-            )}
-          >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-white/10">
             <img
               src={APP_LOGO_SRC}
               alt=""
@@ -162,12 +142,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             />
           </div>
 
-          <p
-            className={cn(
-              "font-display text-[1.25rem] leading-none tracking-[-0.04em] sm:text-[1.45rem]",
-              isHomePage ? "text-white" : "text-[rgba(74,43,26,0.97)]",
-            )}
-          >
+          <p className="font-display text-[1.25rem] leading-none tracking-[-0.04em] text-white sm:text-[1.45rem]">
             Poreia
           </p>
         </button>
@@ -180,7 +155,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <button
                   type="button"
                   onClick={onNavigateHome}
-                  className="focus-ring hidden rounded-xl border border-[rgba(229,218,204,0.96)] bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 sm:inline-flex sm:items-center sm:gap-1.5"
+                  className="focus-ring hidden rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#e66a3f]/30 hover:border-[#e66a3f]/50 sm:inline-flex sm:items-center sm:gap-1.5"
                 >
                   <Plus size={14} />
                   New Trip
@@ -191,12 +166,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <button
                   type="button"
                   onClick={onOpenSavedTrips}
-                  className={cn(
-                    "focus-ring hidden rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200 sm:inline-flex sm:items-center sm:gap-2",
-                    isHomePage
-                      ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
-                      : "border-[rgba(229,218,204,0.96)] bg-transparent text-[rgba(74,43,26,0.97)] hover:bg-[rgba(247,239,228,0.78)]",
-                  )}
+                  className="focus-ring hidden rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#e66a3f]/30 hover:border-[#e66a3f]/50 sm:inline-flex sm:items-center sm:gap-2"
                 >
                   Saved trips
                 </button>
@@ -208,12 +178,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className={cn(
-                    "focus-ring flex h-10 w-10 items-center justify-center rounded-full border transition-transform duration-150 hover:-translate-y-[1px] sm:h-11 sm:w-11",
-                    isHomePage
-                      ? "border-white/30 bg-white/10"
-                      : "border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)]",
-                  )}
+                  className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/10 transition-all duration-150 hover:-translate-y-[1px] hover:bg-[#e66a3f]/20 hover:border-[#e66a3f]/50 sm:h-11 sm:w-11"
                 >
                   {authUser.photoURL ? (
                     <img
@@ -223,14 +188,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <span
-                      className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold sm:h-9 sm:w-9",
-                        isHomePage
-                          ? "bg-white/20 text-white"
-                          : "bg-[rgba(230,106,63,0.14)] text-[rgba(191,94,53,0.92)]",
-                      )}
-                    >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm font-semibold text-white sm:h-9 sm:w-9">
                       {fallbackInitial}
                     </span>
                   )}
@@ -244,11 +202,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     className="absolute right-0 top-[calc(100%+0.65rem)] z-30 min-w-[12rem] p-2 shadow-[0_24px_48px_rgba(120,78,42,0.14)]"
                   >
                     <div className="border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
-                      <p className="truncate text-sm font-semibold text-[rgba(88,57,39,0.94)]">
+                      <p className="truncate text-sm font-semibold text-white">
                         {travelerName}
                       </p>
                       {authUser.email ? (
-                        <p className="truncate text-xs text-[rgba(120,83,61,0.76)]">
+                        <p className="truncate text-xs text-white">
                           {authUser.email}
                         </p>
                       ) : null}
@@ -260,7 +218,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         setIsAccountMenuOpen(false);
                         onOpenProfile();
                       }}
-                      className="focus-ring mt-2 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)]"
+                      className="focus-ring mt-2 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25"
                     >
                       <UserRound size={15} />
                       Profile
@@ -273,7 +231,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                         await onSignOut();
                       }}
                       disabled={isAuthBusy}
-                      className="focus-ring mt-1 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-[rgba(103,67,46,0.9)] transition-colors hover:bg-[rgba(247,239,228,0.82)] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="focus-ring mt-1 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <LogOut size={15} />
                       Sign out

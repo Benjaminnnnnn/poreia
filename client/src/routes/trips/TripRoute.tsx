@@ -21,20 +21,14 @@ const SurfaceFallback: React.FC<SurfaceFallbackProps> = ({
   className = "",
   label,
 }) => (
-  <Surface
-    variant="glass"
-    padding="none"
-    radius="md"
-    className={`flex items-center justify-center bg-[rgba(255,250,245,0.72)] ${className}`}
+  <div
+    className={`flex items-center justify-center rounded-[0.7rem] border border-white/20 bg-white/10 backdrop-blur-xl ${className}`}
   >
-    <div className="flex flex-col items-center gap-3 text-[rgba(92,58,36,0.96)]">
-      <Loader2
-        className="animate-spin text-[rgba(217,102,58,0.92)]"
-        size={32}
-      />
+    <div className="flex flex-col items-center gap-3 text-white">
+      <Loader2 className="animate-spin text-[#D97757]" size={32} />
       <p className="font-medium">{label}</p>
     </div>
-  </Surface>
+  </div>
 );
 
 interface TripRouteProps {
@@ -71,11 +65,8 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
 
   if (!trip) {
     return (
-      <div className="flex h-full min-h-0 items-center justify-center bg-[rgba(255,250,245,0.66)] backdrop-blur-xl">
-        <Loader2
-          className="animate-spin text-[rgba(217,102,58,0.92)]"
-          size={32}
-        />
+      <div className="flex h-full min-h-0 items-center justify-center bg-black/60 backdrop-blur-xl">
+        <Loader2 className="animate-spin text-[#D97757]" size={32} />
       </div>
     );
   }
@@ -96,8 +87,21 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
   };
 
   return (
-    <div className="relative flex h-full min-h-0 flex-col overflow-hidden bg-[rgba(255,250,245,0.22)]">
-      <div className="flex-1 min-h-0 overflow-hidden">
+    <div className="relative flex h-full min-h-0 flex-col overflow-hidden pt-[4.5rem] sm:pt-[5rem]">
+      {/* Background layer */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/45 to-black/35" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/25" />
+      </div>
+
+      {/* Content layer */}
+      <div className="relative z-10 flex-1 min-h-0 overflow-hidden">
         {trip.currentItinerary ? (
           <Suspense
             fallback={

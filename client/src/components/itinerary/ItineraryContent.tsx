@@ -38,10 +38,10 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
   totalBudget,
   totalDays,
 }) => (
-  <div className="relative shrink-0 border-b border-[rgba(232,221,207,0.92)] bg-[rgba(252,248,242,0.96)] px-4 py-4 sm:px-6 md:px-7 md:py-4">
+  <div className="relative shrink-0 border-b border-white/15 bg-white/5 px-4 py-4 sm:px-6 md:px-7 md:py-4">
     <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0 max-w-2xl">
-        <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[rgba(200,97,55,0.82)]">
+        <p className="mb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-[#D97757]">
           Trip plan
         </p>
         <div className="mb-2 flex flex-wrap gap-2">
@@ -58,10 +58,10 @@ export const ItineraryHeader: React.FC<ItineraryHeaderProps> = ({
             </Badge>
           ) : null}
         </div>
-        <h2 className="font-display text-[1.8rem] font-bold leading-none text-[rgba(74,43,26,0.96)] md:text-[2.4rem]">
+        <h2 className="font-display text-[1.8rem] font-bold leading-none text-white md:text-[2.4rem]">
           {destination}
         </h2>
-        <p className="mt-1 max-w-lg line-clamp-2 text-sm leading-6 text-[rgba(105,70,48,0.82)]">
+        <p className="mt-1 max-w-lg line-clamp-2 text-sm leading-6 text-white/70">
           {title}
         </p>
       </div>
@@ -101,10 +101,10 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
       className="scroll-mt-24 space-y-5"
     >
       <div className="max-w-2xl">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/60">
           <BookText size={16} /> Notes by day
         </h3>
-        <p className="mt-3 text-sm leading-6 text-[rgba(103,67,45,0.8)]">
+        <p className="mt-3 text-sm leading-6 text-white/70">
           Capture how each day felt while the details are fresh. These notes stay
           with the trip and remain available when you come back later.
         </p>
@@ -115,26 +115,25 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
           <Surface
             as="section"
             key={dayPlan.day}
-            variant="card"
+            variant="glass"
             radius="md"
-            className="shadow-[0_10px_24px_rgba(108,62,26,0.04)]"
           >
-            <div className="flex flex-col gap-3 border-b border-[rgba(239,223,207,0.88)] pb-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-col gap-3 border-b border-white/15 pb-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/50">
                   Day {dayPlan.day}
                 </p>
-                <h4 className="mt-1 text-lg font-bold text-[rgba(74,43,26,0.96)]">
+                <h4 className="mt-1 text-lg font-bold text-white">
                   {dayPlan.theme}
                 </h4>
-                <p className="mt-2 text-sm text-[rgba(108,72,49,0.78)]">
+                <p className="mt-2 text-sm text-white/60">
                   {dayPlan.activities.length} planned{" "}
                   {dayPlan.activities.length === 1 ? "stop" : "stops"}
                 </p>
               </div>
 
               <div className="w-full max-w-xl">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/50">
                   Mood
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -167,7 +166,7 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
             <div className="pt-4">
               <label
                 htmlFor={`day-notes-${dayPlan.day}`}
-                className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]"
+                className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/50"
               >
                 Notes
               </label>
@@ -187,7 +186,7 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
                   })
                 }
                 placeholder="What surprised you, what you loved, what you would skip, what the day felt like..."
-                className="field-focus mt-2 min-h-[9rem] w-full resize-y rounded-[0.8rem] border border-[rgba(232,219,205,0.94)] bg-[rgba(255,255,253,0.96)] px-4 py-3 text-sm leading-6 text-[rgba(74,43,26,0.95)] placeholder:text-[rgba(150,112,82,0.52)]"
+                className="field-focus mt-2 min-h-[9rem] w-full resize-y rounded-[0.8rem] border border-white/20 bg-white/10 px-4 py-3 text-sm leading-6 text-white placeholder:text-white/35"
               />
             </div>
           </Surface>
@@ -221,8 +220,8 @@ export const ItinerarySectionNav: React.FC<{
         aria-pressed={isActive}
         className={`focus-ring relative flex min-h-[44px] w-full items-center rounded-[0.95rem] px-4 py-3 text-left text-[0.96rem] font-semibold tracking-[-0.02em] transition-[background-color,color,transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isActive
-            ? "bg-[rgba(230,106,63,0.96)] text-[rgba(255,251,246,0.98)] shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
-            : "text-[rgba(94,72,57,0.76)] hover:bg-[rgba(246,240,232,0.92)] hover:text-[rgba(78,55,42,0.92)]"
+            ? "bg-[rgba(230,106,63,0.96)] text-white shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
+            : "text-white/65 hover:bg-white/15 hover:text-white"
         }`}
       >
         <span className="truncate">{item.label}</span>
@@ -233,7 +232,7 @@ export const ItinerarySectionNav: React.FC<{
   return (
     <nav
       aria-label="Itinerary sections"
-      className={`hidden lg:relative lg:z-30 lg:flex lg:h-full lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:border-r lg:border-[rgba(232,221,207,0.94)] lg:bg-[rgba(249,246,241,0.98)] ${
+      className={`hidden lg:relative lg:z-30 lg:flex lg:h-full lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:border-r lg:border-white/15 lg:bg-black/20 ${
         isCollapsed ? "lg:w-[4.5rem]" : "lg:w-[12.5rem]"
       }`}
     >
@@ -268,7 +267,7 @@ export const ItinerarySectionNav: React.FC<{
               type="button"
               onClick={onToggleCollapsed}
               aria-label="Expand section navigation"
-              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full text-[rgba(130,86,62,0.74)] transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[rgba(244,238,230,0.92)] hover:text-[rgba(84,57,43,0.92)]"
+              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full text-white/60 transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-orange-400/20 hover:text-orange-300"
             >
               <ChevronRight size={17} />
             </button>
@@ -282,7 +281,7 @@ export const ItinerarySectionNav: React.FC<{
             <button
               type="button"
               onClick={onToggleCollapsed}
-              className="focus-ring inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.95rem] px-3.5 text-sm font-semibold text-[rgba(118,79,57,0.76)] transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[rgba(244,238,230,0.92)] hover:text-[rgba(84,57,43,0.92)]"
+              className="focus-ring inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.95rem] px-3.5 text-sm font-semibold text-white/60 transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-orange-400/20 hover:text-orange-300"
             >
               <ChevronLeft size={16} />
               Hide sidebar
@@ -304,15 +303,15 @@ export const ItinerarySidePanel: React.FC<{
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto bg-[linear-gradient(180deg,rgba(244,238,229,0.92)_0%,rgba(239,233,223,0.98)_100%)] p-6">
+    <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto bg-black/20 backdrop-blur-sm p-6">
       <div>
-        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[rgba(200,97,55,0.82)]">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#D97757]">
           Trip journal
         </p>
-        <h3 className="font-display mt-3 text-[2rem] leading-[0.98] text-[rgba(74,43,26,0.96)]">
+        <h3 className="font-display mt-3 text-[2rem] leading-[0.98] text-white">
           Give each day a memory.
         </h3>
-        <p className="mt-4 max-w-md text-sm leading-7 text-[rgba(101,68,47,0.82)]">
+        <p className="mt-4 max-w-md text-sm leading-7 text-white/70">
           Track the mood of the day, leave yourself a note for later, and keep
           the emotional arc of the trip next to the plan itself.
         </p>
@@ -329,17 +328,17 @@ export const ItinerarySidePanel: React.FC<{
             <Surface
               as="div"
               key={`journal-summary-${day.day}`}
-              variant="subtle"
+              variant="glass"
               padding="none"
               radius="md"
               className="px-4 py-3"
             >
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(120,83,58,0.72)]">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/50">
                     Day {day.day}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-[rgba(74,43,26,0.96)]">
+                  <p className="mt-1 text-sm font-semibold text-white">
                     {day.theme}
                   </p>
                 </div>

@@ -27,9 +27,9 @@ export const MOOD_OPTIONS = [
     activeClassName:
       "border-[rgba(112,168,120,0.34)] bg-[rgba(123,176,130,0.95)] text-white",
     idleClassName:
-      "border-[rgba(170,202,175,0.72)] bg-[rgba(241,248,242,0.96)] text-[rgba(70,113,76,0.92)] hover:border-[rgba(123,176,130,0.72)]",
+      "border-green-400/25 bg-green-400/10 text-green-300/80 hover:bg-green-400/20 hover:border-green-400/40",
     pillClassName:
-      "border-[rgba(170,202,175,0.72)] bg-[rgba(241,248,242,0.96)] text-[rgba(70,113,76,0.92)]",
+      "border-green-400/25 bg-green-400/10 text-green-300/80",
   },
   {
     value: "curious",
@@ -37,9 +37,9 @@ export const MOOD_OPTIONS = [
     activeClassName:
       "border-[rgba(95,156,151,0.34)] bg-[rgba(74,149,144,0.95)] text-white",
     idleClassName:
-      "border-[rgba(157,209,204,0.72)] bg-[rgba(236,248,247,0.96)] text-[rgba(52,112,109,0.94)] hover:border-[rgba(74,149,144,0.72)]",
+      "border-teal-400/25 bg-teal-400/10 text-teal-300/80 hover:bg-teal-400/20 hover:border-teal-400/40",
     pillClassName:
-      "border-[rgba(157,209,204,0.72)] bg-[rgba(236,248,247,0.96)] text-[rgba(52,112,109,0.94)]",
+      "border-teal-400/25 bg-teal-400/10 text-teal-300/80",
   },
   {
     value: "energized",
@@ -47,9 +47,9 @@ export const MOOD_OPTIONS = [
     activeClassName:
       "border-[rgba(221,151,80,0.34)] bg-[rgba(226,147,64,0.95)] text-white",
     idleClassName:
-      "border-[rgba(242,201,150,0.74)] bg-[rgba(255,245,231,0.96)] text-[rgba(159,94,29,0.94)] hover:border-[rgba(226,147,64,0.72)]",
+      "border-orange-400/25 bg-orange-400/10 text-orange-300/80 hover:bg-orange-400/20 hover:border-orange-400/40",
     pillClassName:
-      "border-[rgba(242,201,150,0.74)] bg-[rgba(255,245,231,0.96)] text-[rgba(159,94,29,0.94)]",
+      "border-orange-400/25 bg-orange-400/10 text-orange-300/80",
   },
   {
     value: "overwhelmed",
@@ -57,9 +57,9 @@ export const MOOD_OPTIONS = [
     activeClassName:
       "border-[rgba(181,118,105,0.34)] bg-[rgba(188,112,93,0.95)] text-white",
     idleClassName:
-      "border-[rgba(226,185,175,0.74)] bg-[rgba(252,241,238,0.96)] text-[rgba(138,81,69,0.94)] hover:border-[rgba(188,112,93,0.72)]",
+      "border-red-400/25 bg-red-400/10 text-red-300/80 hover:bg-red-400/20 hover:border-red-400/40",
     pillClassName:
-      "border-[rgba(226,185,175,0.74)] bg-[rgba(252,241,238,0.96)] text-[rgba(138,81,69,0.94)]",
+      "border-red-400/25 bg-red-400/10 text-red-300/80",
   },
   {
     value: "romantic",
@@ -67,9 +67,9 @@ export const MOOD_OPTIONS = [
     activeClassName:
       "border-[rgba(189,121,149,0.34)] bg-[rgba(194,115,148,0.95)] text-white",
     idleClassName:
-      "border-[rgba(233,191,209,0.74)] bg-[rgba(253,241,246,0.96)] text-[rgba(145,79,104,0.94)] hover:border-[rgba(194,115,148,0.72)]",
+      "border-pink-400/25 bg-pink-400/10 text-pink-300/80 hover:bg-pink-400/20 hover:border-pink-400/40",
     pillClassName:
-      "border-[rgba(233,191,209,0.74)] bg-[rgba(253,241,246,0.96)] text-[rgba(145,79,104,0.94)]",
+      "border-pink-400/25 bg-pink-400/10 text-pink-300/80",
   },
   {
     value: "reflective",
@@ -77,9 +77,9 @@ export const MOOD_OPTIONS = [
     activeClassName:
       "border-[rgba(127,131,177,0.34)] bg-[rgba(116,124,181,0.95)] text-white",
     idleClassName:
-      "border-[rgba(191,195,230,0.74)] bg-[rgba(241,242,252,0.96)] text-[rgba(79,86,137,0.94)] hover:border-[rgba(116,124,181,0.72)]",
+      "border-purple-400/25 bg-purple-400/10 text-purple-300/80 hover:bg-purple-400/20 hover:border-purple-400/40",
     pillClassName:
-      "border-[rgba(191,195,230,0.74)] bg-[rgba(241,242,252,0.96)] text-[rgba(79,86,137,0.94)]",
+      "border-purple-400/25 bg-purple-400/10 text-purple-300/80",
   },
 ] as const;
 

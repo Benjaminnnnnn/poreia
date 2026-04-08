@@ -1,6 +1,3 @@
-import React from "react";
-import { createPortal } from "react-dom";
-import { Calendar, Wallet } from "lucide-react";
 import {
   type MouseSensorOptions,
   type TouchSensorOptions,
@@ -17,23 +14,21 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import {
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Calendar, Wallet } from "lucide-react";
+import React from "react";
+import { createPortal } from "react-dom";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { ResolvedActivityImage } from "../../services/activityImageService";
 import { Activity, BudgetBreakdown, DayPlan } from "../../types";
-import { COLORS, DAY_MARKER_COLORS } from "./constants";
-import {
-  ActivityDragOverlayCard,
-  SortableActivityItem,
-} from "./ActivityItem";
 import Surface from "../ui/Surface";
-import { useMediaQuery } from "../../hooks/useMediaQuery";
+import { ActivityDragOverlayCard, SortableActivityItem } from "./ActivityItem";
+import { COLORS, DAY_MARKER_COLORS } from "./constants";
 
 const DRAG_HANDLE_SELECTOR = "[data-drag-handle='true']";
 const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
@@ -88,23 +83,29 @@ const BudgetChartCard: React.FC<{
     as="section"
     id="itinerary-section-cost-breakdown"
     data-itinerary-section="cost-breakdown"
-    variant="card"
-    radius="md"
-    className="scroll-mt-24 shadow-[0_12px_24px_rgba(108,62,26,0.04)]"
+    variant="glass"
+    radius="2xl"
+    padding="none"
+    className="scroll-mt-24 shadow-2xl overflow-hidden"
   >
-    <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
-      <Wallet size={16} />{" "}
-      {hasRecordedCosts ? "Recorded Spend by Day" : "Budget Allocation"}
-    </h3>
-    <p className="text-sm leading-6 text-[rgba(108,72,49,0.78)]">
-      {breakdown.length
-        ? "Use this as a quick sense-check before you keep refining the route."
-        : "Add or adjust costs on activities to make the budget picture more useful."}
-    </p>
+    <div className="p-5 pb-4">
+      <h3 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/90 drop-shadow-md">
+        <Wallet size={16} />{" "}
+        {hasRecordedCosts ? "Recorded Spend by Day" : "Budget Allocation"}
+      </h3>
+      <p className="text-sm leading-6 text-white/75 drop-shadow-sm">
+        {breakdown.length
+          ? "Use this as a quick sense-check before you keep refining the route."
+          : "Add or adjust costs on activities to make the budget picture more useful."}
+      </p>
+    </div>
 
     {breakdown.length ? (
       <>
-        <div className="mt-4 h-48 w-full sm:h-56">
+        <div
+          className="px-5 h-48 w-full sm:h-56"
+          style={{ marginTop: "-0.5rem" }}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -127,24 +128,36 @@ const BudgetChartCard: React.FC<{
                 formatter={(value: number) => `${currency}${value}`}
                 contentStyle={{
                   borderRadius: "12px",
-                  border: "1px solid rgba(234, 221, 207, 0.96)",
-                  background: "rgba(255, 251, 246, 0.96)",
-                  color: "rgba(74, 43, 26, 0.96)",
-                  boxShadow: "0 14px 30px rgba(108, 62, 26, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.25)",
+                  background: "rgba(255, 255, 255, 0.15)",
+                  color: "rgba(255, 255, 255, 0.95)",
+                  boxShadow:
+                    "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1) inset",
+                  backdropFilter: "blur(12px)",
+                  fontSize: "14px",
+                  textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
                 }}
-                cursor={{ fill: "rgba(255, 248, 240, 0.7)" }}
+                labelStyle={{
+                  color: "rgba(255, 255, 255, 0.95)",
+                  fontWeight: 600,
+                  textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+                }}
+                wrapperStyle={{
+                  outline: "none",
+                }}
+                cursor={{ fill: "rgba(255, 255, 255, 0.08)" }}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <div className="mt-4 grid gap-2 px-5 pb-5 sm:grid-cols-2">
           {breakdown.map((entry, index) => (
             <div
               key={entry.category}
-              className="flex items-center justify-between rounded-[0.8rem] border border-[rgba(236,223,209,0.96)] bg-[rgba(255,252,248,0.9)] px-3 py-2.5"
+              className="flex items-center justify-between rounded-[1rem] border border-white/15 bg-white/10 backdrop-blur-sm px-3 py-2.5"
             >
-              <span className="inline-flex items-center gap-2 text-sm font-medium text-[rgba(96,63,42,0.84)]">
+              <span className="inline-flex items-center gap-2 text-sm font-medium text-white/85">
                 <span
                   aria-hidden="true"
                   className="h-2.5 w-2.5 rounded-full"
@@ -152,7 +165,7 @@ const BudgetChartCard: React.FC<{
                 />
                 {entry.category}
               </span>
-              <span className="text-sm font-semibold text-[rgba(74,43,26,0.96)]">
+              <span className="text-sm font-semibold text-white/90 drop-shadow-sm">
                 {currency}
                 {entry.amount}
               </span>
@@ -161,15 +174,9 @@ const BudgetChartCard: React.FC<{
         </div>
       </>
     ) : (
-      <Surface
-        as="div"
-        variant="dashed"
-        padding="none"
-        radius="md"
-        className="mt-4 px-4 py-6 text-center text-sm leading-6 text-[rgba(120,83,58,0.68)]"
-      >
+      <div className="px-5 py-6 text-center text-sm leading-6 text-white/65 border-t border-white/10">
         No budget details yet.
-      </Surface>
+      </div>
     )}
   </Surface>
 );
@@ -227,10 +234,10 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
   return (
     <section className="space-y-6">
       <div className="max-w-2xl">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/90 drop-shadow-md">
           <Calendar size={16} /> Daily Plan
         </h3>
-        <p className="mt-2 text-sm leading-6 text-[rgba(108,72,49,0.78)]">
+        <p className="mt-2 text-sm leading-6 text-white/75 drop-shadow-sm">
           Drag activities into the right order, move them between days, and
           tighten the route until it feels effortless.
         </p>
@@ -243,7 +250,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
-        <div className="relative space-y-6 md:space-y-7 md:border-l md:border-[rgba(239,215,193,0.92)] md:pl-4">
+        <div className="relative space-y-6 md:space-y-7 md:border-l md:border-white/20 md:pl-4">
           {days.map((dayPlan, dayIndex) => (
             <div
               key={dayPlan.day}
@@ -252,23 +259,24 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
               className="relative scroll-mt-24"
             >
               <div
-                className="absolute -left-[18px] top-1 hidden h-2.5 w-2.5 rounded-full ring-4 ring-white md:block"
+                className="absolute -left-[18px] top-1 hidden h-2.5 w-2.5 rounded-full ring-4 ring-white/20 md:block shadow-lg"
                 style={{
                   backgroundColor:
                     DAY_MARKER_COLORS[
                       (dayPlan.day - 1) % DAY_MARKER_COLORS.length
                     ],
+                  boxShadow: `0 0 12px ${DAY_MARKER_COLORS[(dayPlan.day - 1) % DAY_MARKER_COLORS.length]}40`,
                 }}
               />
 
-              <div className="mb-4 border-b border-[rgba(239,215,193,0.72)] pb-3 md:border-b-0 md:pb-0">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[rgba(126,82,54,0.68)]">
+              <div className="mb-4 border-b border-white/10 pb-3 md:border-b-0 md:pb-0">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/60 drop-shadow-sm">
                   Day {dayPlan.day}
                 </p>
-                <h4 className="mt-1 text-lg font-bold text-[rgba(74,43,26,0.96)]">
+                <h4 className="mt-1 text-lg font-bold text-white drop-shadow-md">
                   Day {dayPlan.day}: {dayPlan.theme}
                 </h4>
-                <p className="mt-1 text-sm text-[rgba(108,72,49,0.72)]">
+                <p className="mt-1 text-sm text-white/70 drop-shadow-sm">
                   {dayPlan.activities.length} planned{" "}
                   {dayPlan.activities.length === 1 ? "stop" : "stops"}
                 </p>
@@ -296,15 +304,9 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                     />
                   ))}
                   {dayPlan.activities.length === 0 ? (
-                    <Surface
-                      as="div"
-                      variant="dashed"
-                      padding="none"
-                      radius="md"
-                      className="border-2 border-[rgba(239,215,193,0.92)] px-4 py-5 text-center text-sm leading-6 text-[rgba(120,83,58,0.68)]"
-                    >
+                    <div className="border-2 border-dashed border-white/20 rounded-[1rem] px-4 py-5 text-center text-sm leading-6 text-white/65 backdrop-blur-sm">
                       Drop a stop here to rebalance the day.
-                    </Surface>
+                    </div>
                   ) : null}
                 </div>
               </SortableContext>
@@ -380,16 +382,19 @@ const ItineraryPlanView: React.FC<ItineraryPlanViewProps> = ({
         as="section"
         id="itinerary-section-overview"
         data-itinerary-section="overview"
-        variant="subtle"
-        radius="md"
-        className="h-full scroll-mt-24"
+        variant="glass"
+        radius="2xl"
+        padding="none"
+        className="h-full scroll-mt-24 shadow-2xl"
       >
-        <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-[rgba(120,83,58,0.72)]">
-          Overview
-        </h3>
-        <p className="max-w-[66ch] text-sm leading-7 text-[rgba(93,61,40,0.88)] md:text-base">
-          {overview}
-        </p>
+        <div className="p-5">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/90 drop-shadow-md">
+            Overview
+          </h3>
+          <p className="max-w-[66ch] text-sm leading-7 text-white/80 drop-shadow-sm md:text-base">
+            {overview}
+          </p>
+        </div>
       </Surface>
 
       <BudgetChartCard

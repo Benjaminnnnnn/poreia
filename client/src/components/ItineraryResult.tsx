@@ -59,7 +59,7 @@ const PanelFallback: React.FC<{ className?: string; label: string }> = ({
   label,
 }) => (
   <div
-    className={`flex items-center justify-center rounded-[0.7rem] border border-[rgba(232,222,211,0.96)] bg-[rgba(255,251,246,0.9)] px-4 py-6 text-sm font-medium text-[rgba(105,70,48,0.78)] ${className}`}
+    className={`flex items-center justify-center rounded-[0.7rem] border border-white/20 bg-white/10 backdrop-blur-xl px-4 py-6 text-sm font-medium text-white/70 ${className}`}
   >
     {label}
   </div>
@@ -615,9 +615,9 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
   return (
     <div
-      className={`flex w-full min-h-0 flex-col overflow-hidden bg-[rgba(248,245,240,0.98)] lg:flex-row ${className}`}
+      className={`flex w-full min-h-0 flex-col overflow-hidden lg:flex-row ${className}`}
     >
-      <div className="relative z-20 min-h-0 min-w-0 flex-1 bg-[rgba(252,250,247,0.98)]">
+      <div className="relative z-20 min-h-0 min-w-0 flex-1 bg-black/30 backdrop-blur-md">
         <div className="flex h-full min-h-0">
           <ItinerarySectionNav
             activeSectionId={activeSectionId}
@@ -679,7 +679,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
         </div>
       </div>
 
-      <div className="relative z-10 hidden h-[20rem] shrink-0 border-t border-[rgba(229,218,204,0.92)] bg-[rgba(243,237,228,0.65)] md:block lg:h-auto lg:min-h-0 lg:w-[46vw] lg:min-w-[28rem] lg:max-w-[46vw] lg:border-l lg:border-t-0 xl:w-[44vw] xl:max-w-[44vw]">
+      <div className="relative z-10 hidden h-[20rem] shrink-0 border-t border-white/15 bg-black/25 backdrop-blur-sm md:block lg:h-auto lg:min-h-0 lg:w-[46vw] lg:min-w-[28rem] lg:max-w-[46vw] lg:border-l lg:border-t-0 xl:w-[44vw] xl:max-w-[44vw]">
         <ItinerarySidePanel activeTab={activeTab} itinerary={localItinerary}>
           <Suspense
             fallback={

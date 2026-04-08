@@ -4,7 +4,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Check,
   Clock,
-  DollarSign,
   GripVertical,
   ImageIcon,
   MapPin,
@@ -63,12 +62,12 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
     onClick={onClick}
     style={style}
     className={cn(
-      "focus-ring group relative flex overflow-hidden rounded-xl border border-border bg-card shadow-sm",
+      "focus-ring group relative flex overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md shadow-lg",
       className,
     )}
   >
     {/* Left image — absolute so it doesn't drive card height */}
-    <div className="relative w-28 shrink-0 self-stretch overflow-hidden bg-muted sm:w-36">
+    <div className="relative w-28 shrink-0 self-stretch overflow-hidden bg-white/10 sm:w-36">
       {image?.url ? (
         <img
           src={image.url}
@@ -77,7 +76,7 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
           loading="lazy"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/35">
+        <div className="absolute inset-0 flex items-center justify-center text-white/20">
           <ImageIcon size={22} />
         </div>
       )}
@@ -94,7 +93,7 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
         dragHandleProps?.onClick?.(e);
       }}
       className={cn(
-        "focus-ring flex w-7 shrink-0 touch-none items-center justify-center text-muted-foreground/30 transition-colors active:cursor-grabbing md:hover:text-muted-foreground/60",
+        "focus-ring flex w-7 shrink-0 touch-none items-center justify-center text-white/25 transition-colors active:cursor-grabbing md:hover:text-white/60",
         dragHandleProps?.className ?? "",
       )}
       aria-label={`Reorder ${activity.description}`}
@@ -107,50 +106,48 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
     <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-3 pr-3">
       {/* Time chip + cost */}
       <div className="flex items-center gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+        <span className="inline-flex items-center gap-1 rounded-full bg-orange-400/25 px-2.5 py-0.5 text-xs font-semibold text-orange-200 border border-orange-400/20 drop-shadow-sm">
           <Clock size={10} />
           {activity.time}
         </span>
         {activity.costEstimate !== undefined && activity.costEstimate > 0 ? (
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-orange-400/25 px-2 py-0.5 text-[10px] font-bold text-orange-200 border border-orange-400/20 drop-shadow-sm">
             {formatCost(activity.costEstimate, currency)}
           </span>
         ) : null}
       </div>
 
       {/* Activity title */}
-      <p className="text-sm font-bold leading-snug text-primary sm:text-[0.95rem]">
+      <p className="text-sm font-bold leading-snug text-white drop-shadow-md transition-colors duration-150 group-hover:text-orange-300 sm:text-[0.95rem]">
         {activity.description}
       </p>
 
       {/* Location */}
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-xs text-white/70 drop-shadow-sm">
         <MapPin size={10} className="shrink-0" />
         <span className="truncate">{activity.location}</span>
       </div>
 
       {/* Attribution */}
       {image?.sourceLabel ? (
-        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/50">
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/50 drop-shadow-sm">
           {image.sourceUrl ? (
             <a
               href={image.sourceUrl}
               target="_blank"
               rel="noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="rounded bg-muted px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10 transition-colors hover:bg-white/20 hover:text-white/90"
             >
               {image.sourceLabel}
             </a>
           ) : (
-            <span className="rounded bg-muted px-1.5 py-0.5">
+            <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">
               {image.sourceLabel}
             </span>
           )}
           {image.licenseLabel ? (
-            <span className="text-muted-foreground/40">
-              {image.licenseLabel}
-            </span>
+            <span className="text-white/35">{image.licenseLabel}</span>
           ) : null}
           {image.attributionLabel ? (
             image.attributionUrl ? (
@@ -159,14 +156,14 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60 underline underline-offset-2 transition-colors hover:text-foreground"
+                className="min-w-0 truncate normal-case tracking-normal text-white/50 underline underline-offset-2 transition-colors hover:text-white/80"
                 title={image.attributionLabel}
               >
                 {image.attributionLabel}
               </a>
             ) : (
               <span
-                className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60"
+                className="min-w-0 truncate normal-case tracking-normal text-white/50"
                 title={image.attributionLabel}
               >
                 {image.attributionLabel}
@@ -227,15 +224,15 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
     onClick={onClick}
     style={style}
     className={cn(
-      "focus-ring group relative flex overflow-hidden rounded-xl border border-border bg-card shadow-sm will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
+      "focus-ring group relative flex overflow-hidden rounded-2xl border border-white/15 bg-white/10 backdrop-blur-md shadow-lg will-change-transform transition-[transform,box-shadow,border-color,opacity] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]",
       isHandleOnly ? "cursor-pointer" : "cursor-grab active:cursor-grabbing",
       isSelected
-        ? "border-primary/40 shadow-md ring-2 ring-primary/20"
-        : "hover:border-primary/40 hover:shadow-md",
+        ? "border-white/25 shadow-xl ring-2 ring-white/20 bg-white/15"
+        : "hover:border-white/25 hover:shadow-xl hover:bg-white/15",
     )}
   >
     {/* Left image with drag handle overlaid */}
-    <div className="relative w-28 shrink-0 self-stretch bg-muted sm:w-36">
+    <div className="relative w-28 shrink-0 self-stretch bg-white/10 sm:w-36">
       {image?.url ? (
         <img
           src={image.url}
@@ -244,7 +241,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           loading="lazy"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/35">
+        <div className="absolute inset-0 flex items-center justify-center text-white/20">
           <ImageIcon size={22} />
         </div>
       )}
@@ -258,7 +255,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           e.stopPropagation();
           isHandleOnly && dragHandleProps?.onClick?.(e);
         }}
-        className="focus-ring absolute left-1.5 top-1/2 z-10 flex h-7 w-6 -translate-y-1/2 touch-none items-center justify-center rounded-md bg-black/30 text-white/80 opacity-0 backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 hover:bg-black/45 active:cursor-grabbing"
+        className="focus-ring absolute left-1.5 top-1/2 z-10 flex h-7 w-6 -translate-y-1/2 touch-none items-center justify-center rounded-md bg-black/40 text-white/90 opacity-0 backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 hover:bg-black/50 active:cursor-grabbing"
         aria-label={`Reorder ${activity.description}`}
         title="Drag to reorder"
       >
@@ -270,50 +267,48 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
     <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-3 pl-3 pr-3 md:pr-10">
       {/* Time chip + cost */}
       <div className="flex items-center gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+        <span className="inline-flex items-center gap-1 rounded-full bg-orange-400/25 px-2.5 py-0.5 text-xs font-semibold text-orange-200 border border-orange-400/20 drop-shadow-sm">
           <Clock size={10} />
           {activity.time}
         </span>
         {activity.costEstimate !== undefined && activity.costEstimate > 0 ? (
-          <span className="inline-flex items-center gap-0.5 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+          <span className="inline-flex items-center gap-0.5 rounded-full bg-orange-400/25 px-2 py-0.5 text-[10px] font-bold text-orange-200 border border-orange-400/20 drop-shadow-sm">
             {formatCost(activity.costEstimate, currency)}
           </span>
         ) : null}
       </div>
 
-      {/* Title — neutral by default, coral on hover */}
-      <p className="text-sm font-bold leading-snug text-foreground transition-colors duration-150 group-hover:text-primary sm:text-[0.95rem]">
+      {/* Title — white with drop shadow */}
+      <p className="text-sm font-bold leading-snug text-white drop-shadow-md transition-colors duration-150 group-hover:text-orange-300 sm:text-[0.95rem]">
         {activity.description}
       </p>
 
       {/* Location */}
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-xs text-white/70 drop-shadow-sm">
         <MapPin size={10} className="shrink-0" />
         <span className="truncate">{activity.location}</span>
       </div>
 
       {/* Attribution */}
       {image?.sourceLabel ? (
-        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/50">
+        <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/50 drop-shadow-sm">
           {image.sourceUrl ? (
             <a
               href={image.sourceUrl}
               target="_blank"
               rel="noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="rounded bg-muted px-1.5 py-0.5 transition-colors hover:bg-accent hover:text-accent-foreground"
+              className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10 transition-colors hover:bg-white/20 hover:text-white/90"
             >
               {image.sourceLabel}
             </a>
           ) : (
-            <span className="rounded bg-muted px-1.5 py-0.5">
+            <span className="rounded bg-white/10 px-1.5 py-0.5 border border-white/10">
               {image.sourceLabel}
             </span>
           )}
           {image.licenseLabel ? (
-            <span className="text-muted-foreground/40">
-              {image.licenseLabel}
-            </span>
+            <span className="text-white/35">{image.licenseLabel}</span>
           ) : null}
           {image.attributionLabel ? (
             image.attributionUrl ? (
@@ -322,13 +317,13 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
                 target="_blank"
                 rel="noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60 underline underline-offset-2 transition-colors hover:text-foreground"
+                className="min-w-0 truncate normal-case tracking-normal text-white/50 underline underline-offset-2 transition-colors hover:text-white/80"
                 title={image.attributionLabel}
               >
                 {image.attributionLabel}
               </a>
             ) : (
-              <span className="min-w-0 truncate normal-case tracking-normal text-muted-foreground/60">
+              <span className="min-w-0 truncate normal-case tracking-normal text-white/50">
                 {image.attributionLabel}
               </span>
             )
@@ -337,14 +332,14 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       ) : null}
 
       {/* Mobile-only action row */}
-      <div className="mt-2 flex items-center gap-2 border-t border-border pt-2 md:hidden">
+      <div className="mt-2 flex items-center gap-2 border-t border-white/10 pt-2 md:hidden">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
           }}
-          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-xs text-white/80 transition-colors hover:bg-white/20 hover:text-white"
           aria-label={`Edit ${activity.description}`}
         >
           <Pencil size={12} />
@@ -358,7 +353,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
             e.stopPropagation();
             onDelete();
           }}
-          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/5 px-3 text-xs text-destructive/80 transition-colors hover:bg-destructive/10 hover:text-destructive"
+          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-red-400/20 bg-red-400/15 px-3 text-xs text-red-300 transition-colors hover:bg-red-400/25 hover:text-red-200"
           aria-label={`Delete ${activity.description}`}
         >
           <Trash2 size={12} />
@@ -377,7 +372,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           e.stopPropagation();
           onEdit();
         }}
-        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/20 hover:text-white"
         title="Edit"
         aria-label={`Edit ${activity.description}`}
       >
@@ -389,7 +384,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
           e.stopPropagation();
           onDelete();
         }}
-        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-red-300 transition-colors hover:bg-red-400/20 hover:text-red-200"
         title="Delete"
         aria-label={`Delete ${activity.description}`}
       >
