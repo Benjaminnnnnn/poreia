@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
-import { useAppAuth } from "@/features/auth/components/AppAuthShell";
-import { useTrips } from "@/features/trips/state/TripsContext";
+import { useAppAuth } from "@/features/auth/components/AuthRoute";
 import {
   addTripMember,
   listTripMembers,
   removeTripMember,
+  updateTripMember,
   type AddTripMemberInput,
   type UpdateTripMemberInput,
-  updateTripMember,
 } from "@/features/trips/services/tripsService";
+import { useTrips } from "@/features/trips/state/TripsContext";
 import type { TripMemberResponse } from "@/types";
+import { useCallback, useEffect, useState } from "react";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (error instanceof Error && error.message.trim()) {

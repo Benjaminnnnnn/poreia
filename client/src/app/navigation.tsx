@@ -13,6 +13,7 @@ interface AppNavigationContextValue {
     goHome: () => void;
     navigate: (path: string) => void;
     openProfile: () => void;
+    openSavedTrips: () => void;
     openTrip: (tripId: string) => void;
   };
   state: {
@@ -20,6 +21,7 @@ interface AppNavigationContextValue {
     currentTripId: string | null;
     isHomePage: boolean;
     isProfilePage: boolean;
+    isSavedTripsPage: boolean;
   };
 }
 
@@ -65,13 +67,15 @@ export const AppNavigationProvider: React.FC<{
     ? currentPath.substring(1)
     : currentPath;
   const isProfilePage = cleanPath === "/profile";
-  const isHomePage = !currentTripId && !isProfilePage;
+  const isSavedTripsPage = cleanPath === "/trips";
+  const isHomePage = !currentTripId && !isProfilePage && !isSavedTripsPage;
 
   const actions = useMemo<AppNavigationContextValue["actions"]>(
     () => ({
       goHome: () => navigate("/"),
       navigate,
       openProfile: () => navigate("/profile"),
+      openSavedTrips: () => navigate("/trips"),
       openTrip: (tripId: string) => navigate(`/t/${tripId}`),
     }),
     [navigate],
@@ -83,8 +87,9 @@ export const AppNavigationProvider: React.FC<{
       currentTripId,
       isHomePage,
       isProfilePage,
+      isSavedTripsPage,
     }),
-    [currentPath, currentTripId, isHomePage, isProfilePage],
+    [currentPath, currentTripId, isHomePage, isProfilePage, isSavedTripsPage],
   );
 
   const value = useMemo<AppNavigationContextValue>(

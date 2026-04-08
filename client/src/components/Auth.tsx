@@ -1,1 +1,1 @@
-export { default, useAppAuth } from "@/features/auth/components/AppAuthShell";
+export { default, useAppAuth } from "@/features/auth/components/AuthRoute";

@@ -1,7 +1,7 @@
 import { useAppNavigation } from "@/app/navigation";
-import Button from "@/components/ui/Button";
 import Surface from "@/components/ui/Surface";
 import { auth, signInWithGoogle, signOutUser } from "@/lib/firebase";
+import { cn } from "@/lib/utils";
 import {
   getCurrentUserProfile,
   updateCurrentUserProfile,
@@ -88,22 +88,24 @@ interface AppHeaderProps {
   authUser: User | null;
   isAuthBusy: boolean;
   isHomePage: boolean;
+  isSavedTripsPage: boolean;
   travelerName: string;
   onNavigateHome: () => void;
   onOpenProfile: () => void;
+  onOpenSavedTrips: () => void;
   onSignOut: () => Promise<void>;
-  onStartNewTrip: () => void;
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({
   authUser,
   isAuthBusy,
   isHomePage,
+  isSavedTripsPage,
   travelerName,
   onNavigateHome,
   onOpenProfile,
+  onOpenSavedTrips,
   onSignOut,
-  onStartNewTrip,
 }) => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
@@ -139,42 +141,81 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   }, [isAccountMenuOpen]);
 
   return (
-    <header className="shrink-0 border-b border-[rgba(229,218,204,0.96)] bg-[rgba(252,248,242,0.96)] px-4 py-2.5 sm:px-5 lg:px-6">
+    <header
+      className={cn(
+        "z-20 w-full px-4 py-3 sm:px-6 lg:px-8 transition-colors duration-300",
+        isHomePage
+          ? "absolute left-0 right-0 top-0 border-b border-white/20 bg-transparent"
+          : "shrink-0 border-b border-[rgba(229,218,204,0.96)] bg-[rgba(252,248,242,0.96)]",
+      )}
+    >
       <div className="flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
+        {/* Left: circle logo + wordmark */}
         <button
           type="button"
           onClick={onNavigateHome}
           aria-label="Go to home page"
-          className="focus-ring flex min-w-0 flex-1 items-center gap-1 rounded-[0.7rem] px-1 py-1 text-left transition-colors duration-150 hover:bg-[rgba(247,239,228,0.78)] sm:flex-none sm:gap-3 sm:px-1.5"
+          className={cn(
+            "focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-colors duration-150",
+            isHomePage
+              ? "hover:bg-white/10"
+              : "hover:bg-[rgba(247,239,228,0.78)]",
+          )}
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.55rem] text-[rgba(216,101,58,0.95)] sm:h-9 sm:w-9">
+          <div
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border",
+              isHomePage
+                ? "border-white/30 bg-white/10"
+                : "border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_4px_12px_rgba(120,78,42,0.08)]",
+            )}
+          >
             <img
               src={APP_LOGO_SRC}
               alt=""
               aria-hidden="true"
-              className="h-full w-full rounded-[0.45rem] object-contain p-0.5 sm:p-[3px]"
+              className="h-5 w-5 object-contain"
             />
           </div>
 
-          <div className="min-w-0">
-            <p className="truncate font-display text-[1.12rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)] sm:text-[1.45rem]">
-              Poreia
-            </p>
-          </div>
+          <p
+            className={cn(
+              "font-display text-[1.25rem] leading-none tracking-[-0.04em] sm:text-[1.45rem]",
+              isHomePage ? "text-white" : "text-[rgba(74,43,26,0.97)]",
+            )}
+          >
+            Poreia
+          </p>
         </button>
 
-        <div className="flex shrink-0 items-center justify-end gap-2">
+        {/* Right: New Trip + Saved trips + profile */}
+        <div className="flex shrink-0 items-center justify-end gap-3">
           {authUser ? (
             <>
               {!isHomePage ? (
-                <Button
-                  onClick={onStartNewTrip}
-                  size="md"
-                  className="rounded-[0.7rem] border-transparent px-3.5 text-sm font-semibold shadow-none sm:px-4"
+                <button
+                  type="button"
+                  onClick={onNavigateHome}
+                  className="focus-ring hidden rounded-xl border border-[rgba(229,218,204,0.96)] bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 sm:inline-flex sm:items-center sm:gap-1.5"
                 >
-                  <Plus size={14} className="sm:h-[15px] sm:w-[15px]" />
-                  <span className="hidden md:inline">New Trip</span>
-                </Button>
+                  <Plus size={14} />
+                  New Trip
+                </button>
+              ) : null}
+
+              {!isSavedTripsPage ? (
+                <button
+                  type="button"
+                  onClick={onOpenSavedTrips}
+                  className={cn(
+                    "focus-ring hidden rounded-xl border px-4 py-2 text-sm font-semibold transition-all duration-200 sm:inline-flex sm:items-center sm:gap-2",
+                    isHomePage
+                      ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+                      : "border-[rgba(229,218,204,0.96)] bg-transparent text-[rgba(74,43,26,0.97)] hover:bg-[rgba(247,239,228,0.78)]",
+                  )}
+                >
+                  Saved trips
+                </button>
               ) : null}
 
               <div ref={accountMenuRef} className="relative shrink-0">
@@ -183,7 +224,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className="focus-ring flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)] transition-transform duration-150 hover:-translate-y-[1px] sm:h-11 sm:w-11"
+                  className={cn(
+                    "focus-ring flex h-10 w-10 items-center justify-center rounded-full border transition-transform duration-150 hover:-translate-y-[1px] sm:h-11 sm:w-11",
+                    isHomePage
+                      ? "border-white/30 bg-white/10"
+                      : "border-[rgba(229,214,198,0.98)] bg-[rgba(255,250,245,0.94)] shadow-[0_10px_24px_rgba(120,78,42,0.08)]",
+                  )}
                 >
                   {authUser.photoURL ? (
                     <img
@@ -193,7 +239,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[rgba(230,106,63,0.14)] text-sm font-semibold text-[rgba(191,94,53,0.92)] sm:h-9 sm:w-9">
+                    <span
+                      className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold sm:h-9 sm:w-9",
+                        isHomePage
+                          ? "bg-white/20 text-white"
+                          : "bg-[rgba(230,106,63,0.14)] text-[rgba(191,94,53,0.92)]",
+                      )}
+                    >
                       {fallbackInitial}
                     </span>
                   )}
@@ -582,7 +635,7 @@ const AuthLoadingFallback = () => (
   </Surface>
 );
 
-interface AppAuthContextValue {
+interface AuthRouteContextValue {
   actions: {
     setTravelerName: (travelerName: string) => Promise<void>;
   };
@@ -593,24 +646,22 @@ interface AppAuthContextValue {
   };
 }
 
-const AppAuthContext = createContext<AppAuthContextValue | null>(null);
+const AuthRouteContext = createContext<AuthRouteContextValue | null>(null);
 
 export const useAppAuth = () => {
-  const context = use(AppAuthContext);
+  const context = use(AuthRouteContext);
 
   if (!context) {
-    throw new Error("useAppAuth must be used within AppAuthShell.");
+    throw new Error("useAppAuth must be used within AuthRoute.");
   }
 
   return context;
 };
 
-const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
-    actions: { goHome, openProfile },
-    state: { isHomePage },
+    actions: { goHome, openProfile, openSavedTrips },
+    state: { isHomePage, isSavedTripsPage },
   } = useAppNavigation();
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [travelerName, setTravelerName] = useState("Traveler");
@@ -733,7 +784,7 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
     }
   }, []);
 
-  const authContextValue = useMemo<AppAuthContextValue | null>(() => {
+  const authContextValue = useMemo<AuthRouteContextValue | null>(() => {
     if (!authUser) {
       return null;
     }
@@ -756,11 +807,12 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
         authUser={authUser}
         isAuthBusy={isAuthBusy}
         isHomePage={isHomePage}
+        isSavedTripsPage={isSavedTripsPage}
         travelerName={travelerName}
         onNavigateHome={goHome}
         onOpenProfile={openProfile}
+        onOpenSavedTrips={openSavedTrips}
         onSignOut={handleSignOut}
-        onStartNewTrip={goHome}
       />
 
       <main className="relative flex min-h-0 flex-1 flex-col">
@@ -774,9 +826,9 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
               onSignIn={handleSignIn}
             />
           ) : (
-            <AppAuthContext.Provider value={authContextValue}>
+            <AuthRouteContext.Provider value={authContextValue}>
               {children}
-            </AppAuthContext.Provider>
+            </AuthRouteContext.Provider>
           )}
         </div>
       </main>
@@ -784,4 +836,4 @@ const AppAuthShell: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-export default AppAuthShell;
+export default AuthRoute;

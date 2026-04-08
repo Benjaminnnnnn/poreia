@@ -3,11 +3,12 @@ import RouteErrorBoundary from "@/app/boundaries/RouteErrorBoundary";
 import { useAppNavigation } from "@/app/navigation";
 import HomeRoute from "@/routes/home/HomeRoute";
 import ProfileRoute from "@/routes/profile/ProfileRoute";
+import SavedTripsRoute from "@/routes/saved-trips/SavedTripsRoute";
 import TripRoute from "@/routes/trips/TripRoute";
 
 const AppRouter: React.FC = () => {
   const {
-    state: { currentTripId, isProfilePage },
+    state: { currentTripId, isProfilePage, isSavedTripsPage },
   } = useAppNavigation();
 
   if (currentTripId) {
@@ -30,6 +31,18 @@ const AppRouter: React.FC = () => {
         title="We could not load your profile."
       >
         <ProfileRoute />
+      </RouteErrorBoundary>
+    );
+  }
+
+  if (isSavedTripsPage) {
+    return (
+      <RouteErrorBoundary
+        key="saved-trips"
+        description="Go back home and try again."
+        title="We could not load your saved trips."
+      >
+        <SavedTripsRoute />
       </RouteErrorBoundary>
     );
   }

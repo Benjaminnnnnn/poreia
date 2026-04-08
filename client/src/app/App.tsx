@@ -1,8 +1,8 @@
-import React from "react";
 import AppProviders from "@/app/providers";
 import AppRouter from "@/app/router";
-import AppShell from "@/app/layouts/AppShell";
+import AuthRoute from "@/features/auth/components/AuthRoute";
 import { TripsProvider } from "@/features/trips/state/TripsContext";
+import React from "react";
 
 const AuthenticatedApp: React.FC = () => {
   return (
@@ -18,9 +18,9 @@ export default function App() {
   return (
     <AppProviders>
       <div className="app-summer relative h-[100dvh] w-full overflow-hidden bg-[rgb(248,245,240)] font-sans text-slate-900">
-        <AppShell>
+        <AuthRoute>
           <AuthenticatedApp />
-        </AppShell>
+        </AuthRoute>
 
         <style>{`
           .animate-spin-slow {

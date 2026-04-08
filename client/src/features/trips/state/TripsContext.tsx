@@ -1,3 +1,17 @@
+import { useAppAuth } from "@/features/auth/components/AuthRoute";
+import {
+  createTrip as createTripRequest,
+  deleteTrip as deleteTripRequest,
+  getTripDetail,
+  listTrips,
+  refineTrip as refineTripRequest,
+  replaceTripItinerary,
+} from "@/features/trips/services/tripsService";
+import type {
+  TravelItinerary,
+  TripSession,
+  TripSummaryResponse,
+} from "@/types";
 import React, {
   createContext,
   use,
@@ -7,16 +21,6 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useAppAuth } from "@/features/auth/components/AppAuthShell";
-import {
-  createTrip as createTripRequest,
-  deleteTrip as deleteTripRequest,
-  getTripDetail,
-  listTrips,
-  refineTrip as refineTripRequest,
-  replaceTripItinerary,
-} from "@/features/trips/services/tripsService";
-import type { TripSession, TravelItinerary, TripSummaryResponse } from "@/types";
 
 interface TripsContextValue {
   actions: {
@@ -52,7 +56,10 @@ const getErrorMessage = (error: unknown, fallback: string) => {
   return fallback;
 };
 
-function mergeTrip(current: TripSession | undefined, incoming: TripSession): TripSession {
+function mergeTrip(
+  current: TripSession | undefined,
+  incoming: TripSession,
+): TripSession {
   if (!current) {
     return incoming;
   }
@@ -77,8 +84,7 @@ function upsertTripCollection(
   });
 
   return [...tripMap.values()].sort(
-    (left, right) =>
-      Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
+    (left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt),
   );
 }
 
@@ -117,12 +123,17 @@ export const TripsProvider: React.FC<{
   }, [trips]);
 
   const replaceTrips = useCallback((incomingTrips: TripSession[]) => {
-    setTrips((currentTrips) => upsertTripCollection(currentTrips, incomingTrips));
+    setTrips((currentTrips) =>
+      upsertTripCollection(currentTrips, incomingTrips),
+    );
   }, []);
 
-  const replaceTrip = useCallback((incomingTrip: TripSession) => {
-    replaceTrips([incomingTrip]);
-  }, [replaceTrips]);
+  const replaceTrip = useCallback(
+    (incomingTrip: TripSession) => {
+      replaceTrips([incomingTrip]);
+    },
+    [replaceTrips],
+  );
 
   const syncTripSummary = useCallback((summary: TripSummaryResponse) => {
     setTrips((currentTrips) =>
@@ -318,7 +329,13 @@ export const TripsProvider: React.FC<{
         );
       }
     },
-    [authUser, getTripByIdFromRef, queueTripOperation, refiningTripId, replaceTrip],
+    [
+      authUser,
+      getTripByIdFromRef,
+      queueTripOperation,
+      refiningTripId,
+      replaceTrip,
+    ],
   );
 
   const updateTripItinerary = useCallback(
@@ -383,7 +400,14 @@ export const TripsProvider: React.FC<{
       syncTripSummary,
       updateTripItinerary,
     }),
-    [createTrip, deleteTrip, refreshTrip, refineTrip, syncTripSummary, updateTripItinerary],
+    [
+      createTrip,
+      deleteTrip,
+      refreshTrip,
+      refineTrip,
+      syncTripSummary,
+      updateTripItinerary,
+    ],
   );
 
   const state = useMemo<TripsContextValue["state"]>(
@@ -405,7 +429,9 @@ export const TripsProvider: React.FC<{
     [actions, meta, state],
   );
 
-  return <TripsContext.Provider value={value}>{children}</TripsContext.Provider>;
+  return (
+    <TripsContext.Provider value={value}>{children}</TripsContext.Provider>
+  );
 };
 
 export const useTrips = () => {

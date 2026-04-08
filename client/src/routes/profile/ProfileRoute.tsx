@@ -1,3 +1,20 @@
+import { useAppNavigation } from "@/app/navigation";
+import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
+import Surface from "@/components/ui/Surface";
+import { useAppAuth } from "@/features/auth/components/AuthRoute";
+import { useTrips } from "@/features/trips/state/TripsContext";
+import { hasFiniteCoordinates } from "@/lib/coordinates";
+import {
+  getActivityImage,
+  type ResolvedActivityImage,
+} from "@/services/activityImageService";
+import type {
+  Activity,
+  MapPinData,
+  TravelItinerary,
+  TripSession,
+} from "@/types";
 import {
   ArrowUpRight,
   Check,
@@ -16,23 +33,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { useAppAuth } from "@/features/auth/components/AppAuthShell";
-import { useAppNavigation } from "@/app/navigation";
-import { useTrips } from "@/features/trips/state/TripsContext";
-import { hasFiniteCoordinates } from "@/lib/coordinates";
-import {
-  getActivityImage,
-  type ResolvedActivityImage,
-} from "@/services/activityImageService";
-import type {
-  Activity,
-  MapPinData,
-  TravelItinerary,
-  TripSession,
-} from "@/types";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
-import Surface from "@/components/ui/Surface";
 
 const WorldMap = lazy(() => import("@/components/WorldMap"));
 
@@ -499,7 +499,9 @@ const ProfileRoute: React.FC = () => {
                       <div className="mt-2 flex items-center gap-2">
                         <Button
                           type="submit"
-                          disabled={!draftTravelerName.trim() || isUpdatingProfile}
+                          disabled={
+                            !draftTravelerName.trim() || isUpdatingProfile
+                          }
                           size="icon"
                           className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
                         >
