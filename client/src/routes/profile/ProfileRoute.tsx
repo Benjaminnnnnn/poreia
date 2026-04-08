@@ -1,6 +1,7 @@
 import { useAppNavigation } from "@/app/navigation";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
 import { useAppAuth } from "@/features/auth/components/AuthRoute";
 import { useTrips } from "@/features/trips/state/TripsContext";
@@ -16,7 +17,6 @@ import type {
   TripSession,
 } from "@/types";
 import {
-  ArrowUpRight,
   Check,
   Clock3,
   Globe2,
@@ -317,6 +317,7 @@ const ProfileRoute: React.FC = () => {
     state: { authUser, isUpdatingProfile, travelerName },
   } = useAppAuth();
   const {
+    actions: { deleteTrip },
     state: { isLoadingTrips, trips },
   } = useTrips();
   const [tripImages, setTripImages] = useState<
@@ -708,75 +709,21 @@ const ProfileRoute: React.FC = () => {
                     const stopCount = getTripStopCount(itinerary);
 
                     return (
-                      <Surface
-                        as="article"
+                      <SavedTripCard
                         key={trip.id}
-                        variant="card"
-                        padding="none"
-                        radius="xl"
-                        className="group overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[rgba(237,170,118,0.42)] hover:shadow-[0_20px_36px_rgba(108,62,26,0.08)]"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => openTrip(trip.id)}
-                          className="focus-ring flex h-full w-full flex-col rounded-[1.25rem] text-left"
-                        >
-                          <div className="relative h-52 overflow-hidden">
-                            {coverImage ? (
-                              <img
-                                src={coverImage}
-                                alt={itinerary?.destination || trip.title}
-                                className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
-                              />
-                            ) : (
-                              <div className="h-full w-full bg-[linear-gradient(135deg,rgba(230,106,63,0.24),rgba(248,214,145,0.28),rgba(72,131,126,0.24))]" />
-                            )}
-
-                            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(60,37,25,0.03)_0%,rgba(60,37,25,0.48)_100%)]" />
-
-                            <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
-                              <Badge
-                                tone="glass"
-                                size="md"
-                                className="tracking-[0.18em]"
-                              >
-                                {country || "Saved trip"}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-1 flex-col px-5 py-5">
-                            <div className="flex flex-wrap items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.16em] text-[rgba(126,82,54,0.72)]">
-                              <span>{itinerary?.totalDays ?? 0} day plan</span>
-                              <span className="text-[rgba(199,170,145,0.9)]">
-                                •
-                              </span>
-                              <span>
-                                Updated {formatTripDate(trip.updatedAt)}
-                              </span>
-                            </div>
-
-                            <h3 className="font-display mt-3 line-clamp-2 text-[1.65rem] leading-[0.98] tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
-                              {itinerary?.destination || trip.title}
-                            </h3>
-                            <p className="mt-3 line-clamp-3 text-sm leading-6 text-[rgba(105,69,48,0.78)]">
-                              {itinerary?.overview ||
-                                "Open this itinerary to keep shaping the route."}
-                            </p>
-
-                            <div className="mt-5 flex items-center justify-between text-sm font-medium text-[rgba(118,80,57,0.78)]">
-                              <span className="inline-flex items-center gap-1.5">
-                                <Clock3 size={14} />
-                                {formatStopCountLabel(stopCount)}
-                              </span>
-                              <span className="inline-flex items-center gap-1.5 text-[rgba(206,95,55,0.94)] transition-transform duration-200 group-hover:translate-x-0.5">
-                                Open trip
-                                <ArrowUpRight size={15} />
-                              </span>
-                            </div>
-                          </div>
-                        </button>
-                      </Surface>
+                        trip={trip}
+                        coverImage={coverImage}
+                        badgeText={country || "Saved trip"}
+                        metadataLabel={`${itinerary?.totalDays ?? 0} day plan`}
+                        metadataSecondary={`Updated ${formatTripDate(trip.updatedAt)}`}
+                        stopCountLabel={formatStopCountLabel(stopCount)}
+                        onOpen={() => openTrip(trip.id)}
+                        onDelete={(event) => {
+                          event.stopPropagation();
+                          deleteTrip(trip.id);
+                        }}
+                        variant="full"
+                      />
                     );
                   })}
                 </div>
