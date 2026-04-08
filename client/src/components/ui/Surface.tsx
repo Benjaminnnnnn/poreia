@@ -11,7 +11,7 @@ const VARIANT_CLASSES: Record<SurfaceVariant, string> = {
   subtle:
     "border border-[var(--surface-subtle-border)] bg-[var(--surface-subtle-bg)]",
   glass:
-    "border border-[var(--surface-glass-border)] bg-[var(--surface-glass-bg)] shadow-[var(--shadow-surface-float)] backdrop-blur-[10px]",
+    "border border-white/20 bg-white/10 shadow-[0_8px_32px_rgba(255,255,255,0.1)] backdrop-blur-xl",
   muted:
     "border border-[var(--surface-muted-border)] bg-[var(--surface-muted-bg)]",
   dashed:

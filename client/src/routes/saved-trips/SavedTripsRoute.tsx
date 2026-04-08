@@ -120,16 +120,28 @@ const SavedTripsRoute: React.FC = () => {
   }, [tripsNeedingImages]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[rgb(248,245,240)]">
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="relative h-full overflow-y-auto">
+      {/* Background layer */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1472214103451-9374bd1c798e?q=80&w=2070&auto=format&fit=crop"
+          alt="Nature landscape"
+          className="h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/30" />
+      </div>
+
+      {/* Content layer */}
+      <div className="relative z-10 mx-auto max-w-5xl px-4 pt-[4.5rem] pb-8 sm:px-6 sm:pt-[5rem] lg:px-8 lg:pt-[5.5rem]">
         <div className="mb-6">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(126,82,54,0.72)]">
+          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-white/60">
             Your itineraries
           </p>
-          <h1 className="font-display mt-2 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-[0.96] tracking-[-0.045em] text-[rgba(74,43,26,0.96)]">
+          <h1 className="font-display mt-2 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-[0.96] tracking-[-0.045em] text-white drop-shadow-lg">
             Saved trips
           </h1>
-          <p className="mt-2 text-[0.9375rem] leading-6 text-[rgba(112,75,52,0.76)]">
+          <p className="mt-2 text-[0.9375rem] leading-6 text-white/75 drop-shadow-sm">
             Keep multiple trips in progress and pick up where you left off.
           </p>
         </div>
@@ -139,12 +151,12 @@ const SavedTripsRoute: React.FC = () => {
             as="div"
             variant="dashed"
             radius="xl"
-            className="px-5 py-10 text-center"
+            className="px-5 py-10 text-center border border-white/10 bg-white/5 backdrop-blur-sm"
           >
-            <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
+            <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
               Loading your trips.
             </p>
-            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
+            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-white/75 drop-shadow-sm">
               Pulling your saved itineraries.
             </p>
           </Surface>
@@ -180,12 +192,12 @@ const SavedTripsRoute: React.FC = () => {
             as="div"
             variant="dashed"
             radius="xl"
-            className="px-5 py-10 text-center"
+            className="px-5 py-10 text-center border border-white/10 bg-white/5 backdrop-blur-sm"
           >
-            <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
+            <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
               Your trip shelf is empty.
             </p>
-            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
+            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-white/75 drop-shadow-sm">
               The first itinerary you generate will stay here so you can jump
               back in without reopening a menu.
             </p>

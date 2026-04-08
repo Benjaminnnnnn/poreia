@@ -229,7 +229,7 @@ export const useAppAuth = () => {
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const {
     actions: { goHome, openProfile, openSavedTrips },
-    state: { isHomePage, isSavedTripsPage },
+    state: { isHomePage, isSavedTripsPage, isProfilePage },
   } = useAppNavigation();
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [travelerName, setTravelerName] = useState("Traveler");
@@ -374,7 +374,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <AppHeader
         authUser={authUser}
         isAuthBusy={isAuthBusy}
-        isHomePage={isHomePage}
+        isHomePage={isHomePage || isProfilePage}
         isSavedTripsPage={isSavedTripsPage}
         travelerName={travelerName}
         onNavigateHome={goHome}

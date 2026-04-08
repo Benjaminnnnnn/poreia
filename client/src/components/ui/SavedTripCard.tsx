@@ -162,12 +162,12 @@ export const SavedTripCard: React.FC<SavedTripCardProps> = ({
     <Surface
       as="article"
       key={trip.id}
-      variant="card"
+      variant="glass"
       padding="none"
       radius="xl"
       className={
         className ||
-        "group relative overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-[rgba(237,170,118,0.42)] hover:shadow-[0_20px_36px_rgba(108,62,26,0.08)]"
+        "group relative overflow-hidden transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-white/30 hover:shadow-[0_16px_48px_rgba(255,255,255,0.15)]"
       }
     >
       {onDelete && (
@@ -175,19 +175,19 @@ export const SavedTripCard: React.FC<SavedTripCardProps> = ({
           type="button"
           aria-label={`Delete ${trip.title}`}
           onClick={onDelete}
-          className="focus-ring absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-[0.8rem] border border-[rgba(236,220,204,0.86)] bg-[rgba(255,252,248,0.9)] text-[rgba(121,84,60,0.62)] shadow-[0_8px_18px_rgba(108,62,26,0.06)] transition-[background-color,color,border-color,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-[rgba(234,193,169,0.92)] hover:bg-[rgba(255,250,246,0.98)] hover:text-[rgba(207,80,71,0.96)]"
+          className="focus-ring absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/40 bg-white/15 text-white transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] backdrop-blur-lg hover:-translate-y-0.5 hover:border-orange-500/60 hover:bg-orange-500/25 hover:text-orange-100"
         >
-          <Trash2 size={15} />
+          <Trash2 size={16} />
         </button>
       )}
 
       <button
         type="button"
         onClick={onOpen}
-        className="focus-ring flex h-full w-full flex-col rounded-[1.25rem] text-left"
+        className="focus-ring flex h-full w-full flex-col text-left"
       >
         {/* Cover Image */}
-        <div className="relative h-52 overflow-hidden">
+        <div className="relative h-52 overflow-hidden rounded-[1rem]">
           {coverImage ? (
             <img
               src={coverImage}
@@ -195,54 +195,54 @@ export const SavedTripCard: React.FC<SavedTripCardProps> = ({
               className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
             />
           ) : (
-            <div className="h-full w-full bg-[linear-gradient(135deg,rgba(230,106,63,0.24),rgba(248,214,145,0.28),rgba(72,131,126,0.24))]" />
+            <div className="h-full w-full bg-gradient-to-br from-teal-600/20 via-transparent to-orange-600/20" />
           )}
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(60,37,25,0.03)_0%,rgba(60,37,25,0.48)_100%)]" />
+          {/* Refined gradient overlay for readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
 
-          {/* Badge in corner */}
-          <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
+          {/* Badge positioned on image */}
+          <div className="absolute left-4 top-4">
             <Badge
               tone="glass"
               size="md"
-              className="rounded-[0.8rem] tracking-[0.18em]"
+              className="rounded-full border-orange-500/40 bg-orange-500/20 text-orange-100 backdrop-blur-lg tracking-[0.18em]"
             >
               {badgeText}
             </Badge>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex flex-1 flex-col px-5 py-5">
+        {/* Glassmorphic Footer */}
+        <div className="relative flex flex-1 flex-col justify-between border-t border-white/15 bg-gradient-to-t from-white/12 to-white/5 px-5 py-5 backdrop-blur-lg">
           {/* Metadata */}
-          <div className="flex flex-wrap items-center gap-2 text-[0.76rem] font-semibold uppercase tracking-[0.16em] text-[rgba(126,82,54,0.72)]">
+          <div className="flex flex-wrap items-center gap-2 text-[0.75rem] font-semibold uppercase tracking-[0.16em] text-white/70">
             <span>{metadataLabel}</span>
             {metadataSecondary && (
               <>
-                <span className="text-[rgba(199,170,145,0.9)]">•</span>
+                <span className="text-white/50">•</span>
                 <span>{metadataSecondary}</span>
               </>
             )}
           </div>
 
           {/* Title */}
-          <h3 className="font-display mt-3 line-clamp-2 text-[1.65rem] leading-[0.98] tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
+          <h3 className="font-display mt-2 line-clamp-2 text-[1.55rem] leading-[0.96] tracking-[-0.04em] text-white drop-shadow-lg">
             {destination}
           </h3>
 
           {/* Overview */}
-          <p className="mt-3 line-clamp-3 text-sm leading-6 text-[rgba(105,69,48,0.78)]">
+          <p className="mt-2 line-clamp-2 text-sm leading-5 text-white/80 drop-shadow-sm">
             {overview}
           </p>
 
-          {/* Footer with stop count */}
-          <div className="mt-5 flex items-center justify-between text-sm font-medium text-[rgba(118,80,57,0.78)]">
-            <span className="inline-flex items-center gap-1.5">
+          {/* Footer with stop count and CTA */}
+          <div className="mt-4 flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-white/70">
               <Clock3 size={14} />
               {stopCountLabel}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[rgba(206,95,55,0.94)] transition-transform duration-200 group-hover:translate-x-0.5">
+            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-300 transition-transform duration-200 group-hover:translate-x-0.5">
               Open trip
               <ArrowUpRight size={15} />
             </span>

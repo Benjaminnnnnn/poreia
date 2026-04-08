@@ -1,5 +1,4 @@
 import { useAppNavigation } from "@/app/navigation";
-import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
@@ -22,6 +21,7 @@ import {
   Globe2,
   MapPinned,
   Pencil,
+  Plus,
   Route,
   X,
 } from "lucide-react";
@@ -109,8 +109,6 @@ const BLOCKED_REGION_TOKENS = new Set([
   "tuscany",
 ]);
 
-const PROFILE_MAP_LABEL = "Traveler atlas";
-
 interface CountryVisit {
   country: string;
   trips: TripSession[];
@@ -124,7 +122,6 @@ interface ProfileStatCardProps {
   icon: React.ReactNode;
   label: string;
   value: number;
-  valueClassName?: string;
 }
 
 const ProfileStatCard: React.FC<ProfileStatCardProps> = ({
@@ -133,31 +130,22 @@ const ProfileStatCard: React.FC<ProfileStatCardProps> = ({
   icon,
   label,
   value,
-  valueClassName = "",
 }) => (
-  <Surface
-    as="div"
-    variant="subtle"
-    padding="none"
-    radius="xl"
-    className="flex min-h-[8rem] flex-col justify-between px-4 py-3.5"
-  >
-    <div className="flex flex-col items-start gap-2.5">
-      <div
-        className={`flex h-9 w-9 items-center justify-center rounded-[1rem] ${iconBackgroundClassName} ${iconColorClassName}`}
-      >
-        {icon}
-      </div>
-      <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-[rgba(126,82,54,0.72)]">
+  <div className="flex items-center gap-4 rounded-[1.25rem] border border-white/15 bg-white/10 px-5 py-4 shadow-[0_4px_16px_rgba(0,0,0,0.2)] backdrop-blur-sm">
+    <div
+      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-[0.85rem] ${iconBackgroundClassName} ${iconColorClassName}`}
+    >
+      {icon}
+    </div>
+    <div>
+      <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-white/50">
         {label}
       </p>
+      <p className="font-display text-[2.2rem] leading-none tracking-[-0.05em] text-white drop-shadow-lg [font-variant-numeric:lining-nums_tabular-nums]">
+        {value}
+      </p>
     </div>
-    <p
-      className={`font-display text-[2.2rem] leading-none tracking-[-0.05em] text-[rgba(60,36,24,0.98)] [font-variant-numeric:lining-nums_tabular-nums] ${valueClassName}`}
-    >
-      {value}
-    </p>
-  </Surface>
+  </div>
 );
 
 function formatTripDate(value: string) {
@@ -310,7 +298,7 @@ function buildCountryPins(trips: TripSession[]): MapPinData[] {
 
 const ProfileRoute: React.FC = () => {
   const {
-    actions: { openTrip },
+    actions: { goHome, openSavedTrips, openTrip },
   } = useAppNavigation();
   const {
     actions: { setTravelerName },
@@ -436,25 +424,39 @@ const ProfileRoute: React.FC = () => {
     }
   };
 
+  const latestStopDestination =
+    archivedTrips[0]?.currentItinerary?.destination?.split(",")[0] || "—";
+  const regionSpotlight = countryPins[0]?.name || "—";
+
   return (
-    <div className="h-full overflow-y-auto bg-[rgb(248,245,240)]">
-      <div className="mx-auto flex w-full max-w-[88rem] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+    <div className="relative h-full overflow-y-auto">
+      {/* Background layer */}
+      <div className="fixed inset-0 z-0">
+        <img
+          src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=1200"
+          alt="Traveler background"
+          className="h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/55 via-black/35 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/30" />
+      </div>
+
+      {/* Content layer */}
+      <div className="relative z-10 mx-auto w-full max-w-[88rem] px-4 pt-[4.5rem] pb-8 sm:px-6 sm:pt-[5rem] lg:px-8 lg:pt-[5.5rem]">
+        {/* TOP SECTION: Profile card + Map card */}
+        <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[22rem_1fr]">
+          {/* Profile Card */}
           <Surface
             as="aside"
             variant="glass"
             padding="none"
             radius="2xl"
-            className="overflow-hidden shadow-[0_20px_48px_rgba(118,74,36,0.08)] lg:sticky lg:top-6 lg:w-[17.5rem] lg:shrink-0"
+            className="overflow-hidden shadow-2xl"
           >
-            <div className="relative overflow-hidden px-5 pb-5 pt-6">
-              <div
-                aria-hidden="true"
-                className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(135deg,rgba(230,106,63,0.12),rgba(72,131,126,0.06),rgba(248,214,145,0.14))]"
-              />
-
-              <div className="relative flex flex-col">
-                <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border border-[rgba(236,220,204,0.98)] bg-[rgba(255,254,251,0.96)] shadow-[0_16px_30px_rgba(120,78,42,0.1)]">
+            <div className="p-6">
+              {/* Avatar + Status badge */}
+              <div className="mb-6 flex items-start justify-between">
+                <div className="h-[4.5rem] w-[4.5rem] overflow-hidden rounded-[1.1rem] border border-white/20 bg-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
                   {authUser.photoURL ? (
                     <img
                       src={authUser.photoURL}
@@ -463,289 +465,330 @@ const ProfileRoute: React.FC = () => {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-[rgba(230,106,63,0.14)] font-display text-[2rem] text-[rgba(201,95,55,0.96)]">
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-orange-400/40 to-teal-300/30 font-display text-[2rem] text-white drop-shadow-lg">
                       {travelerName.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
 
-                <div className="mt-5 text-center">
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(126,82,54,0.72)]">
-                    Traveler archive
+                <div className="text-right">
+                  <p className="text-[0.58rem] font-semibold uppercase tracking-[0.2em] text-white/40">
+                    Status
                   </p>
-
-                  {isEditingTravelerName ? (
-                    <form
-                      className="mt-3 text-left"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        handleTravelerNameSave();
-                      }}
-                    >
-                      <label htmlFor="traveler-name-input" className="sr-only">
-                        Traveler name
-                      </label>
-                      <input
-                        id="traveler-name-input"
-                        type="text"
-                        value={draftTravelerName}
-                        onChange={(event) =>
-                          setDraftTravelerName(event.target.value)
-                        }
-                        disabled={isUpdatingProfile}
-                        maxLength={40}
-                        autoFocus
-                        className="field-focus w-full rounded-[0.8rem] border border-[rgba(223,205,187,0.96)] bg-[rgba(255,252,248,0.98)] px-3 py-2 font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.97)]"
-                      />
-                      <div className="mt-2 flex items-center gap-2">
-                        <Button
-                          type="submit"
-                          disabled={
-                            !draftTravelerName.trim() || isUpdatingProfile
-                          }
-                          size="icon"
-                          className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
-                        >
-                          <Check size={14} />
-                          {isUpdatingProfile ? "Saving..." : "Save"}
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setDraftTravelerName(travelerName);
-                            setIsEditingTravelerName(false);
-                          }}
-                          disabled={isUpdatingProfile}
-                          variant="secondary"
-                          size="icon"
-                          className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
-                        >
-                          <X size={14} />
-                          Cancel
-                        </Button>
-                      </div>
-                    </form>
-                  ) : (
-                    <div className="mt-3">
-                      <h1 className="font-display text-[2.1rem] leading-[0.96] tracking-[-0.05em] text-[rgba(74,43,26,0.97)]">
-                        {travelerName}
-                      </h1>
-                    </div>
-                  )}
-
-                  <p className="mt-2 text-sm text-[rgba(112,75,52,0.76)]">
-                    {travelerHandle}
-                  </p>
-                  <p className="mt-4 text-sm leading-6 text-[rgba(103,67,46,0.82)]">
-                    A quiet record of where you have been, what you planned, and
-                    the trips you can reopen anytime.
-                  </p>
-                  <p className="mt-3 text-[0.78rem] font-medium uppercase tracking-[0.14em] text-[rgba(126,82,54,0.6)]">
-                    {archivedTrips.length} saved{" "}
-                    {archivedTrips.length === 1 ? "trip" : "trips"} in archive
-                  </p>
-
-                  {!isEditingTravelerName ? (
-                    <Button
-                      onClick={() => setIsEditingTravelerName(true)}
-                      variant="secondary"
-                      size="sm"
-                      className="mt-5 rounded-full px-4 text-[rgba(103,67,46,0.86)]"
-                    >
-                      <Pencil size={14} />
-                      Edit profile
-                    </Button>
-                  ) : null}
+                  <span className="mt-1 inline-flex items-center rounded-full border border-green-400/50 bg-green-400/10 px-2.5 py-0.5 text-[0.62rem] font-bold uppercase tracking-[0.14em] text-green-400">
+                    Active Explorer
+                  </span>
                 </div>
+              </div>
 
-                <div className="mt-6 grid grid-cols-2 gap-2.5">
-                  <ProfileStatCard
-                    icon={<Globe2 size={13} />}
-                    iconBackgroundClassName="bg-[rgba(72,131,126,0.12)]"
-                    iconColorClassName="text-[rgba(72,131,126,0.92)]"
-                    label="Countries"
-                    value={countryPins.length}
-                    valueClassName="text-[1.95rem]"
+              {/* Name + handle */}
+              {isEditingTravelerName ? (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void handleTravelerNameSave();
+                  }}
+                >
+                  <label htmlFor="traveler-name-input" className="sr-only">
+                    Traveler name
+                  </label>
+                  <input
+                    id="traveler-name-input"
+                    type="text"
+                    value={draftTravelerName}
+                    onChange={(event) =>
+                      setDraftTravelerName(event.target.value)
+                    }
+                    disabled={isUpdatingProfile}
+                    maxLength={40}
+                    autoFocus
+                    className="field-focus w-full rounded-[0.8rem] border border-white/30 bg-white/15 px-3 py-2 font-display text-[1.5rem] leading-none tracking-[-0.04em] text-white placeholder-white/50"
                   />
-                  <ProfileStatCard
-                    icon={<Route size={13} />}
-                    iconBackgroundClassName="bg-[rgba(217,102,58,0.12)]"
-                    iconColorClassName="text-[rgba(217,102,58,0.92)]"
-                    label="Trips"
-                    value={archivedTrips.length}
-                  />
-                  <ProfileStatCard
-                    icon={<MapPinned size={13} />}
-                    iconBackgroundClassName="bg-[rgba(199,140,47,0.12)]"
-                    iconColorClassName="text-[rgba(199,140,47,0.95)]"
-                    label="Stops"
-                    value={tripActivities}
-                  />
-                  <ProfileStatCard
-                    icon={<Clock3 size={13} />}
-                    iconBackgroundClassName="bg-[rgba(126,82,54,0.1)]"
-                    iconColorClassName="text-[rgba(126,82,54,0.9)]"
-                    label="Days"
-                    value={totalTripDays}
-                  />
+                  <div className="mt-2 flex items-center gap-2">
+                    <Button
+                      type="submit"
+                      disabled={!draftTravelerName.trim() || isUpdatingProfile}
+                      size="icon"
+                      className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
+                    >
+                      <Check size={14} />
+                      {isUpdatingProfile ? "Saving..." : "Save"}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setDraftTravelerName(travelerName);
+                        setIsEditingTravelerName(false);
+                      }}
+                      disabled={isUpdatingProfile}
+                      variant="secondary"
+                      size="icon"
+                      className="h-9 w-auto rounded-[0.75rem] gap-1.5 px-3"
+                    >
+                      <X size={14} />
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <h1 className="text-[2rem] font-bold leading-none tracking-tight text-white drop-shadow-lg">
+                    {travelerName}
+                  </h1>
+                  <p className="mt-1 text-sm text-white/60">{travelerHandle}</p>
+                </>
+              )}
+
+              <p className="mt-4 text-sm leading-6 text-white/70">
+                A quiet record of where you have been, what you planned, and the
+                trips you can reopen anytime.
+              </p>
+
+              {!isEditingTravelerName && (
+                <Button
+                  onClick={() => setIsEditingTravelerName(true)}
+                  variant="secondary"
+                  size="sm"
+                  className="mt-4 rounded-full px-4 text-white/90"
+                >
+                  <Pencil size={14} />
+                  Edit profile
+                </Button>
+              )}
+
+              {/* Horizontal stats row */}
+              <div className="mt-6 flex items-start divide-x divide-white/10 border-t border-white/10 pt-5">
+                <div className="flex-1 pr-4">
+                  <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                    Destinations
+                  </p>
+                  <p className="mt-1 font-display text-[1.9rem] font-bold leading-none tracking-[-0.04em] text-white drop-shadow-md">
+                    {countryPins.length}
+                  </p>
+                </div>
+                <div className="flex-1 px-4">
+                  <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                    Total Trips
+                  </p>
+                  <p className="mt-1 font-display text-[1.9rem] font-bold leading-none tracking-[-0.04em] text-white drop-shadow-md">
+                    {archivedTrips.length}
+                  </p>
+                </div>
+                <div className="flex-1 pl-4">
+                  <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                    Saved
+                  </p>
+                  <p className="mt-1 font-display text-[1.9rem] font-bold leading-none tracking-[-0.04em] text-white drop-shadow-md">
+                    {String(trips.length).padStart(2, "0")}
+                  </p>
                 </div>
               </div>
             </div>
           </Surface>
 
-          <div className="min-w-0 flex-1 space-y-6">
-            <Surface
-              as="section"
-              variant="glass"
-              padding="none"
-              radius="2xl"
-              className="overflow-hidden shadow-[0_22px_52px_rgba(118,74,36,0.08)]"
-            >
-              <div className="border-b border-[rgba(236,224,210,0.94)] px-5 py-4 sm:px-6">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="max-w-xl">
-                    <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[rgba(126,82,54,0.72)]">
-                      {PROFILE_MAP_LABEL}
+          {/* Map Card */}
+          <Surface
+            as="section"
+            variant="glass"
+            padding="none"
+            radius="2xl"
+            className="overflow-hidden shadow-2xl"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between px-5 pt-5 pb-4">
+              <div>
+                <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[#D97757]">
+                  Personal Atlas
+                </p>
+                <h2 className="font-display mt-1.5 text-[clamp(1.5rem,2.5vw,2rem)] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
+                  Countries you've been
+                </h2>
+              </div>
+            </div>
+
+            {/* Map */}
+            <div className="relative h-[16rem] sm:h-[20rem] lg:h-[22rem]">
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center text-sm font-medium text-white/60">
+                    Loading traveler atlas…
+                  </div>
+                }
+              >
+                <WorldMap
+                  pins={countryPins}
+                  onPinClick={() => {}}
+                  className="h-full w-full"
+                />
+              </Suspense>
+
+              {!isLoadingTrips && !countryPins.length && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
+                  <div className="max-w-md rounded-[1.25rem] border border-white/15 bg-white/10 px-5 py-4 text-center backdrop-blur-xl shadow-2xl">
+                    <p className="font-display text-[1.5rem] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
+                      Your atlas is still blank.
                     </p>
-                    <h2 className="font-display mt-2 max-w-[18ch] text-[clamp(1.8rem,3.2vw,2.85rem)] leading-[0.94] tracking-[-0.05em] text-[rgba(74,43,26,0.97)]">
-                      Countries you've been
-                    </h2>
-                    <p className="mt-2 text-sm leading-6 text-[rgba(112,75,52,0.78)]">
-                      Every saved itinerary with destination context becomes
-                      part of your archive map automatically.
+                    <p className="mt-2 text-sm leading-6 text-white/70">
+                      Save trips with destination details and your visited
+                      countries will appear here automatically.
                     </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="relative h-[20rem] sm:h-[24rem] lg:h-[26rem]">
-                <div className="pointer-events-none absolute right-4 top-4 z-[500]">
-                  <Badge tone="glass" size="md" className="tracking-[0.16em]">
-                    Visited places
-                  </Badge>
-                </div>
-
-                <Suspense
-                  fallback={
-                    <Surface
-                      as="div"
-                      variant="glass"
-                      padding="none"
-                      radius="md"
-                      className="flex h-full items-center justify-center bg-[rgba(255,250,245,0.72)] text-sm font-medium text-[rgba(105,70,48,0.78)]"
-                    >
-                      Loading traveler atlas...
-                    </Surface>
-                  }
-                >
-                  <WorldMap
-                    pins={countryPins}
-                    onPinClick={() => {}}
-                    className="h-full w-full"
-                  />
-                </Suspense>
-
-                {!isLoadingTrips && !countryPins.length ? (
-                  <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
-                    <Surface
-                      as="div"
-                      variant="glass"
-                      padding="none"
-                      radius="xl"
-                      className="max-w-md px-5 py-4 text-center shadow-[0_18px_40px_rgba(118,74,36,0.08)] backdrop-blur-sm"
-                    >
-                      <p className="font-display text-[1.5rem] leading-none tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
-                        Your atlas is still blank.
-                      </p>
-                      <p className="mt-3 text-sm leading-6 text-[rgba(112,75,52,0.76)]">
-                        Save a few itineraries with destination details and your
-                        visited countries will appear here automatically.
-                      </p>
-                    </Surface>
-                  </div>
-                ) : null}
-              </div>
-            </Surface>
-
-            <section>
-              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[rgba(126,82,54,0.72)]">
-                    Trip archive
-                  </p>
-                  <h2 className="font-display mt-2 text-[clamp(1.6rem,3vw,2.35rem)] leading-[0.97] tracking-[-0.04em] text-[rgba(74,43,26,0.96)]">
-                    Pick back up instantly.
-                  </h2>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge tone="neutral" size="sm" className="rounded-full">
-                    {archivedTrips.length} saved
-                  </Badge>
-                  <p className="max-w-xl text-sm leading-6 text-[rgba(112,75,52,0.76)]">
-                    Open any trip to keep refining it where you left off.
-                  </p>
-                </div>
-              </div>
-
-              {isLoadingTrips ? (
-                <Surface
-                  as="div"
-                  variant="dashed"
-                  radius="xl"
-                  className="px-5 py-10 text-center"
-                >
-                  <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
-                    Loading your archive.
-                  </p>
-                  <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
-                    Syncing saved trips from the backend.
-                  </p>
-                </Surface>
-              ) : archivedTrips.length ? (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {archivedTrips.map((trip) => {
-                    const itinerary = trip.currentItinerary;
-                    const country = getTripCountry(trip);
-                    const coverImage = tripImages[trip.id]?.url;
-                    const stopCount = getTripStopCount(itinerary);
-
-                    return (
-                      <SavedTripCard
-                        key={trip.id}
-                        trip={trip}
-                        coverImage={coverImage}
-                        badgeText={country || "Saved trip"}
-                        metadataLabel={`${itinerary?.totalDays ?? 0} day plan`}
-                        metadataSecondary={`Updated ${formatTripDate(trip.updatedAt)}`}
-                        stopCountLabel={formatStopCountLabel(stopCount)}
-                        onOpen={() => openTrip(trip.id)}
-                        onDelete={(event) => {
-                          event.stopPropagation();
-                          deleteTrip(trip.id);
-                        }}
-                        variant="full"
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                <Surface
-                  as="div"
-                  variant="dashed"
-                  radius="xl"
-                  className="px-5 py-10 text-center"
-                >
-                  <p className="font-display text-[1.8rem] leading-none tracking-[-0.04em] text-[rgba(84,50,31,0.96)]">
-                    Nothing saved yet.
-                  </p>
-                  <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[rgba(112,75,52,0.76)]">
-                    Generate your first itinerary and it will land here as part
-                    of your personal archive, ready to reopen anytime.
-                  </p>
-                </Surface>
               )}
-            </section>
-          </div>
+            </div>
+
+            {/* Bottom info bar */}
+            <div className="flex items-stretch border-t border-white/10">
+              <div className="flex-1 px-5 py-3">
+                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  Region Spotlight
+                </p>
+                <p className="mt-0.5 truncate text-sm font-bold text-white">
+                  {regionSpotlight}
+                </p>
+              </div>
+              <div className="flex-1 border-l border-white/10 px-5 py-3">
+                <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
+                  Latest Stop
+                </p>
+                <p className="mt-0.5 truncate text-sm font-bold text-white">
+                  {latestStopDestination}
+                </p>
+              </div>
+            </div>
+          </Surface>
         </div>
+
+        {/* STATS ROW */}
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <ProfileStatCard
+            icon={<Globe2 size={20} />}
+            iconBackgroundClassName="bg-[rgba(72,131,126,0.22)]"
+            iconColorClassName="text-[rgba(72,200,180,0.92)]"
+            label="Countries"
+            value={countryPins.length}
+          />
+          <ProfileStatCard
+            icon={<Route size={20} />}
+            iconBackgroundClassName="bg-[rgba(217,102,58,0.22)]"
+            iconColorClassName="text-[rgba(240,130,80,0.95)]"
+            label="Trips"
+            value={archivedTrips.length}
+          />
+          <ProfileStatCard
+            icon={<MapPinned size={20} />}
+            iconBackgroundClassName="bg-[rgba(199,140,47,0.22)]"
+            iconColorClassName="text-[rgba(220,170,60,0.95)]"
+            label="Stops"
+            value={tripActivities}
+          />
+          <ProfileStatCard
+            icon={<Clock3 size={20} />}
+            iconBackgroundClassName="bg-[rgba(80,100,190,0.22)]"
+            iconColorClassName="text-[rgba(140,165,235,0.95)]"
+            label="Total Days"
+            value={totalTripDays}
+          />
+        </div>
+
+        {/* ARCHIVE FEED */}
+        <section>
+          <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="text-[0.65rem] font-bold uppercase tracking-[0.2em] text-[#D97757]">
+                Archive Feed
+              </p>
+              <h2 className="font-display mt-1.5 text-[clamp(1.75rem,3.5vw,2.5rem)] leading-none tracking-[-0.045em] text-white drop-shadow-lg">
+                Resume your journeys
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={goHome}
+                className="flex items-center gap-1.5 rounded-full bg-[#D97757] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#C66546] active:scale-95"
+              >
+                <Plus size={15} />
+                New Trip
+              </button>
+              <button
+                type="button"
+                onClick={openSavedTrips}
+                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/15"
+              >
+                View All
+              </button>
+            </div>
+          </div>
+
+          {isLoadingTrips ? (
+            <div className="rounded-[1.25rem] border border-white/10 bg-white/5 px-5 py-10 text-center backdrop-blur-sm">
+              <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
+                Loading your archive.
+              </p>
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-white/70">
+                Syncing saved trips from the backend.
+              </p>
+            </div>
+          ) : archivedTrips.length ? (
+            <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {archivedTrips.map((trip) => {
+                const itinerary = trip.currentItinerary;
+                const country = getTripCountry(trip);
+                const coverImage = tripImages[trip.id]?.url;
+                const stopCount = getTripStopCount(itinerary);
+
+                return (
+                  <div key={trip.id} className="w-[21rem] shrink-0">
+                    <SavedTripCard
+                      trip={trip}
+                      coverImage={coverImage}
+                      badgeText={country || "Saved trip"}
+                      metadataLabel={`${itinerary?.totalDays ?? 0} day plan`}
+                      metadataSecondary={`Updated ${formatTripDate(trip.updatedAt)}`}
+                      stopCountLabel={formatStopCountLabel(stopCount)}
+                      onOpen={() => openTrip(trip.id)}
+                      onDelete={(event) => {
+                        event.stopPropagation();
+                        deleteTrip(trip.id);
+                      }}
+                      variant="full"
+                    />
+                  </div>
+                );
+              })}
+
+              {/* Create new story placeholder */}
+              <button
+                type="button"
+                onClick={goHome}
+                className="flex w-[18rem] shrink-0 flex-col items-center justify-center gap-3 rounded-[1.25rem] border border-dashed border-white/20 bg-white/5 py-16 transition-colors hover:bg-white/10"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10">
+                  <Plus size={22} className="text-white/50" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-white/60">
+                    Create New Story
+                  </p>
+                  <p className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/35">
+                    Unlimited drafts available
+                  </p>
+                </div>
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-[1.25rem] border border-white/10 bg-white/5 px-5 py-10 text-center backdrop-blur-sm">
+              <p className="font-display text-[1.8rem] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
+                Nothing saved yet.
+              </p>
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-white/70">
+                Generate your first itinerary and it will land here as part of
+                your personal archive, ready to reopen anytime.
+              </p>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
