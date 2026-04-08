@@ -141,7 +141,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           onClick={onNavigateHome}
           aria-label="Go to home page"
           className={cn(
-            "focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-colors duration-150",
+            "focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-all duration-200 hover:px-3 sm:hover:px-4",
             isHomePage
               ? "hover:bg-white/10"
               : "hover:bg-[rgba(247,239,228,0.78)]",
@@ -409,20 +409,22 @@ const AuthGate: React.FC<AuthGateProps> = ({
 };
 
 const AuthLoadingFallback = () => (
-  <Surface
-    variant="glass"
-    padding="none"
-    radius="md"
-    className="flex h-full items-center justify-center bg-[rgba(255,250,245,0.72)]"
-  >
-    <div className="flex flex-col items-center gap-3 text-[rgba(92,58,36,0.96)]">
-      <Loader2
-        className="animate-spin text-[rgba(217,102,58,0.92)]"
-        size={32}
-      />
-      <p className="font-medium">Checking your traveler pass...</p>
+  <section className="relative flex min-h-0 flex-1 flex-col w-full overflow-hidden items-center justify-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    {/* Loading Card */}
+    <div className="relative z-10 rounded-[2rem] border border-white/20 bg-white/10 p-8 sm:p-12 shadow-2xl backdrop-blur-xl">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="animate-spin text-white drop-shadow-lg" size={40} />
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="text-base sm:text-lg font-medium text-white drop-shadow-md">
+            Preparing your traveler pass
+          </p>
+          <p className="text-sm text-white/80 drop-shadow-md">
+            Loading your itinerary...
+          </p>
+        </div>
+      </div>
     </div>
-  </Surface>
+  </section>
 );
 
 interface AuthRouteContextValue {
