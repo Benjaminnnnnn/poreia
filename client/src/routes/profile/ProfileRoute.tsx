@@ -433,7 +433,7 @@ const ProfileRoute: React.FC = () => {
       {/* Background layer */}
       <div className="fixed inset-0 z-0">
         <img
-          src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&q=80&w=1200"
+          src="https://images.unsplash.com/photo-1508804185872-d7badad00f7d?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt="Traveler background"
           className="h-full w-full object-cover object-center"
         />
@@ -442,7 +442,7 @@ const ProfileRoute: React.FC = () => {
       </div>
 
       {/* Content layer */}
-      <div className="relative z-10 mx-auto w-full max-w-356 px-4 pt-[4.5rem] pb-8 sm:px-6 sm:pt-[5rem] lg:px-8 lg:pt-[5.5rem]">
+      <div className="relative z-10 mx-auto w-full max-w-356 px-4 pb-8 pt-[6rem] sm:px-6 sm:pt-[6.5rem] lg:px-8 lg:pt-[7rem]">
         {/* TOP SECTION: Profile card + Map card */}
         <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[22rem_1fr]">
           {/* Profile Card */}

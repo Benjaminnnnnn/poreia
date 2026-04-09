@@ -125,7 +125,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [isAccountMenuOpen]);
 
   return (
-    <header className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-black/20 before:backdrop-blur before:mix-blend-overlay before:-z-10">
+    <header className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 bg-black/20 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-black/15 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/8 before:to-transparent before:-z-10">
       <div className="relative flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
         {/* Left: circle logo + wordmark */}
         <Button
@@ -170,7 +170,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   type="button"
                   variant="ghost"
                   onClick={onOpenSavedTrips}
-                  className="hidden rounded-xl border border-white/25 bg-white/10 px-4 text-white hover:bg-primary hover:border-primary hover:text-white sm:inline-flex sm:items-center sm:gap-2"
+                  className="inline-flex items-center rounded-xl border border-white/25 bg-white/10 px-3 text-sm text-white hover:border-primary hover:bg-primary hover:text-white sm:gap-2 sm:px-4 sm:text-base"
                 >
                   Saved trips
                 </Button>
@@ -205,7 +205,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     variant="glass"
                     padding="none"
                     radius="lg"
-                    className="absolute right-0 top-[calc(100%+0.65rem)] z-30 min-w-[12rem] p-2 shadow-[0_24px_48px_rgba(120,78,42,0.14)] before:absolute before:inset-0 before:bg-black/20 before:backdrop-blur before:mix-blend-overlay before:-z-10 before:rounded-[inherit]"
+                    className="absolute right-0 top-[calc(100%+1rem)] z-30 isolate min-w-[12rem] overflow-hidden bg-black/60 p-2 shadow-[0_24px_48px_rgba(120,78,42,0.18)] backdrop-blur-[40px] backdrop-saturate-200 supports-[backdrop-filter]:bg-black/50 before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-b before:from-white/12 before:via-white/5 before:to-transparent before:-z-10"
                   >
                     <div className="relative z-10 border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
                       <p className="truncate text-sm font-semibold text-white">
