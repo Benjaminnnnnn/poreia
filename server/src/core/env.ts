@@ -35,6 +35,7 @@ export type EnvBindings = {
   FIREBASE_PRIVATE_KEY?: string;
   FIRESTORE_EMULATOR_HOST?: string;
   POLLINATIONS_API_KEY?: string;
+  POREIA_RATE_LIMIT_KV?: KVNamespace;
 };
 
 export interface AppEnv {

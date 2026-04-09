@@ -1,5 +1,6 @@
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import FadeImage from "@/components/ui/FadeImage";
 import Surface from "@/components/ui/Surface";
 import type { Trip } from "@/types";
 import { ArrowUpRight, Clock3, Trash2 } from "lucide-react";
@@ -127,10 +128,11 @@ export const SavedTripCard: React.FC<SavedTripCardProps> = ({
       {/* Cover Image */}
       <div className="relative h-52 w-full overflow-hidden rounded-[1rem]">
         {coverImage ? (
-          <img
+          <FadeImage
             src={coverImage}
             alt={destination}
-            className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+            iconSize={28}
+            className="group-hover:scale-[1.03]"
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-teal-600/20 via-transparent to-orange-600/20" />

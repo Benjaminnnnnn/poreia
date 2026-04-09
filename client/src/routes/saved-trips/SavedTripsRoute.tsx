@@ -8,6 +8,7 @@ import {
   type ResolvedActivityImage,
 } from "@/services/activityImageService";
 import type { Activity, TravelItinerary } from "@/types";
+import { motion } from "framer-motion";
 import React, { startTransition, useEffect, useMemo, useState } from "react";
 
 const formatTripDate = (value: string) =>
@@ -162,28 +163,38 @@ const SavedTripsRoute: React.FC = () => {
           </Surface>
         ) : trips.length ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {trips.map((trip) => {
+            {trips.map((trip, index) => {
               const itinerary = trip.currentItinerary;
               const country = getTripCountry(trip);
               const coverImage = tripImages[trip.id]?.url;
               const stopCount = getTripStopCount(itinerary);
 
               return (
-                <SavedTripCard
+                <motion.div
                   key={trip.id}
-                  trip={trip}
-                  coverImage={coverImage}
-                  badgeText={country || "Saved trip"}
-                  metadataLabel={`${itinerary?.totalDays ?? 0} day plan`}
-                  metadataSecondary={`Updated ${formatTripDate(trip.updatedAt)}`}
-                  stopCountLabel={formatStopCountLabel(stopCount)}
-                  onOpen={() => openTrip(trip.id)}
-                  onDelete={(event) => {
-                    event.stopPropagation();
-                    deleteTrip(trip.id);
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.35,
+                    delay: Math.min(index * 0.07, 0.35),
+                    ease: [0.22, 1, 0.36, 1],
                   }}
-                  variant="full"
-                />
+                >
+                  <SavedTripCard
+                    trip={trip}
+                    coverImage={coverImage}
+                    badgeText={country || "Saved trip"}
+                    metadataLabel={`${itinerary?.totalDays ?? 0} day plan`}
+                    metadataSecondary={`Updated ${formatTripDate(trip.updatedAt)}`}
+                    stopCountLabel={formatStopCountLabel(stopCount)}
+                    onOpen={() => openTrip(trip.id)}
+                    onDelete={(event) => {
+                      event.stopPropagation();
+                      deleteTrip(trip.id);
+                    }}
+                    variant="full"
+                  />
+                </motion.div>
               );
             })}
           </div>

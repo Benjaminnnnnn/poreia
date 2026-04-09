@@ -5,6 +5,7 @@ import { getLogger } from '../core/logger';
 import { FirestoreClient } from '../firestore/client';
 import { TripsRepository } from '../firestore/tripsRepository';
 import { requireAuth } from '../http/auth';
+import { checkTripGenerationLimit } from '../http/tripRateLimit';
 import { ItineraryProvider } from '../itinerary/provider';
 import { TripMembersService } from '../services/tripMembersService';
 import { TripsService } from '../services/tripsService';
@@ -49,9 +50,20 @@ export function createTripsRoutes(options: CreateTripsRoutesOptions = {}) {
   app.use('/trips/*', authMiddleware);
 
   app.post('/trips', async (context) => {
+    const authUser = context.get('authUser');
+
+    if (context.env.POREIA_RATE_LIMIT_KV) {
+      const limit = await checkTripGenerationLimit(context.env.POREIA_RATE_LIMIT_KV, authUser.uid);
+      if (!limit.allowed) {
+        return context.json(
+          { error: 'rate_limit_exceeded', message: `Trip generation limit reached. Try again in ${limit.resetInSeconds}s.` },
+          429,
+        );
+      }
+    }
+
     const tripsService = buildTripsService(context);
     const input = tripsService.parseCreateTripInput(await context.req.json());
-    const authUser = context.get('authUser');
     const result = await tripsService.createTrip(authUser, input);
 
     return jsonData(context, result, 201);

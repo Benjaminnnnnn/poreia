@@ -2,5 +2,11 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "poreia-server",
   "main": "src/index.ts",
-  "compatibility_date": "2026-03-31"
+  "compatibility_date": "2026-03-31",
+  "kv_namespaces": [
+    {
+      "binding": "POREIA_RATE_LIMIT_KV",
+      "id": "cb4fe4fe5b034b5ca42321e348a1ce07"
+    }
+  ]
 }

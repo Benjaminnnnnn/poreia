@@ -7,6 +7,10 @@ import Button from "./Button";
 const RING_GRADIENT =
   "conic-gradient(from 0deg, oklch(0.64 0.17 36), oklch(0.84 0.16 82), oklch(0.87 0.10 58), oklch(0.69 0.11 188), oklch(0.57 0.10 213), oklch(0.64 0.17 36))";
 
+// Aurora glow gradient — wider spread, slightly cooler palette for the diffuse outer halo
+const GLOW_GRADIENT =
+  "conic-gradient(from 0deg, oklch(0.60 0.19 30), oklch(0.82 0.18 78), oklch(0.85 0.12 55), oklch(0.65 0.14 185), oklch(0.52 0.12 215), oklch(0.60 0.19 30))";
+
 type SearchPromptBarVariant = "overlay" | "refine";
 
 export interface SearchPromptBarProps extends Omit<
@@ -168,12 +172,30 @@ const SearchPromptBar = React.forwardRef<
         onBlurCapture={handleBlurCapture}
         onFocusCapture={handleFocusCapture}
       >
-        {/* Outer soft glow */}
+        {/* Outer soft glow — always visible, intensifies on focus/loading */}
         <div
           aria-hidden="true"
           className={cn(
-            "pointer-events-none absolute -inset-1 rounded-full blur-lg transition-opacity duration-500",
-            disableGlow ? "opacity-0" : glowActive ? "opacity-30" : "opacity-8",
+            "pointer-events-none absolute -inset-3 rounded-full blur-2xl transition-opacity duration-500",
+            disableGlow ? "opacity-0" : glowActive ? "opacity-55" : "opacity-20",
+          )}
+        >
+          <div className="absolute inset-0 overflow-hidden rounded-full">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={slowSpin}
+              className="absolute left-1/2 top-1/2 aspect-square w-[200%] -translate-x-1/2 -translate-y-1/2"
+              style={{ background: GLOW_GRADIENT }}
+            />
+          </div>
+        </div>
+
+        {/* Inner tight glow — subtle halo hugging the ring border */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute -inset-0.5 rounded-full blur-md transition-opacity duration-500",
+            disableGlow ? "opacity-0" : glowActive ? "opacity-70" : "opacity-30",
           )}
         >
           <div className="absolute inset-0 overflow-hidden rounded-full">

@@ -1,5 +1,6 @@
 import { useAppNavigation } from "@/app/navigation";
 import Button from "@/components/ui/Button";
+import FadeImage from "@/components/ui/FadeImage";
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
 import { useAppAuth } from "@/features/auth/components/AuthRoute";
@@ -456,12 +457,12 @@ const ProfileRoute: React.FC = () => {
             <div className="p-6">
               {/* Avatar + Status badge */}
               <div className="mb-6 flex items-start justify-between">
-                <div className="h-[4.5rem] w-[4.5rem] overflow-hidden rounded-[1.1rem] border border-white/20 bg-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+                <div className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-[1.1rem] border border-white/20 bg-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
                   {authUser.photoURL ? (
-                    <img
+                    <FadeImage
                       src={authUser.photoURL}
                       alt={`${travelerName} profile`}
-                      className="h-full w-full object-cover"
+                      iconSize={20}
                       referrerPolicy="no-referrer"
                     />
                   ) : (
