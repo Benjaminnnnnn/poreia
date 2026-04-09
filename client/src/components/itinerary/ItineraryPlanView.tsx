@@ -14,6 +14,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
@@ -289,21 +290,28 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                 strategy={verticalListSortingStrategy}
               >
                 <div className="min-h-[50px] space-y-4">
-                  {dayPlan.activities.map((activity) => (
-                    <SortableActivityItem
-                      key={activity.id}
-                      activity={activity}
-                      currency={currency}
-                      image={activityImages[activity.id]}
-                      isHandleOnly={isMobileViewport}
-                      onDelete={() => onDeleteActivity(dayIndex, activity.id)}
-                      onSave={(newActivity) =>
-                        onSaveActivity(dayIndex, newActivity)
-                      }
-                      onClick={() => onSelectActivity(activity.id)}
-                      isSelected={selectedActivityId === activity.id}
-                    />
-                  ))}
+                  <AnimatePresence initial={false}>
+                    {dayPlan.activities.map((activity) => (
+                      <motion.div
+                        key={activity.id}
+                        exit={{ opacity: 0, x: -10, scale: 0.98 }}
+                        transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      >
+                        <SortableActivityItem
+                          activity={activity}
+                          currency={currency}
+                          image={activityImages[activity.id]}
+                          isHandleOnly={isMobileViewport}
+                          onDelete={() => onDeleteActivity(dayIndex, activity.id)}
+                          onSave={(newActivity) =>
+                            onSaveActivity(dayIndex, newActivity)
+                          }
+                          onClick={() => onSelectActivity(activity.id)}
+                          isSelected={selectedActivityId === activity.id}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                   {dayPlan.activities.length === 0 ? (
                     <div className="border-2 border-dashed border-white/20 rounded-[1rem] px-4 py-5 text-center text-sm leading-6 text-white/65 backdrop-blur-sm">
                       Drop a stop here to rebalance the day.

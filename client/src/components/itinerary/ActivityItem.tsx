@@ -15,6 +15,7 @@ import React, { useId, useState } from "react";
 import { ResolvedActivityImage } from "../../services/activityImageService";
 import { Activity } from "../../types";
 import Button from "../ui/Button";
+import FadeImage from "../ui/FadeImage";
 
 /** Format a cost amount using the currency code's symbol (e.g. "USD" → "$40"). */
 function formatCost(amount: number, currencyCode: string): string {
@@ -69,12 +70,7 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
     {/* Left image — absolute so it doesn't drive card height */}
     <div className="relative w-28 shrink-0 self-stretch overflow-hidden bg-white/10 sm:w-36">
       {image?.url ? (
-        <img
-          src={image.url}
-          alt={activity.description}
-          className="absolute inset-0 h-full w-full object-cover"
-          loading="lazy"
-        />
+        <FadeImage src={image.url} alt={activity.description} />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-white/20">
           <ImageIcon size={22} />
@@ -236,12 +232,7 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
     {/* Left image with drag handle overlaid */}
     <div className="relative w-28 shrink-0 self-stretch bg-white/10 sm:w-36">
       {image?.url ? (
-        <img
-          src={image.url}
-          alt={activity.description}
-          className="absolute inset-0 h-full w-full object-cover"
-          loading="lazy"
-        />
+        <FadeImage src={image.url} alt={activity.description} />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-white/20">
           <ImageIcon size={22} />

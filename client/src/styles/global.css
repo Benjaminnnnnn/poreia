@@ -16,47 +16,52 @@ body,
 :root {
   --background: oklch(0.9383 0.0042 236.4993);
   --foreground: oklch(0.3211 0 0);
-  --card: oklch(1.0000 0 0);
+  --card: oklch(1 0 0);
   --card-foreground: oklch(0.3211 0 0);
-  --popover: oklch(1.0000 0 0);
+  --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.3211 0 0);
-  --primary: oklch(0.6397 0.1720 36.4421);
-  --primary-foreground: oklch(1.0000 0 0);
-  --secondary: oklch(0.9670 0.0029 264.5419);
+  --primary: oklch(0.6397 0.172 36.4421);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.967 0.0029 264.5419);
   --secondary-foreground: oklch(0.4461 0.0263 256.8018);
   --muted: oklch(0.9846 0.0017 247.8389);
-  --muted-foreground: oklch(0.5510 0.0234 264.3637);
+  --muted-foreground: oklch(0.551 0.0234 264.3637);
   --accent: oklch(0.9119 0.0222 243.8174);
   --accent-foreground: oklch(0.3791 0.1378 265.5222);
   --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1.0000 0 0);
+  --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.9022 0.0052 247.8822);
-  --input: oklch(0.9700 0.0029 264.5420);
-  --ring: oklch(0.6397 0.1720 36.4421);
+  --input: oklch(0.97 0.0029 264.542);
+  --ring: oklch(0.6397 0.172 36.4421);
   --chart-1: oklch(0.7156 0.0605 248.6845);
   --chart-2: oklch(0.7875 0.0917 35.9616);
   --chart-3: oklch(0.5778 0.0759 254.1573);
   --chart-4: oklch(0.5016 0.0849 259.4902);
   --chart-5: oklch(0.4241 0.0952 264.0306);
-  --sidebar: oklch(0.9030 0.0046 258.3257);
+  --sidebar: oklch(0.903 0.0046 258.3257);
   --sidebar-foreground: oklch(0.3211 0 0);
-  --sidebar-primary: oklch(0.6397 0.1720 36.4421);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
+  --sidebar-primary: oklch(0.6397 0.172 36.4421);
+  --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.9119 0.0222 243.8174);
   --sidebar-accent-foreground: oklch(0.3791 0.1378 265.5222);
   --sidebar-border: oklch(0.9276 0.0058 264.5313);
-  --sidebar-ring: oklch(0.6397 0.1720 36.4421);
+  --sidebar-ring: oklch(0.6397 0.172 36.4421);
   --font-sans: Inter, sans-serif;
   --font-serif: Source Serif 4, serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: 0.75rem;
   --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.10), 0px 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-sm:
+    0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow:
+    0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 2px 4px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0px 1px 3px 0px hsl(0 0% 0% / 0.1), 0px 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
 
   /* ============================================================
@@ -172,34 +177,34 @@ body,
   --foreground: oklch(0.9219 0 0);
   --card: oklch(0.3106 0.0301 268.6365);
   --card-foreground: oklch(0.9219 0 0);
-  --popover: oklch(0.2900 0.0249 268.3986);
+  --popover: oklch(0.29 0.0249 268.3986);
   --popover-foreground: oklch(0.9219 0 0);
-  --primary: oklch(0.6397 0.1720 36.4421);
-  --primary-foreground: oklch(1.0000 0 0);
+  --primary: oklch(0.6397 0.172 36.4421);
+  --primary-foreground: oklch(1 0 0);
   --secondary: oklch(0.3095 0.0266 266.7132);
   --secondary-foreground: oklch(0.9219 0 0);
   --muted: oklch(0.3095 0.0266 266.7132);
   --muted-foreground: oklch(0.7155 0 0);
-  --accent: oklch(0.3380 0.0589 267.5867);
+  --accent: oklch(0.338 0.0589 267.5867);
   --accent-foreground: oklch(0.8823 0.0571 254.1284);
   --destructive: oklch(0.6368 0.2078 25.3313);
-  --destructive-foreground: oklch(1.0000 0 0);
+  --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.3843 0.0301 269.7337);
   --input: oklch(0.3843 0.0301 269.7337);
-  --ring: oklch(0.6397 0.1720 36.4421);
+  --ring: oklch(0.6397 0.172 36.4421);
   --chart-1: oklch(0.7156 0.0605 248.6845);
   --chart-2: oklch(0.7693 0.0876 34.1875);
   --chart-3: oklch(0.5778 0.0759 254.1573);
   --chart-4: oklch(0.5016 0.0849 259.4902);
   --chart-5: oklch(0.4241 0.0952 264.0306);
-  --sidebar: oklch(0.3100 0.0283 267.7408);
+  --sidebar: oklch(0.31 0.0283 267.7408);
   --sidebar-foreground: oklch(0.9219 0 0);
-  --sidebar-primary: oklch(0.6397 0.1720 36.4421);
-  --sidebar-primary-foreground: oklch(1.0000 0 0);
-  --sidebar-accent: oklch(0.3380 0.0589 267.5867);
+  --sidebar-primary: oklch(0.6397 0.172 36.4421);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.338 0.0589 267.5867);
   --sidebar-accent-foreground: oklch(0.8823 0.0571 254.1284);
   --sidebar-border: oklch(0.3843 0.0301 269.7337);
-  --sidebar-ring: oklch(0.6397 0.1720 36.4421);
+  --sidebar-ring: oklch(0.6397 0.172 36.4421);
 }
 
 @theme inline {
@@ -430,20 +435,22 @@ select {
 }
 
 .loading-status-copy {
+  /* Ring palette doubled so 0 % and 100 % are visually identical → seamless loop */
   background-image: linear-gradient(
     90deg,
-    color-mix(in oklab, var(--muted-foreground) 78%, transparent) 0%,
-    color-mix(in oklab, var(--muted-foreground) 78%, transparent) 34%,
-    var(--primary) 50%,
-    color-mix(in oklab, var(--muted-foreground) 78%, transparent) 66%,
-    color-mix(in oklab, var(--muted-foreground) 78%, transparent) 100%
+    oklch(0.78 0.2 36),
+    /* coral */ oklch(0.88 0.18 80),
+    /* amber */ oklch(0.91 0.12 58),
+    /* peach */ oklch(0.8 0.15 185),
+    /* teal */ oklch(0.72 0.13 215),
+    /* sea */ oklch(0.78 0.2 36)
   );
-  background-size: 220% 100%;
-  background-position: 100% 50%;
+  background-size: 200% 100%;
+  background-position: 0% 50%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: loading-status-shimmer 2.3s linear infinite;
+  animation: loading-status-shimmer 3s linear infinite;
   will-change: background-position;
 }
 
@@ -511,7 +518,7 @@ select {
   }
 
   to {
-    background-position: -120% 50%;
+    background-position: -100% 50%;
   }
 }
 
@@ -530,9 +537,49 @@ select {
 }
 
 .search-prompt-progress-sweep {
-  animation: search-prompt-progress-sweep 1.55s
-    cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: search-prompt-progress-sweep 1.55s cubic-bezier(0.16, 1, 0.3, 1)
+    infinite;
   will-change: transform;
+}
+
+/* ============================================================
+   Image skeleton shimmer
+   Shown over the placeholder slot while an image is fetching.
+   Doubled gradient tile → position 0 % and 100 % are identical → seamless loop.
+   ============================================================ */
+.img-shimmer {
+  /* Solid dark base so the wave has contrast regardless of what's behind it */
+  background-color: rgba(18, 18, 26, 0.72);
+  /* Shimmer wave rendered on top of the solid base */
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.10) 20%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0.10) 80%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: img-shimmer-sweep 1.6s linear infinite;
+  will-change: background-position;
+}
+
+@keyframes img-shimmer-sweep {
+  from {
+    background-position: 200% 50%;
+  }
+
+  to {
+    background-position: -200% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .img-shimmer {
+    animation: none;
+    background-image: none;
+    background-color: rgba(18, 18, 26, 0.72);
+  }
 }
 
 /* ============================================================
@@ -607,6 +654,6 @@ select {
 
   .loading-status-copy {
     background-image: none;
-    color: var(--muted-foreground);
+    color: oklch(0.8 0.15 185); /* teal — ring palette, static fallback */
   }
 }

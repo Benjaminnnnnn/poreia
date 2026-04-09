@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import { useAppNavigation } from "@/app/navigation";
@@ -131,15 +132,25 @@ const TripRoute: React.FC<TripRouteProps> = ({ tripId }) => {
         )}
       </div>
 
-      {activeWorkspaceTab === "itinerary" &&
-      trip.permissions?.canEdit !== false ? (
-        <RefineForm
-          inputValue={inputValue}
-          isRefining={isRefining}
-          onInputChange={setInputValue}
-          onSubmit={handleRefine}
-        />
-      ) : null}
+      <AnimatePresence>
+        {activeWorkspaceTab === "itinerary" &&
+        trip.permissions?.canEdit !== false ? (
+          <motion.div
+            key="refine-form"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <RefineForm
+              inputValue={inputValue}
+              isRefining={isRefining}
+              onInputChange={setInputValue}
+              onSubmit={handleRefine}
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <TripCollaborationPanel
         canManageMembers={trip.permissions?.canManageMembers ?? false}

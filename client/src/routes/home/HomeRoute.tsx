@@ -135,7 +135,7 @@ const HomeRoute: React.FC = () => {
                     className="loading-status-copy"
                     data-text="Generation might take a while. Hang tight while Poreia builds the first draft."
                   >
-                    Generation might take a while, hang tight
+                    Plan generation might take a while, hang tight
                   </span>
                   <span aria-hidden="true" className="loading-ellipsis">
                     <span>.</span>

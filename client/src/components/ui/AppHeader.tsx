@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, Plus, UserRound } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import Button from "./Button";
@@ -184,13 +185,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className="rounded-full ring-2 ring-transparent transition-all hover:ring-primary focus-visible:ring-0 focus-visible:border-transparent sm:h-11 sm:w-11"
+                  className="rounded-full ring-0.5 ring-transparent transition-all hover:ring-primary focus-visible:ring-0 focus-visible:border-transparent sm:h-10 sm:w-10"
                 >
                   {authUser.photoURL ? (
                     <img
                       src={authUser.photoURL}
                       alt={`${travelerName} profile`}
-                      className="h-8 w-8 rounded-full object-cover sm:h-9 sm:w-9"
+                      className="h-10 w-10 rounded-full object-cover sm:h-9 sm:w-9"
                       referrerPolicy="no-referrer"
                     />
                   ) : (
@@ -200,52 +201,64 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   )}
                 </Button>
 
-                {isAccountMenuOpen ? (
-                  <Surface
-                    variant="glass"
-                    padding="none"
-                    radius="lg"
-                    className="absolute right-0 top-[calc(100%+1rem)] z-30 isolate min-w-[12rem] overflow-hidden bg-black/60 p-2 shadow-[0_24px_48px_rgba(120,78,42,0.18)] backdrop-blur-[40px] backdrop-saturate-200 supports-[backdrop-filter]:bg-black/50 before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-b before:from-white/12 before:via-white/5 before:to-transparent before:-z-10"
-                  >
-                    <div className="relative z-10 border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
-                      <p className="truncate text-sm font-semibold text-white">
-                        {travelerName}
-                      </p>
-                      {authUser.email ? (
-                        <p className="truncate text-xs text-white">
-                          {authUser.email}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={() => {
-                        setIsAccountMenuOpen(false);
-                        onOpenProfile();
-                      }}
-                      className="relative z-10 mt-2 w-full justify-start rounded-[0.8rem] text-white hover:bg-white/15 hover:text-white"
+                <AnimatePresence>
+                  {isAccountMenuOpen ? (
+                    <motion.div
+                      key="account-menu"
+                      initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                      transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                      className="absolute right-0 top-[calc(100%+1rem)] z-30"
+                      style={{ transformOrigin: "top right" }}
                     >
-                      <UserRound size={15} />
-                      Profile
-                    </Button>
+                      <Surface
+                        variant="glass"
+                        padding="none"
+                        radius="lg"
+                        className="isolate min-w-[12rem] overflow-hidden bg-black/60 p-2 shadow-[0_24px_48px_rgba(120,78,42,0.18)] backdrop-blur-[40px] backdrop-saturate-200 supports-[backdrop-filter]:bg-black/50 before:absolute before:inset-0 before:rounded-[inherit] before:bg-gradient-to-b before:from-white/12 before:via-white/5 before:to-transparent before:-z-10"
+                      >
+                        <div className="relative z-10 border-b border-[rgba(237,225,211,0.92)] px-3 pb-2 pt-1">
+                          <p className="truncate text-sm font-semibold text-white">
+                            {travelerName}
+                          </p>
+                          {authUser.email ? (
+                            <p className="truncate text-xs text-white">
+                              {authUser.email}
+                            </p>
+                          ) : null}
+                        </div>
 
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={async () => {
-                        setIsAccountMenuOpen(false);
-                        await onSignOut();
-                      }}
-                      disabled={isAuthBusy}
-                      className="relative z-10 mt-1 w-full justify-start rounded-[0.8rem] text-white hover:bg-white/15 hover:text-white"
-                    >
-                      <LogOut size={15} />
-                      Sign out
-                    </Button>
-                  </Surface>
-                ) : null}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => {
+                            setIsAccountMenuOpen(false);
+                            onOpenProfile();
+                          }}
+                          className="relative z-10 mt-2 w-full justify-start rounded-[0.8rem] text-white hover:bg-white/15 hover:text-white"
+                        >
+                          <UserRound size={15} />
+                          Profile
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={async () => {
+                            setIsAccountMenuOpen(false);
+                            await onSignOut();
+                          }}
+                          disabled={isAuthBusy}
+                          className="relative z-10 mt-1 w-full justify-start rounded-[0.8rem] text-white hover:bg-white/15 hover:text-white"
+                        >
+                          <LogOut size={15} />
+                          Sign out
+                        </Button>
+                      </Surface>
+                    </motion.div>
+                  ) : null}
+                </AnimatePresence>
               </div>
             </>
           ) : null}
