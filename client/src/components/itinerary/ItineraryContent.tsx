@@ -228,16 +228,12 @@ export const ItinerarySectionNav: React.FC<{
                   <TooltipTrigger asChild>
                     <Button
                       type="button"
-                      variant={isActive ? "default" : "outline"}
+                      variant={isActive ? "primary" : "default"}
                       size="icon-xs"
                       onClick={() => onSelect(item.id)}
                       aria-label={item.label}
                       aria-pressed={isActive}
-                      className={`h-3 w-3 rounded-full ${
-                        isActive
-                          ? "shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_22%,transparent)]"
-                          : ""
-                      }`}
+                      className={`h-3 w-3 rounded-xs ${isActive ? "bg-primary" : "bg-white/40"}`}
                     />
                   </TooltipTrigger>
                   <TooltipContent side="right">{item.label}</TooltipContent>
@@ -249,11 +245,10 @@ export const ItinerarySectionNav: React.FC<{
           <div className="mt-auto">
             <Button
               type="button"
-              variant="ghost"
               size="icon"
               onClick={onToggleCollapsed}
               aria-label="Expand section navigation"
-              className="rounded-full text-white/60 hover:text-orange-300"
+              className="rounded-full text-white/60 bg-white/0 hover:text-white"
             >
               <ChevronRight size={17} />
             </Button>
@@ -266,9 +261,8 @@ export const ItinerarySectionNav: React.FC<{
           <div className="mt-auto pt-4">
             <Button
               type="button"
-              variant="ghost"
               onClick={onToggleCollapsed}
-              className="w-full justify-start gap-2 rounded-[0.95rem] text-white/60 hover:text-orange-300"
+              className="w-full justify-start gap-2 rounded-[0.95rem] text-white/60 bg-white/0 hover:text-white"
             >
               <ChevronLeft size={16} />
               Hide sidebar
