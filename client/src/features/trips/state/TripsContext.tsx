@@ -1,4 +1,4 @@
-import { useAppAuth } from "@/features/auth/components/AuthRoute";
+import type { User } from "firebase/auth";
 import {
   createTrip as createTripRequest,
   deleteTrip as deleteTripRequest,
@@ -39,6 +39,7 @@ interface TripsContextValue {
     isRefiningTrip: (tripId: string) => boolean;
   };
   state: {
+    authUser: User;
     isCreatingTrip: boolean;
     isLoadingTrips: boolean;
     refiningTripId: string | null;
@@ -107,10 +108,8 @@ function applyItineraryToTrip(
 
 export const TripsProvider: React.FC<{
   children: React.ReactNode;
-}> = ({ children }) => {
-  const {
-    state: { authUser },
-  } = useAppAuth();
+  user: User;
+}> = ({ children, user: authUser }) => {
   const [trips, setTrips] = useState<TripSession[]>([]);
   const [isLoadingTrips, setIsLoadingTrips] = useState(true);
   const [isCreatingTrip, setIsCreatingTrip] = useState(false);
@@ -412,12 +411,13 @@ export const TripsProvider: React.FC<{
 
   const state = useMemo<TripsContextValue["state"]>(
     () => ({
+      authUser,
       isCreatingTrip,
       isLoadingTrips,
       refiningTripId,
       trips,
     }),
-    [isCreatingTrip, isLoadingTrips, refiningTripId, trips],
+    [authUser, isCreatingTrip, isLoadingTrips, refiningTripId, trips],
   );
 
   const value = useMemo<TripsContextValue>(

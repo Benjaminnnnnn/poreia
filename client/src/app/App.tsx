@@ -1,12 +1,16 @@
 import AppProviders from "@/app/providers";
 import AppRouter from "@/app/router";
-import AuthRoute from "@/features/auth/components/AuthRoute";
+import AuthRoute, { useAppAuth } from "@/features/auth/components/AuthRoute";
 import { TripsProvider } from "@/features/trips/state/TripsContext";
 import React from "react";
 
 const AuthenticatedApp: React.FC = () => {
+  const {
+    state: { authUser },
+  } = useAppAuth();
+
   return (
-    <TripsProvider>
+    <TripsProvider user={authUser}>
       <div className="min-h-0 flex-1">
         <AppRouter />
       </div>

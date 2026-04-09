@@ -1,4 +1,5 @@
 import { useAppNavigation } from "@/app/navigation";
+import Button from "@/components/ui/Button";
 import SearchPromptBar from "@/components/ui/SearchPromptBar";
 import { SUGGESTED_PROMPTS } from "@/constants";
 import { useTrips } from "@/features/trips/state/TripsContext";
@@ -157,14 +158,15 @@ const HomeRoute: React.FC = () => {
                 </h3>
                 <div className="space-y-2 sm:space-y-2.5 md:grid md:grid-cols-2 md:gap-3">
                   {SUGGESTED_PROMPTS.slice(0, 4).map((prompt) => (
-                    <button
+                    <Button
                       key={prompt}
                       type="button"
+                      variant="ghost"
                       onClick={() => handleSuggestionClick(prompt)}
                       disabled={isGenerating}
-                      className="group flex items-start gap-2 sm:gap-3 rounded-lg sm:rounded-xl border border-white/10 bg-white/10 px-3 py-2.5 sm:px-4 sm:py-3 text-left text-xs sm:text-[0.9rem] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+                      className="group h-auto w-full justify-start whitespace-normal rounded-lg py-2.5 px-3 text-left text-xs sm:rounded-xl sm:text-[0.9rem] border border-white/20 bg-white/10 hover:bg-white/20 hover:border-white/35"
                     >
-                      <span className="mt-0.5 shrink-0 text-white/50 transition-colors duration-150 group-hover:text-white/80">
+                      <span className="shrink-0 text-white/50 transition-colors duration-150 group-hover:text-white/80">
                         <MoveUpRight
                           size={12}
                           strokeWidth={2.5}
@@ -174,7 +176,7 @@ const HomeRoute: React.FC = () => {
                       <span className="font-medium leading-snug text-white/90 group-hover:text-white">
                         {prompt}
                       </span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>

@@ -702,21 +702,23 @@ const ProfileRoute: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 type="button"
+                variant="primary"
                 onClick={goHome}
-                className="flex items-center gap-1.5 rounded-full bg-[#D97757] px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors hover:bg-[#C66546] active:scale-95"
+                className="flex items-center gap-1.5 rounded-full"
               >
                 <Plus size={15} />
                 New Trip
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="default"
                 onClick={openSavedTrips}
-                className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/15"
+                className="rounded-full"
               >
                 View All
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -758,10 +760,11 @@ const ProfileRoute: React.FC = () => {
               })}
 
               {/* Create new story placeholder */}
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={goHome}
-                className="flex w-[18rem] shrink-0 flex-col items-center justify-center gap-3 rounded-[1.25rem] border border-dashed border-white/20 bg-white/5 py-16 transition-colors hover:bg-white/10"
+                className="flex w-[18rem] shrink-0 flex-col items-center justify-center gap-3 rounded-[1.25rem] border border-dashed border-white/20 py-16"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10">
                   <Plus size={22} className="text-white/50" />
@@ -774,7 +777,7 @@ const ProfileRoute: React.FC = () => {
                     Unlimited drafts available
                   </p>
                 </div>
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="rounded-[1.25rem] border border-white/10 bg-white/5 px-5 py-10 text-center backdrop-blur-sm">

@@ -1,3 +1,5 @@
+import L from "leaflet";
+import { Locate, Minus, Plus } from "lucide-react";
 import React, {
   useEffect,
   useEffectEvent,
@@ -5,10 +7,9 @@ import React, {
   useRef,
   useState,
 } from "react";
-import L from "leaflet";
-import { Locate, Minus, Plus } from "lucide-react";
 import { hasFiniteCoordinates } from "../lib/coordinates";
 import { MapPinData } from "../types";
+import Button from "./ui/Button";
 
 interface WorldMapProps {
   pins: MapPinData[];
@@ -61,7 +62,9 @@ function getDistanceInKm(first: MapPinData, second: MapPinData) {
       Math.sin(longitudeDelta / 2);
 
   return (
-    2 * earthRadiusKm * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+    2 *
+    earthRadiusKm *
+    Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
   );
 }
 
@@ -147,9 +150,11 @@ function createMarkerIcon(pin: MapPinData, isSelected: boolean) {
   const pinColor = pin.dayColor || DEFAULT_PIN_COLOR;
   const pinGlow = hexToRgba(pinColor, 0.22);
   const pinBadge = hexToRgba(pinColor, 0.14);
-  const pinLabel = pin.badgeLabel || (pin.dayNumber ? `Day ${pin.dayNumber}` : "Featured");
+  const pinLabel =
+    pin.badgeLabel || (pin.dayNumber ? `Day ${pin.dayNumber}` : "Featured");
   const pinImage = getPinImage(pin);
-  const markerValue = pin.markerValue || (pin.dayNumber ? String(pin.dayNumber) : null);
+  const markerValue =
+    pin.markerValue || (pin.dayNumber ? String(pin.dayNumber) : null);
 
   return L.divIcon({
     className: "custom-pin-icon",
@@ -330,7 +335,9 @@ const WorldMap: React.FC<WorldMapProps> = ({
       }
 
       marker.setLatLng([pin.lat, pin.lng]);
-      marker.setIcon(createMarkerIcon(pin, selectedPinIdRef.current === pin.id));
+      marker.setIcon(
+        createMarkerIcon(pin, selectedPinIdRef.current === pin.id),
+      );
       markerPinsRef.current[pin.id] = pin;
     });
   }, [handleMarkerClick, isMapReady, validPins]);
@@ -510,12 +517,14 @@ const WorldMap: React.FC<WorldMapProps> = ({
 
       {showControls ? (
         <div className="absolute bottom-4 right-3 z-[400] flex flex-col gap-2.5 md:bottom-12 md:right-4 md:gap-3">
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon"
             onClick={handleLocateMe}
             disabled={isLocating}
             aria-label="Locate me"
-            className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] text-[rgba(102,70,49,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl transition-all hover:bg-white hover:text-[rgba(217,102,58,0.92)] active:scale-95"
+            className="rounded-2xl border-white/60 bg-[rgba(255,250,245,0.88)] text-[rgba(102,70,49,0.88)] hover:bg-white hover:text-[rgba(217,102,58,0.92)]"
             title="Locate Me"
           >
             <Locate
@@ -526,28 +535,32 @@ const WorldMap: React.FC<WorldMapProps> = ({
                   : "md:h-5 md:w-5"
               }
             />
-          </button>
+          </Button>
 
           <div className="flex flex-col overflow-hidden rounded-2xl border border-white/60 bg-[rgba(255,250,245,0.88)] shadow-lg shadow-[rgba(118,75,39,0.1)] backdrop-blur-xl">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => mapInstanceRef.current?.zoomIn()}
               aria-label="Zoom in"
-              className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(255,236,208,0.8)] hover:text-[rgba(217,102,58,0.92)] active:bg-[rgba(255,231,198,0.92)]"
+              className="rounded-none text-[rgba(102,70,49,0.88)] hover:bg-[rgba(255,236,208,0.8)] hover:text-[rgba(217,102,58,0.92)]"
               title="Zoom In"
             >
               <Plus size={18} className="md:h-5 md:w-5" />
-            </button>
+            </Button>
             <div className="h-[1px] w-full bg-[rgba(221,197,173,0.56)]" />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={() => mapInstanceRef.current?.zoomOut()}
               aria-label="Zoom out"
-              className="focus-ring flex h-11 w-11 cursor-pointer items-center justify-center text-[rgba(102,70,49,0.88)] transition-colors hover:bg-[rgba(225,242,237,0.82)] hover:text-[rgba(42,140,142,0.92)] active:bg-[rgba(210,235,228,0.92)]"
+              className="rounded-none text-[rgba(102,70,49,0.88)] hover:bg-[rgba(225,242,237,0.82)] hover:text-[rgba(42,140,142,0.92)]"
               title="Zoom Out"
             >
               <Minus size={18} className="md:h-5 md:w-5" />
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}

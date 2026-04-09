@@ -1,6 +1,7 @@
 import type { User } from "firebase/auth";
 import { LogOut, Plus, UserRound } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 import Surface from "./Surface";
 
 const APP_LOGO_SRC = "/logo.svg";
@@ -127,11 +128,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     <header className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 px-4 py-3 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-black/20 before:backdrop-blur before:mix-blend-overlay before:-z-10">
       <div className="relative flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
         {/* Left: circle logo + wordmark */}
-        <button
+        <Button
           type="button"
+          variant="ghost"
           onClick={onNavigateHome}
           aria-label="Go to home page"
-          className="focus-ring flex min-w-0 items-center gap-3 rounded-full px-1 py-1 text-left transition-all duration-200 hover:bg-[#e66a3f]/20 hover:px-3 sm:hover:px-4"
+          className="flex min-w-0 items-center gap-3 rounded-xl px-3 py-1 text-left hover:bg-primary"
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full">
             <img
@@ -145,40 +147,44 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <p className="font-display text-[1.25rem] leading-none tracking-[-0.04em] text-white sm:text-[1.45rem]">
             Poreia
           </p>
-        </button>
+        </Button>
 
         {/* Right: New Trip + Saved trips + profile */}
         <div className="flex shrink-0 items-center justify-end gap-3">
           {authUser ? (
             <>
               {!isHomePage ? (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={onNavigateHome}
-                  className="focus-ring hidden rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#e66a3f]/30 hover:border-[#e66a3f]/50 sm:inline-flex sm:items-center sm:gap-1.5"
+                  className="hidden rounded-xl border border-white/25 bg-white/10 px-4 text-white hover:bg-primary hover:border-primary hover:text-white sm:inline-flex sm:items-center sm:gap-1.5"
                 >
                   <Plus size={14} />
                   New Trip
-                </button>
+                </Button>
               ) : null}
 
               {!isSavedTripsPage ? (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={onOpenSavedTrips}
-                  className="focus-ring hidden rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#e66a3f]/30 hover:border-[#e66a3f]/50 sm:inline-flex sm:items-center sm:gap-2"
+                  className="hidden rounded-xl border border-white/25 bg-white/10 px-4 text-white hover:bg-primary hover:border-primary hover:text-white sm:inline-flex sm:items-center sm:gap-2"
                 >
                   Saved trips
-                </button>
+                </Button>
               ) : null}
 
               <div ref={accountMenuRef} className="relative shrink-0">
-                <button
+                <Button
                   type="button"
+                  variant="default"
+                  size="icon"
                   aria-label="Open account menu"
                   aria-expanded={isAccountMenuOpen}
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
-                  className="focus-ring flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 hover:-translate-y-[1px] hover:bg-[#e66a3f]/20 hover:border-[#e66a3f]/50 sm:h-11 sm:w-11"
+                  className="rounded-full ring-2 ring-transparent transition-all hover:ring-primary focus-visible:ring-0 focus-visible:border-transparent sm:h-11 sm:w-11"
                 >
                   {authUser.photoURL ? (
                     <img
@@ -192,7 +198,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       {fallbackInitial}
                     </span>
                   )}
-                </button>
+                </Button>
 
                 {isAccountMenuOpen ? (
                   <Surface
@@ -212,30 +218,32 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                       ) : null}
                     </div>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => {
                         setIsAccountMenuOpen(false);
                         onOpenProfile();
                       }}
-                      className="focus-ring relative z-10 mt-2 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25"
+                      className="relative z-10 mt-2 w-full justify-start rounded-[0.8rem] text-white hover:bg-white/15 hover:text-white"
                     >
                       <UserRound size={15} />
                       Profile
-                    </button>
+                    </Button>
 
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={async () => {
                         setIsAccountMenuOpen(false);
                         await onSignOut();
                       }}
                       disabled={isAuthBusy}
-                      className="focus-ring relative z-10 mt-1 inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.8rem] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e66a3f]/25 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="relative z-10 mt-1 w-full justify-start rounded-[0.8rem] text-white hover:bg-white/15 hover:text-white"
                     >
                       <LogOut size={15} />
                       Sign out
-                    </button>
+                    </Button>
                   </Surface>
                 ) : null}
               </div>

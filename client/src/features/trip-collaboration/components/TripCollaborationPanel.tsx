@@ -1,3 +1,4 @@
+import Button from "@/components/ui/Button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 import type { TripMemberResponse, TripRole } from "@/types";
@@ -191,10 +192,11 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
   return createPortal(
     <div className="fixed inset-0 z-[70]">
       {/* Backdrop */}
-      <button
+      <Button
         type="button"
+        variant="ghost"
         aria-label="Close collaboration panel"
-        className="absolute inset-0 bg-[rgba(72,45,27,0.18)] backdrop-blur-[3px]"
+        className="absolute inset-0 rounded-none bg-[rgba(72,45,27,0.18)] backdrop-blur-[3px] hover:bg-[rgba(72,45,27,0.18)]"
         onClick={onClose}
       />
 
@@ -206,20 +208,22 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
         aria-label="Invite collaborators"
         tabIndex={-1}
         className={cn(
-          "absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden shadow-[0_28px_64px_rgba(100,63,34,0.16)] outline-none before:absolute before:inset-0 before:bg-white/60 before:-z-10 before:backdrop-blur after:absolute after:inset-0 after:bg-black/50 after:backdrop-blur-md after:mix-blend-overlay after:-z-10",
-          !isMobileViewport && "max-w-[30rem] border-l border-white/15",
+          "absolute right-0 top-0 flex h-full w-full flex-col overflow-hidden bg-[rgba(20,14,9,0.96)] shadow-[-12px_0_48px_rgba(0,0,0,0.32)] backdrop-blur-xl outline-none",
+          !isMobileViewport && "max-w-[30rem] border-l border-white/10",
         )}
       >
         {/* ── Header ─────────────────────────────────────────── */}
-        <div className="relative z-10 shrink-0 px-6 pb-6 pt-7 sm:px-8">
+        <div className="relative shrink-0 px-6 pb-6 pt-7 sm:px-8 bg-[radial-gradient(ellipse_120%_80%_at_0%_-10%,rgba(217,119,87,0.12),transparent)]">
           {/* Close button */}
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="focus-ring absolute right-5 top-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-white/70 transition-colors duration-150 hover:bg-white/10 hover:text-white"
+            className="absolute right-5 top-5 rounded-full text-white/60 hover:bg-white/10 hover:text-white"
           >
             <X size={17} />
-          </button>
+          </Button>
 
           {/* Eyebrow */}
           <p className="text-[0.62rem] font-bold uppercase tracking-[0.26em] text-white/80">
@@ -252,10 +256,10 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
           )}
         </div>
 
-        <div className="relative z-10 h-px bg-white/20" />
+        <div className="h-px bg-white/15" />
 
         {/* ── Scrollable body ─────────────────────────────────── */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-6 py-7 sm:px-8">
+        <div className="flex-1 overflow-y-auto px-6 py-7 sm:px-8">
           {!canManageMembers ? (
             <p className="rounded-xl border border-white/20 bg-white/10 px-5 py-5 text-sm leading-7 text-white/80">
               You do not have permission to manage trip collaborators.
@@ -296,30 +300,26 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                     const isActive = selectedRole === option.role;
                     const Icon = option.icon;
                     return (
-                      <button
+                      <Button
                         key={option.role}
                         type="button"
+                        variant="ghost"
                         onClick={() => setSelectedRole(option.role)}
                         className={cn(
-                          "focus-ring rounded-[1.1rem] border px-4 py-4 text-left transition-[border-color,background-color,box-shadow] duration-200",
+                          "h-auto w-full flex-col items-start justify-start whitespace-normal rounded-[1.1rem] p-4 transition-all duration-150",
                           isActive
-                            ? "border-white/40 bg-white/20 shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_8px_20px_rgba(0,0,0,0.15)]"
-                            : "border-white/20 bg-white/10 hover:border-white/30 hover:bg-white/15",
+                            ? "bg-primary border-2 border-white/25 text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] hover:bg-primary"
+                            : "border border-white/15 bg-white/6 text-white/60 hover:bg-primary hover:border-primary hover:text-white",
                         )}
                       >
-                        <div
-                          className={cn(
-                            "mb-2.5 flex items-center gap-2 text-[0.93rem] font-semibold",
-                            isActive ? "text-white" : "text-white/90",
-                          )}
-                        >
+                        <div className={cn("mb-2 flex items-center gap-2 text-[0.93rem] font-semibold", isActive ? "text-white" : "text-white/70")}>
                           <Icon size={15} strokeWidth={2} />
                           {option.title}
                         </div>
-                        <p className="text-[0.78rem] leading-5 text-white/70">
+                        <p className={cn("text-[0.78rem] leading-5 text-left", isActive ? "text-white/80" : "text-white/40")}>
                           {option.description}
                         </p>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -331,10 +331,11 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                       ? `${memberCount} people already have access.`
                       : "Only you have access right now."}
                   </p>
-                  <button
+                  <Button
                     type="submit"
+                    variant="primary"
                     disabled={!inviteEmail.trim() || isAdding}
-                    className="focus-ring inline-flex shrink-0 items-center gap-2 rounded-full bg-[#e66a3f] px-5 py-2.5 text-[0.85rem] font-semibold text-white transition-all duration-150 hover:bg-[#e66a3f]/90 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40"
+                    className="shrink-0 gap-2 rounded-full"
                   >
                     {isAdding ? (
                       <Loader2 className="animate-spin" size={14} />
@@ -342,7 +343,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                       <UserRoundPlus size={14} />
                     )}
                     {isAdding ? "Adding…" : "Send Invite"}
-                  </button>
+                  </Button>
                 </div>
               </form>
 
@@ -423,32 +424,31 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                                 {(["editor", "viewer"] as const).map((role) => {
                                   const isActive = member.role === role;
                                   return (
-                                    <button
+                                    <Button
                                       key={role}
                                       type="button"
+                                      variant={isActive ? "default" : "ghost"}
                                       onClick={() =>
                                         handleRoleChange(member, role)
                                       }
                                       disabled={isBusy}
-                                      className={cn(
-                                        "focus-ring rounded-[0.65rem] px-3 py-1.5 text-[0.75rem] font-semibold leading-none transition-[background-color,color] duration-150",
-                                        isActive
-                                          ? "bg-[#e66a3f] text-white"
-                                          : "text-white/70 hover:bg-white/20",
-                                      )}
+                                      size="sm"
+                                      className="rounded-[0.65rem] h-auto px-3 py-1.5 text-[0.75rem] font-semibold leading-none"
                                     >
                                       {role === "editor" ? "Edit" : "View"}
-                                    </button>
+                                    </Button>
                                   );
                                 })}
                               </div>
 
                               {/* Remove */}
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
                                 onClick={() => handleRemoveMember(member)}
                                 disabled={isBusy}
-                                className="focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-semibold text-white/70 transition-colors duration-150 hover:bg-red-500/20 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-50"
+                                size="sm"
+                                className="gap-1.5 rounded-full text-white/70 hover:bg-red-500/20 hover:text-red-200 h-auto px-3 py-1.5 text-[0.75rem] font-semibold"
                               >
                                 {isBusy ? (
                                   <Loader2 className="animate-spin" size={12} />
@@ -456,7 +456,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                                   <UserMinus size={12} />
                                 )}
                                 Remove
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </article>

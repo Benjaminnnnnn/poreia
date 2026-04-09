@@ -83,9 +83,11 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
     </div>
 
     {/* Drag handle strip */}
-    <button
+    <Button
       ref={dragHandleRef}
       type="button"
+      variant="ghost"
+      size="icon"
       data-drag-handle="true"
       {...dragHandleProps}
       onClick={(e) => {
@@ -93,14 +95,14 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
         dragHandleProps?.onClick?.(e);
       }}
       className={cn(
-        "focus-ring flex w-7 shrink-0 touch-none items-center justify-center text-white/25 transition-colors active:cursor-grabbing md:hover:text-white/60",
+        "w-7 shrink-0 touch-none text-white/25 hover:text-white/60",
         dragHandleProps?.className ?? "",
       )}
       aria-label={`Reorder ${activity.description}`}
       title="Drag to reorder"
     >
       <GripVertical size={14} />
-    </button>
+    </Button>
 
     {/* Content area — height driven by text, not image */}
     <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-3 pr-3">
@@ -246,21 +248,23 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
         </div>
       )}
       {/* Drag handle — left-center of image, fade in on card hover */}
-      <button
+      <Button
         ref={dragHandleRef}
         type="button"
+        variant="ghost"
+        size="icon"
         data-drag-handle="true"
         {...(isHandleOnly ? dragHandleProps : undefined)}
         onClick={(e) => {
           e.stopPropagation();
           isHandleOnly && dragHandleProps?.onClick?.(e);
         }}
-        className="focus-ring absolute left-1.5 top-1/2 z-10 flex h-7 w-6 -translate-y-1/2 touch-none items-center justify-center rounded-md bg-black/40 text-white/90 opacity-0 backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 hover:bg-black/50 active:cursor-grabbing"
+        className="absolute left-1.5 top-1/2 z-10 h-7 w-6 -translate-y-1/2 touch-none rounded-md bg-black/40 text-white/90 opacity-0 backdrop-blur-sm transition-opacity duration-150 group-hover:opacity-100 hover:bg-black/50"
         aria-label={`Reorder ${activity.description}`}
         title="Drag to reorder"
       >
         <GripVertical size={13} />
-      </button>
+      </Button>
     </div>
 
     {/* Content — height driven by text, not image */}
@@ -333,63 +337,67 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
 
       {/* Mobile-only action row */}
       <div className="mt-2 flex items-center gap-2 border-t border-white/10 pt-2 md:hidden">
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
           }}
-          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 text-xs text-white/80 transition-colors hover:bg-white/20 hover:text-white"
+          className="h-8 gap-1 rounded-full border-white/15 text-xs hover:border-white/30 hover:text-white"
           aria-label={`Edit ${activity.description}`}
         >
           <Pencil size={12} />
-          <span className="font-semibold uppercase tracking-[0.08em]">
-            Edit
-          </span>
-        </button>
-        <button
+          <span className="font-semibold tracking-[0.08em]">Edit</span>
+        </Button>
+        <Button
           type="button"
+          variant="default"
+          size="sm"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
-          className="focus-ring inline-flex min-h-[2rem] items-center gap-1.5 rounded-full border border-red-400/20 bg-red-400/15 px-3 text-xs text-red-300 transition-colors hover:bg-red-400/25 hover:text-red-200"
+          className="h-8 gap-1 rounded-full text-xs"
           aria-label={`Delete ${activity.description}`}
         >
           <Trash2 size={12} />
-          <span className="font-semibold uppercase tracking-[0.08em]">
-            Delete
-          </span>
-        </button>
+          <span className="font-semibold  tracking-[0.08em]">Delete</span>
+        </Button>
       </div>
     </div>
 
     {/* Desktop action buttons — top-right corner, fade in on hover */}
     <div className="pointer-events-none absolute right-2 top-2 hidden flex-col gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 md:flex">
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon-sm"
         onClick={(e) => {
           e.stopPropagation();
           onEdit();
         }}
-        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/20 hover:text-white"
+        className="rounded-lg text-white/70 hover:bg-white hover:text-foreground"
         title="Edit"
         aria-label={`Edit ${activity.description}`}
       >
         <Pencil size={13} />
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="default"
+        size="icon-sm"
         onClick={(e) => {
           e.stopPropagation();
           onDelete();
         }}
-        className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-red-300 transition-colors hover:bg-red-400/20 hover:text-red-200"
+        className="rounded-lg"
         title="Delete"
         aria-label={`Delete ${activity.description}`}
       >
         <Trash2 size={13} />
-      </button>
+      </Button>
     </div>
   </div>
 );

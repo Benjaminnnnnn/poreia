@@ -1,18 +1,11 @@
+import { BookText, ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import {
-  BookText,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 import { DayPlan, TravelItinerary } from "../../types";
 import Badge from "../ui/Badge";
+import Button from "../ui/Button";
 import Surface from "../ui/Surface";
-import { Tooltip, TooltipTrigger, TooltipContent } from "../ui/Tooltip";
-import {
-  MOOD_OPTIONS,
-  MOOD_OPTION_LOOKUP,
-  WorkspaceTab,
-} from "./constants";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/Tooltip";
+import { MOOD_OPTIONS, MOOD_OPTION_LOOKUP, WorkspaceTab } from "./constants";
 
 export interface ItinerarySectionNavItem {
   id: string;
@@ -84,9 +77,9 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
   days,
   onUpdateDayReflection,
 }) => {
-  const [draftNotesByDay, setDraftNotesByDay] = useState<Record<number, string>>(
-    {},
-  );
+  const [draftNotesByDay, setDraftNotesByDay] = useState<
+    Record<number, string>
+  >({});
 
   useEffect(() => {
     setDraftNotesByDay(
@@ -105,19 +98,14 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
           <BookText size={16} /> Notes by day
         </h3>
         <p className="mt-3 text-sm leading-6 text-white/70">
-          Capture how each day felt while the details are fresh. These notes stay
-          with the trip and remain available when you come back later.
+          Capture how each day felt while the details are fresh. These notes
+          stay with the trip and remain available when you come back later.
         </p>
       </div>
 
       <div className="space-y-4">
         {days.map((dayPlan, dayIndex) => (
-          <Surface
-            as="section"
-            key={dayPlan.day}
-            variant="glass"
-            radius="md"
-          >
+          <Surface as="section" key={dayPlan.day} variant="glass" radius="md">
             <div className="flex flex-col gap-3 border-b border-white/15 pb-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/50">
@@ -140,23 +128,25 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
                   {MOOD_OPTIONS.map((option) => {
                     const isActive = dayPlan.mood === option.value;
                     return (
-                      <button
+                      <Button
                         key={option.value}
                         type="button"
+                        variant={isActive ? "default" : "outline"}
+                        size="sm"
                         onClick={() =>
                           onUpdateDayReflection(dayIndex, {
                             mood: isActive ? undefined : option.value,
                             notes: draftNotesByDay[dayPlan.day] ?? "",
                           })
                         }
-                        className={`focus-ring min-h-[44px] rounded-[0.65rem] border px-3.5 py-2 text-sm font-medium transition-colors ${
+                        className={`rounded-[0.65rem] h-11 ${
                           isActive
                             ? option.activeClassName
                             : option.idleClassName
                         }`}
                       >
                         {option.label}
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -202,30 +192,22 @@ export const ItinerarySectionNav: React.FC<{
   items: ItinerarySectionNavItem[];
   onSelect: (sectionId: string) => void;
   onToggleCollapsed: () => void;
-}> = ({
-  activeSectionId,
-  isCollapsed,
-  items,
-  onSelect,
-  onToggleCollapsed,
-}) => {
+}> = ({ activeSectionId, isCollapsed, items, onSelect, onToggleCollapsed }) => {
   const renderItem = (item: ItinerarySectionNavItem) => {
     const isActive = item.id === activeSectionId;
 
     return (
-      <button
+      <Button
         key={item.id}
         type="button"
+        variant={isActive ? "primary" : "default"}
         onClick={() => onSelect(item.id)}
         aria-pressed={isActive}
-        className={`focus-ring relative flex min-h-[44px] w-full items-center rounded-[0.95rem] px-4 py-3 text-left text-[0.96rem] font-semibold tracking-[-0.02em] transition-[background-color,color,transform,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          isActive
-            ? "bg-[rgba(230,106,63,0.96)] text-white shadow-[0_10px_18px_rgba(217,102,58,0.2)]"
-            : "text-white/65 hover:bg-white/15 hover:text-white"
-        }`}
+        className={`relative w-full justify-start rounded-[0.95rem] h-11 text-[0.96rem] tracking-[-0.02em]
+        `}
       >
         <span className="truncate">{item.label}</span>
-      </button>
+      </Button>
     );
   };
 
@@ -244,15 +226,17 @@ export const ItinerarySectionNav: React.FC<{
               return (
                 <Tooltip key={item.id}>
                   <TooltipTrigger asChild>
-                    <button
+                    <Button
                       type="button"
+                      variant={isActive ? "default" : "outline"}
+                      size="icon-xs"
                       onClick={() => onSelect(item.id)}
                       aria-label={item.label}
                       aria-pressed={isActive}
-                      className={`focus-ring inline-flex h-3 w-3 rounded-full border transition-[transform,background-color,border-color,box-shadow] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                      className={`h-3 w-3 rounded-full ${
                         isActive
-                          ? "border-primary bg-primary shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_22%,transparent)]"
-                          : "border-border bg-card hover:border-primary/56 hover:bg-accent"
+                          ? "shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_22%,transparent)]"
+                          : ""
                       }`}
                     />
                   </TooltipTrigger>
@@ -263,14 +247,16 @@ export const ItinerarySectionNav: React.FC<{
           </div>
 
           <div className="mt-auto">
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={onToggleCollapsed}
               aria-label="Expand section navigation"
-              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full text-white/60 transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-orange-400/20 hover:text-orange-300"
+              className="rounded-full text-white/60 hover:text-orange-300"
             >
               <ChevronRight size={17} />
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
@@ -278,14 +264,15 @@ export const ItinerarySectionNav: React.FC<{
           <div className="flex flex-col gap-1.5">{items.map(renderItem)}</div>
 
           <div className="mt-auto pt-4">
-            <button
+            <Button
               type="button"
+              variant="ghost"
               onClick={onToggleCollapsed}
-              className="focus-ring inline-flex min-h-[44px] w-full items-center gap-2 rounded-[0.95rem] px-3.5 text-sm font-semibold text-white/60 transition-[background-color,color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-orange-400/20 hover:text-orange-300"
+              className="w-full justify-start gap-2 rounded-[0.95rem] text-white/60 hover:text-orange-300"
             >
               <ChevronLeft size={16} />
               Hide sidebar
-            </button>
+            </Button>
           </div>
         </div>
       )}

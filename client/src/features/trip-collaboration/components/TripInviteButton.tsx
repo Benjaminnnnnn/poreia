@@ -16,18 +16,19 @@ const TripInviteButton: React.FC<TripInviteButtonProps> = ({
   return (
     <Button
       type="button"
+      variant="primary"
       size="md"
       onClick={onClick}
-      className="relative min-h-[46px] rounded-[0.95rem] border border-white/30 bg-white/10 px-3.5 text-white shadow-[0_10px_22px_rgba(120,78,42,0.06)] backdrop-blur transition-all duration-200 hover:bg-white/15 hover:border-white/40 before:absolute before:inset-0 before:rounded-[inherit] before:bg-black/20 before:backdrop-blur before:mix-blend-overlay before:-z-10"
+      className="min-h-[46px] px-3.5"
     >
-      <span className="relative inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#e66a3f]/30 text-white">
+      <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground">
         <UserRoundPlus size={14} />
       </span>
-      <span className="relative z-10 flex min-w-0 flex-col items-start leading-none">
+      <span className="flex min-w-0 flex-col items-start leading-none">
         <span className="text-[0.82rem] font-semibold tracking-[-0.01em]">
           Invite
         </span>
-        <span className="mt-1 text-[0.63rem] font-semibold uppercase tracking-[0.18em] text-white/70">
+        <span className="mt-1 text-[0.63rem] font-semibold uppercase tracking-[0.18em] opacity-80">
           {collaboratorCount} with access
         </span>
       </span>

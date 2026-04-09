@@ -1,4 +1,3 @@
-import { useAppAuth } from "@/features/auth/components/AuthRoute";
 import {
   addTripMember,
   listTripMembers,
@@ -29,10 +28,8 @@ export function useTripMembers({
   tripId,
 }: UseTripMembersOptions) {
   const {
-    state: { authUser },
-  } = useAppAuth();
-  const {
     actions: { refreshTrip, syncTripSummary },
+    state: { authUser },
   } = useTrips();
   const [members, setMembers] = useState<TripMemberResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);

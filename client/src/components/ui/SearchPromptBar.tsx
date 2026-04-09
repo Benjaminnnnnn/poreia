@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { motion, useReducedMotion } from "framer-motion";
+import React, { useState } from "react";
+import Button from "./Button";
 
 // App-palette conic gradient — coral → amber → peach → teal → sea → coral
 const RING_GRADIENT =
@@ -8,8 +9,10 @@ const RING_GRADIENT =
 
 type SearchPromptBarVariant = "overlay" | "refine";
 
-export interface SearchPromptBarProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "size"> {
+export interface SearchPromptBarProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "onChange" | "size"
+> {
   disableGlow?: boolean;
   disableRing?: boolean;
   isLoading?: boolean;
@@ -25,7 +28,10 @@ export interface SearchPromptBarProps
   variant?: SearchPromptBarVariant;
 }
 
-const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>(
+const SearchPromptBar = React.forwardRef<
+  HTMLInputElement,
+  SearchPromptBarProps
+>(
   (
     {
       className,
@@ -70,7 +76,10 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
     };
 
     const handleBlurCapture = (e: React.FocusEvent<HTMLDivElement>) => {
-      if (e.relatedTarget instanceof Node && e.currentTarget.contains(e.relatedTarget)) {
+      if (
+        e.relatedTarget instanceof Node &&
+        e.currentTarget.contains(e.relatedTarget)
+      ) {
         return;
       }
       setIsFocused(false);
@@ -89,13 +98,17 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
           onFocusCapture={handleFocusCapture}
         >
           <div className="pl-2.5 pr-2 text-primary">
-            <span className={`search-status-icon ${isLoading ? "search-status-icon-loading" : ""}`}>
+            <span
+              className={`search-status-icon ${isLoading ? "search-status-icon-loading" : ""}`}
+            >
               <span aria-hidden="true" className="search-status-icon-glow" />
               {isLoading ? (loadingIcon ?? leadingIcon) : leadingIcon}
             </span>
           </div>
 
-          <label htmlFor={id} className="sr-only">{label}</label>
+          <label htmlFor={id} className="sr-only">
+            {label}
+          </label>
 
           <input
             {...props}
@@ -112,10 +125,15 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
             className="h-11 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-transparent bg-transparent px-1 text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none md:text-base"
           />
 
-          {trailingContent ? <div className="shrink-0">{trailingContent}</div> : null}
+          {trailingContent ? (
+            <div className="shrink-0">{trailingContent}</div>
+          ) : null}
 
           {/* Bottom progress bar */}
-          <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden"
+          >
             <div className="absolute inset-0 bg-border" />
             <div
               className={cn(
@@ -169,7 +187,12 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
         </div>
 
         {/* Pill shell — gradient ring or static border */}
-        <div className={cn("relative overflow-hidden rounded-full shadow-md", disableRing ? "border border-border p-0" : "p-[2px]")}>
+        <div
+          className={cn(
+            "relative overflow-hidden rounded-full shadow-md",
+            disableRing ? "border border-border p-0" : "p-[2px]",
+          )}
+        >
           {!disableRing && (
             <motion.div
               aria-hidden="true"
@@ -182,7 +205,6 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
 
           {/* Inner content area */}
           <div className="relative flex items-center gap-2 rounded-full bg-card px-2 py-2">
-
             {/* Left circle icon / spinner */}
             <div
               aria-hidden="true"
@@ -212,7 +234,9 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
               )}
             </div>
 
-            <label htmlFor={id} className="sr-only">{label}</label>
+            <label htmlFor={id} className="sr-only">
+              {label}
+            </label>
 
             <input
               {...props}
@@ -229,16 +253,19 @@ const SearchPromptBar = React.forwardRef<HTMLInputElement, SearchPromptBarProps>
               className="min-w-0 flex-1 border-none bg-transparent text-[1rem] font-medium text-foreground placeholder:text-muted-foreground/55 focus:outline-none sm:text-[1.05rem]"
             />
 
-            {trailingContent && <div className="shrink-0">{trailingContent}</div>}
+            {trailingContent && (
+              <div className="shrink-0">{trailingContent}</div>
+            )}
 
             {submitLabel && (
-              <button
+              <Button
                 type="submit"
+                variant="primary"
                 disabled={disabled || !value.trim()}
-                className="shrink-0 rounded-[1.25rem] bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-150 hover:bg-primary/90 active:scale-[0.97] disabled:opacity-50 sm:px-6 sm:text-[0.95rem]"
+                className="shrink-0 rounded-[1.25rem]"
               >
                 {isLoading ? loadingLabel : submitLabel}
-              </button>
+              </Button>
             )}
           </div>
         </div>

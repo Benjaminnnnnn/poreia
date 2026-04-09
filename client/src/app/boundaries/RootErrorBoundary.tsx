@@ -42,7 +42,11 @@ class ErrorBoundary extends React.Component<
     const message = error.message?.trim() || null;
 
     return (
-      <section className="flex min-h-screen items-center justify-center bg-black/40 px-4 py-6 sm:px-6 lg:px-8 backdrop-blur-sm before:absolute before:inset-0 before:bg-gradient-to-b before:from-black/20 before:via-black/40 before:to-black/60 before:-z-10">
+      <div className="relative flex min-h-screen flex-col items-center justify-center px-4 py-6 sm:px-6">
+        {/* Background */}
+        <div className="absolute inset-0 bg-[rgb(18,14,10)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(217,119,87,0.18),transparent)]" />
+
         <div className="relative z-10 w-full max-w-[31rem]">
           <Surface
             variant="glass"
@@ -63,11 +67,11 @@ class ErrorBoundary extends React.Component<
             </div>
 
             {message ? (
-              <div className="relative z-10 mt-6 border-l-2 border-[#e66a3f]/50 pl-4">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/70">
+              <div className="relative z-10 mt-6 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-white/50">
                   Details
                 </p>
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-white/75">
+                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-white/70">
                   {message}
                 </p>
               </div>
@@ -81,7 +85,7 @@ class ErrorBoundary extends React.Component<
             </div>
           </Surface>
         </div>
-      </section>
+      </div>
     );
   }
 }
