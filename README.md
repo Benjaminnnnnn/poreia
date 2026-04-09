@@ -50,7 +50,7 @@ Type one sentence. Poreia turns it into a multi-day trip plan with budget guidan
    npm run dev
    ```
 
-4. Open `http://localhost:3000`
+4. Open `http://localhost:5173`
 
 ## Environment Notes
 
@@ -96,32 +96,66 @@ This repository includes a shared VS Code dev container in `.devcontainer/devcon
 1. Open the repository in VS Code.
 2. Run `Dev Containers: Reopen in Container`.
 3. Wait for the container build and initial dependency install to finish.
-4. Start the app in the container terminal with:
+4. Create the local env files you need inside the workspace:
+
+   ```bash
+   cp server/.dev.vars.example server/.dev.vars
+   ```
+
+   `client/.env.local`
+
+   ```bash
+   VITE_FIREBASE_API_KEY=your_firebase_web_api_key
+   VITE_GOOGLE_PLACES_API_KEY=your_browser_restricted_google_places_key
+   VITE_POLLINATIONS_API_KEY=optional_pollinations_key
+   ```
+
+   `server/.dev.vars`
+
+   ```bash
+   FIREBASE_PROJECT_ID=your-firebase-project-id
+   FIREBASE_CLIENT_EMAIL=service-account@your-project.iam.gserviceaccount.com
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nreplace-with-your-service-account-private-key\n-----END PRIVATE KEY-----\n"
+   POLLINATIONS_API_KEY=optional_pollinations_api_key
+   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+   ```
+
+5. Start the services you need in separate container terminals:
 
    ```bash
    npm run dev
+   npm run server:dev
+   npm run firestore:emulator
    ```
 
 ### Notes
 
 - The container uses a Linux Node 22 environment.
-- `node_modules` lives in a Docker volume so host OS differences do not leak into dependencies.
-- `.env.local` stays in your local checkout and is mounted into the container workspace.
+- Root `npm ci` installs both `client` and `server` through npm workspaces.
+- The backend dev server is exposed on `http://localhost:8787`.
+- The Firestore emulator and Emulator UI are exposed on `http://localhost:8080` and `http://localhost:4000`.
+- Root `npm ci` still installs both `client` and `server` through npm workspaces, but `node_modules` now lives in the workspace mount instead of a Docker volume.
+- `client/.env.local` and `server/.dev.vars` stay in your local checkout and are mounted into the container workspace.
 - Running directly on the host OS is still supported.
 
 ## Project Structure
 
 ```text
-src/
-  components/   UI surfaces such as search, itinerary, and map views
-  constants/    prompts and seed values
-  lib/          Firebase setup
-  services/     itinerary and image provider integrations
-  styles/       global styles
-  types/        shared TypeScript models
-  App.tsx       app shell, routing, auth gate
-  main.tsx      React entry point
-public/         static files copied as-is
+client/
+  src/
+    components/   UI surfaces such as search, itinerary, and map views
+    constants/    prompts and seed values
+    lib/          Firebase setup
+    services/     itinerary and image provider integrations
+    styles/       global styles
+    types/        shared TypeScript models
+    App.tsx       app shell, routing, auth gate
+    main.tsx      React entry point
+  public/         static files copied as-is
+server/
+  src/            Cloudflare Worker API, routes, and Firestore access
+  test/           Integration coverage against the Firestore emulator
+.devcontainer/    Shared VS Code container config and Dockerfile
 ```
 
 ## Scripts
@@ -130,4 +164,9 @@ public/         static files copied as-is
 npm run dev
 npm run build
 npm run preview
+npm run client:dev
+npm run server:dev
+npm run server:typecheck
+npm run firestore:emulator
+npm run server:test:integration
 ```

@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Trip data is backend-owned. Do not allow direct web/mobile SDK access yet.
+    match /trips/{tripId} {
+      allow read, write: if false;
+
+      match /{document=**} {
+        allow read, write: if false;
+      }
+    }
+
+    // User documents may contain private fields like email.
+    // Owner read only, no direct client writes for now.
+    match /users/{userId} {
+      allow read: if isSelf(userId);
+      allow create, update, delete: if false;
+
+      match /trip-memberships/{tripId} {
+        allow read: if isSelf(userId);
+        allow write: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

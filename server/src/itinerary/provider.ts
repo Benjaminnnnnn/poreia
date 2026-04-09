@@ -1,0 +1,536 @@
+import { z } from 'zod';
+import { AppError } from '../core/errors';
+import { createPrefixedId } from '../core/id';
+import { appLogger, type LogContext, type Logger } from '../core/logger';
+import type { TravelItinerary } from '../types/domain';
+
+const POLLINATIONS_TEXT_ENDPOINT = 'https://gen.pollinations.ai/text/';
+const POLLINATIONS_CHAT_COMPLETIONS_ENDPOINT = 'https://gen.pollinations.ai/v1/chat/completions';
+const MAX_PROMPT_CHARS = 1600;
+const MAX_LOGGED_RESPONSE_CHARS = 12000;
+const POLLINATIONS_MODEL = 'openai';
+const REQUIRED_JSON_SCHEMA = `{
+  "destination": "Tokyo, Japan",
+  "title": "5-Day Tokyo Foodie Escape",
+  "totalDays": 5,
+  "totalBudget": 2000,
+  "currency": "USD",
+  "overview": "Short overview of the trip.",
+  "days": [
+    {
+      "day": 1,
+      "theme": "Arrival and local food markets",
+      "activities": [
+        {
+          "time": "09:00",
+          "description": "Activity description",
+          "location": "Location name",
+          "lat": 35.0,
+          "lng": 139.0,
+          "costEstimate": 25,
+          "img_prompt": "specific landmark, district, park, or geographic place name"
+        }
+      ]
+    }
+  ],
+  "budgetBreakdown": [
+    {
+      "category": "Food",
+      "amount": 600
+    }
+  ]
+}`;
+
+const RESPONSE_INSTRUCTION = [
+  'Return exactly one JSON object.',
+  'Always return a travel itinerary object.',
+  'Do not return markdown, commentary, prose, preambles, or code fences.',
+  `Follow this JSON shape exactly:\n${REQUIRED_JSON_SCHEMA}`,
+  'Use exactly these top-level keys: destination, title, totalDays, totalBudget, currency, overview, days, budgetBreakdown.',
+  'If the user names a destination, the itinerary destination must match that place or a clearly nested place within it.',
+  'Never substitute a different city, region, or country than the one the user requested.',
+  'days must be an array of objects with keys: day, theme, activities. mood and notes are optional.',
+  'activities must be an array of objects with keys: time, description, location, lat, lng, costEstimate, img_prompt. id is optional.',
+  'budgetBreakdown must be an array of objects with keys: category, amount.',
+  'All numeric fields must be valid JSON numbers, not strings.',
+  'img_prompt is internal metadata for photo lookup. Keep it concise and location-focused.',
+  'If some trip details are missing, infer reasonable defaults and still return a complete itinerary object.',
+].join(' ');
+
+export const travelItinerarySchema = z.object({
+  destination: z.string().min(1),
+  title: z.string().min(1),
+  totalDays: z.number(),
+  totalBudget: z.number(),
+  currency: z.string().min(1),
+  overview: z.string().min(1),
+  days: z.array(
+    z.object({
+      day: z.number(),
+      theme: z.string().min(1),
+      mood: z.string().optional(),
+      notes: z.string().optional(),
+      activities: z.array(
+        z.object({
+          id: z.string().min(1).optional(),
+          time: z.string().min(1),
+          description: z.string().min(1),
+          location: z.string().min(1),
+          lat: z.number().optional(),
+          lng: z.number().optional(),
+          costEstimate: z.number().optional(),
+          img_prompt: z.string().optional(),
+        }),
+      ),
+    }),
+  ),
+  budgetBreakdown: z.array(
+    z.object({
+      category: z.string().min(1),
+      amount: z.number(),
+    }),
+  ),
+});
+
+function trimToMaxLength(value: string, maxChars: number): string {
+  if (value.length <= maxChars) {
+    return value;
+  }
+
+  return `${value.slice(0, maxChars)}...`;
+}
+
+function normalizeComparableText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function tokenizeComparableText(value: string): string[] {
+  return normalizeComparableText(value).split(' ').filter((token) => token.length > 2);
+}
+
+function extractRequestedPlace(prompt: string): string | null {
+  const patterns = [
+    /\b(?:in|to|around|through|across|visiting|visit)\s+([^,.;!?]+?)(?=\s+(?:for|with|on|under|over|near|around|from|via|beginner|beginners|budget)\b|$)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = prompt.match(pattern);
+    const candidate = match?.[1]?.trim();
+    if (!candidate) {
+      continue;
+    }
+
+    return candidate.replace(/\s+/g, ' ').trim();
+  }
+
+  return null;
+}
+
+function destinationMatchesPrompt(prompt: string, itinerary: TravelItinerary): boolean {
+  const requestedPlace = extractRequestedPlace(prompt);
+  if (!requestedPlace) {
+    return true;
+  }
+
+  const requested = normalizeComparableText(requestedPlace);
+  const actual = normalizeComparableText(itinerary.destination);
+  if (!requested || !actual) {
+    return true;
+  }
+
+  if (actual.includes(requested) || requested.includes(actual)) {
+    return true;
+  }
+
+  const requestedTokens = requested.split(' ').filter((token) => token.length > 2);
+  const actualTokens = new Set(actual.split(' ').filter((token) => token.length > 2));
+  const overlapCount = requestedTokens.filter((token) => actualTokens.has(token)).length;
+
+  return overlapCount >= Math.min(2, requestedTokens.length);
+}
+
+function destinationMatchesCurrentTrip(
+  currentItinerary: TravelItinerary,
+  nextItinerary: TravelItinerary,
+): boolean {
+  const current = normalizeComparableText(currentItinerary.destination);
+  const next = normalizeComparableText(nextItinerary.destination);
+  if (!current || !next) {
+    return false;
+  }
+
+  if (current.includes(next) || next.includes(current)) {
+    return true;
+  }
+
+  const currentTokens = tokenizeComparableText(currentItinerary.destination);
+  const nextTokens = new Set(tokenizeComparableText(nextItinerary.destination));
+  const overlapCount = currentTokens.filter((token) => nextTokens.has(token)).length;
+
+  return overlapCount >= Math.min(2, currentTokens.length);
+}
+
+function summarizeCurrentItinerary(currentItinerary: TravelItinerary): string {
+  const daySummaries = currentItinerary.days
+    .map((day) => {
+      const activities = day.activities
+        .map((activity) => `${activity.time} ${activity.description} @ ${activity.location}`)
+        .join(' | ');
+      return `Day ${day.day} (${day.theme}): ${activities}`;
+    })
+    .join('\n');
+
+  return trimToMaxLength(
+    [
+      `Destination: ${currentItinerary.destination}`,
+      `Title: ${currentItinerary.title}`,
+      `Overview: ${currentItinerary.overview}`,
+      daySummaries,
+    ].join('\n'),
+    900,
+  );
+}
+
+function buildPrompt(
+  prompt: string,
+  history: ChatMessage[],
+  currentItinerary?: TravelItinerary | null,
+): string {
+  const requiredParts = [
+    'Create a travel itinerary as JSON.',
+    `User request:\n${prompt.trim()}`,
+  ];
+  const optionalParts = [
+    'Use realistic budgets and include lat/lng for activities.',
+  ];
+
+  if (currentItinerary) {
+    optionalParts.push(
+      'Refine this existing itinerary only.',
+      `Keep the same primary destination: ${currentItinerary.destination}.`,
+      'Do not switch to a different city, region, or country. If the request conflicts with the current destination, ignore that part and keep refining within the current trip.',
+      'Keep unchanged parts consistent unless the user clearly asks to modify them.',
+      `Current itinerary summary:\n${summarizeCurrentItinerary(currentItinerary)}`,
+    );
+  }
+
+  if (history.length > 0) {
+    const historyText = history
+      .slice(-2)
+      .map((message) => `${message.role}: ${message.text}`)
+      .join('\n');
+    optionalParts.push(`Recent chat history:\n${historyText}`);
+  }
+
+  let assembled = requiredParts.join('\n\n');
+
+  for (const optionalPart of optionalParts) {
+    const next = `${assembled}\n\n${optionalPart}`;
+    if (next.length > MAX_PROMPT_CHARS) {
+      break;
+    }
+
+    assembled = next;
+  }
+
+  return trimToMaxLength(assembled, MAX_PROMPT_CHARS);
+}
+
+const CHAT_COMPLETION_SYSTEM_PROMPT = [
+  'You are Poreia, an elite AI travel planner.',
+  RESPONSE_INSTRUCTION,
+  'Return only valid JSON.',
+].join(' ');
+
+function extractJsonObject(text: string): string {
+  const trimmed = text.trim();
+  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fencedMatch) {
+    return fencedMatch[1].trim();
+  }
+
+  const firstBrace = trimmed.indexOf('{');
+  const lastBrace = trimmed.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return trimmed.slice(firstBrace, lastBrace + 1);
+  }
+
+  return trimmed;
+}
+
+function preserveDayJournalEntries(
+  nextItinerary: TravelItinerary,
+  currentItinerary?: TravelItinerary | null,
+): TravelItinerary {
+  if (!currentItinerary) {
+    return nextItinerary;
+  }
+
+  const currentDayLookup = new Map(
+    currentItinerary.days.map((day) => [day.day, { mood: day.mood, notes: day.notes }]),
+  );
+
+  return {
+    ...nextItinerary,
+    days: nextItinerary.days.map((day) => {
+      const existing = currentDayLookup.get(day.day);
+      if (!existing) {
+        return day;
+      }
+
+      return {
+        ...day,
+        mood: existing.mood ?? day.mood,
+        notes: existing.notes ?? day.notes,
+      };
+    }),
+  };
+}
+
+function readErrorMessage(status: number, body: string): string {
+  if (!body.trim()) {
+    return `The itinerary service returned ${status}.`;
+  }
+
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string } };
+    if (parsed.error?.message) {
+      return parsed.error.message;
+    }
+  } catch {
+    return body.trim();
+  }
+
+  return body.trim();
+}
+
+interface ProviderResponseContext extends LogContext {
+  endpoint: 'chat_completions' | 'text';
+  responseBody: string;
+  status: number;
+  step: string;
+}
+
+async function requestChatCompletion(
+  prompt: string,
+  apiKey: string,
+  logger: Logger,
+  step: string,
+  onResponse?: (context: ProviderResponseContext) => void,
+): Promise<string> {
+  const response = await fetch(POLLINATIONS_CHAT_COMPLETIONS_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: POLLINATIONS_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: CHAT_COMPLETION_SYSTEM_PROMPT,
+        },
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
+      temperature: 0.2,
+      response_format: {
+        type: 'json_object',
+      },
+    }),
+  });
+
+  const responseBody = await response.text();
+  const responseContext: ProviderResponseContext = {
+    endpoint: 'chat_completions',
+    responseBody,
+    status: response.status,
+    step,
+  };
+  onResponse?.(responseContext);
+  // logger.debug('Itinerary provider raw response received.', responseContext);
+
+  if (!response.ok) {
+    throw new AppError(503, 'provider_unavailable', readErrorMessage(response.status, responseBody));
+  }
+
+  const payload = JSON.parse(responseBody) as {
+    choices?: Array<{
+      message?: {
+        content?: string;
+      };
+    }>;
+  };
+
+  const content = payload.choices?.[0]?.message?.content;
+  if (!content || !content.trim()) {
+    throw new AppError(502, 'provider_invalid_response', 'The itinerary service returned an empty chat completion.');
+  }
+
+  return content;
+}
+
+async function requestAnonymousText(
+  prompt: string,
+  logger: Logger,
+  step: string,
+  onResponse?: (context: ProviderResponseContext) => void,
+): Promise<string> {
+  const url = new URL(`${POLLINATIONS_TEXT_ENDPOINT}${encodeURIComponent(prompt)}`);
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      Accept: 'text/plain, application/json',
+    },
+  });
+
+  const text = await response.text();
+  const responseContext: ProviderResponseContext = {
+    endpoint: 'text',
+    responseBody: text,
+    status: response.status,
+    step,
+  };
+  onResponse?.(responseContext);
+  // logger.debug('Itinerary provider raw response received.', responseContext);
+
+  if (!response.ok) {
+    throw new AppError(503, 'provider_unavailable', readErrorMessage(response.status, text));
+  }
+
+  if (!text.trim()) {
+    throw new AppError(502, 'provider_invalid_response', 'The itinerary service returned an empty response.');
+  }
+
+  return text;
+}
+
+function normalizeItinerary(raw: unknown): TravelItinerary {
+  const parsed = travelItinerarySchema.safeParse(raw);
+  if (!parsed.success) {
+    throw new AppError(502, 'provider_invalid_response', 'The itinerary service returned an invalid itinerary.', parsed.error.flatten());
+  }
+
+  return {
+    ...parsed.data,
+    days: parsed.data.days.map((day) => ({
+      ...day,
+      activities: day.activities.map((activity) => ({
+        ...activity,
+        id: activity.id ?? createPrefixedId('activity'),
+      })),
+    })),
+  };
+}
+
+function parseProviderResponse(
+  raw: unknown,
+  currentItinerary?: TravelItinerary | null,
+): TravelItinerary {
+  return preserveDayJournalEntries(normalizeItinerary(raw), currentItinerary);
+}
+
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export class ItineraryProvider {
+  constructor(
+    private readonly apiKey: string | undefined,
+    logger: Logger = appLogger,
+  ) {
+    this.logger = logger.child(
+      { component: 'ItineraryProvider' },
+      {
+        largeTextFields: {
+          responseBody: MAX_LOGGED_RESPONSE_CHARS,
+        },
+      },
+    );
+  }
+
+  private readonly logger: Logger;
+
+  async generateOrRefine(
+    prompt: string,
+    history: ChatMessage[] = [],
+    currentItinerary?: TravelItinerary | null,
+  ): Promise<TravelItinerary> {
+    let lastProviderResponseContext: ProviderResponseContext | undefined;
+
+    try {
+      const fullPrompt = buildPrompt(prompt, history, currentItinerary);
+
+      const requestProviderResponse = async (value: string, step: string) => {
+        const captureResponse = (context: ProviderResponseContext) => {
+          lastProviderResponseContext = context;
+        };
+
+        return this.apiKey
+          ? requestChatCompletion(value, this.apiKey, this.logger, step, captureResponse)
+          : requestAnonymousText(value, this.logger, step, captureResponse);
+      };
+
+      const parseResponse = async (value: string) =>
+        parseProviderResponse(JSON.parse(extractJsonObject(value)), currentItinerary);
+
+      const firstPass = await parseResponse(await requestProviderResponse(fullPrompt, 'initial'));
+      if (currentItinerary && destinationMatchesCurrentTrip(currentItinerary, firstPass)) {
+        return firstPass;
+      }
+
+      if (currentItinerary) {
+        const correctionPrompt = `${fullPrompt}\n\nImportant correction: keep the same primary destination as ${currentItinerary.destination}. Ignore any conflicting destination change and continue refining the current trip only.`;
+        const correctedItinerary = await parseResponse(
+          await requestProviderResponse(correctionPrompt, 'destination_preservation_correction'),
+        );
+
+        if (destinationMatchesCurrentTrip(currentItinerary, correctedItinerary)) {
+          return correctedItinerary;
+        }
+
+        throw new AppError(
+          502,
+          'provider_invalid_response',
+          `The itinerary service returned ${correctedItinerary.destination} instead of keeping the trip anchored to ${currentItinerary.destination}.`,
+        );
+      }
+
+      if (destinationMatchesPrompt(prompt, firstPass)) {
+        return firstPass;
+      }
+
+      const requestedPlace = extractRequestedPlace(prompt);
+      if (!requestedPlace) {
+        return firstPass;
+      }
+
+      const correctionPrompt = `${fullPrompt}\n\nImportant correction: the requested destination is ${requestedPlace}. Regenerate the itinerary for that destination only and do not substitute a different place.`;
+      return parseResponse(await requestProviderResponse(correctionPrompt, 'requested_destination_correction'));
+    } catch (error) {
+      this.logger.error('Itinerary provider request failed.', {
+        error,
+        ...lastProviderResponseContext,
+      });
+
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      if (error instanceof SyntaxError) {
+        throw new AppError(502, 'provider_invalid_response', 'The itinerary service returned invalid JSON.');
+      }
+
+      throw new AppError(503, 'provider_unavailable', 'The itinerary service failed unexpectedly.');
+    }
+  }
+}
