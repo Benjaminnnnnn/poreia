@@ -418,20 +418,20 @@ const ActivityEditCard: React.FC<{
     <div
       ref={setNodeRef}
       style={style}
-      className="space-y-3 rounded-xl border-2 border-primary/30 bg-card p-4 shadow-md"
+      className="space-y-3 rounded-2xl border border-white/15 bg-white/10 p-4 shadow-lg backdrop-blur-md"
     >
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label
             htmlFor={`${editFormId}-time`}
-            className="text-xs font-semibold text-muted-foreground"
+            className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-white/60"
           >
             Time
           </label>
           <input
             id={`${editFormId}-time`}
             type="text"
-            className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+            className="mt-1 min-h-[44px] w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 backdrop-blur-sm transition-colors focus:border-primary/60 focus:bg-white/15 focus:outline-none"
             value={editForm.time}
             onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
           />
@@ -439,14 +439,14 @@ const ActivityEditCard: React.FC<{
         <div>
           <label
             htmlFor={`${editFormId}-cost`}
-            className="text-xs font-semibold text-muted-foreground"
+            className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-white/60"
           >
             Cost ({currency})
           </label>
           <input
             id={`${editFormId}-cost`}
             type="number"
-            className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+            className="mt-1 min-h-[44px] w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 backdrop-blur-sm transition-colors focus:border-primary/60 focus:bg-white/15 focus:outline-none"
             value={editForm.costEstimate || ""}
             onChange={(e) =>
               setEditForm({
@@ -460,14 +460,14 @@ const ActivityEditCard: React.FC<{
       <div>
         <label
           htmlFor={`${editFormId}-activity`}
-          className="text-xs font-semibold text-muted-foreground"
+          className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-white/60"
         >
           Activity
         </label>
         <input
           id={`${editFormId}-activity`}
           type="text"
-          className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground"
+          className="mt-1 min-h-[44px] w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm font-medium text-white placeholder:text-white/30 backdrop-blur-sm transition-colors focus:border-primary/60 focus:bg-white/15 focus:outline-none"
           value={editForm.description}
           onChange={(e) =>
             setEditForm({ ...editForm, description: e.target.value })
@@ -477,14 +477,14 @@ const ActivityEditCard: React.FC<{
       <div>
         <label
           htmlFor={`${editFormId}-location`}
-          className="text-xs font-semibold text-muted-foreground"
+          className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-white/60"
         >
           Location
         </label>
         <input
           id={`${editFormId}-location`}
           type="text"
-          className="field-focus mt-1 min-h-[44px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+          className="mt-1 min-h-[44px] w-full rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/30 backdrop-blur-sm transition-colors focus:border-primary/60 focus:bg-white/15 focus:outline-none"
           value={editForm.location}
           onChange={(e) =>
             setEditForm({ ...editForm, location: e.target.value })
@@ -496,7 +496,7 @@ const ActivityEditCard: React.FC<{
           onClick={onCancel}
           variant="ghost"
           size="icon-sm"
-          className="rounded-lg"
+          className="rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
           aria-label="Cancel"
         >
           <X size={16} />

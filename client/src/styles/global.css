@@ -144,9 +144,9 @@ body,
   --action-secondary-border: var(--border);
 
   /* Badge tokens */
-  --badge-coral-border: color-mix(in oklab, var(--primary) 38%, transparent);
-  --badge-coral-bg: color-mix(in oklab, var(--primary) 8%, var(--card));
-  --badge-coral-text: var(--primary);
+  --badge-coral-border: transparent;
+  --badge-coral-bg: var(--primary);
+  --badge-coral-text: #ffffff;
   --badge-teal-border: rgba(110, 160, 154, 0.32);
   --badge-teal-bg: rgba(233, 245, 242, 0.96);
   --badge-teal-text: rgba(55, 128, 121, 0.96);
