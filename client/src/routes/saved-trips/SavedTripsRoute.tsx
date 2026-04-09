@@ -133,7 +133,7 @@ const SavedTripsRoute: React.FC = () => {
       </div>
 
       {/* Content layer */}
-      <div className="relative z-10 mx-auto max-w-5xl px-4 pt-[4.5rem] pb-8 sm:px-6 sm:pt-[5rem] lg:px-8 lg:pt-[5.5rem]">
+      <div className="relative z-10 mx-auto max-w-5xl px-4 pb-8 pt-[6rem] sm:px-6 sm:pt-[6.5rem] lg:px-8 lg:pt-[7rem]">
         <div className="mb-6">
           <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-white/60">
             Your itineraries
