@@ -259,7 +259,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
         <div className="h-px bg-white/15" />
 
         {/* ── Scrollable body ─────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-6 py-7 sm:px-8">
+        <div className="flex-1 overflow-y-auto  scrollbar-themed px-6 py-7 sm:px-8">
           {!canManageMembers ? (
             <p className="rounded-xl border border-white/20 bg-white/10 px-5 py-5 text-sm leading-7 text-white/80">
               You do not have permission to manage trip collaborators.
@@ -312,11 +312,21 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
                             : "border border-white/15 bg-white/6 text-white/60 hover:bg-primary hover:border-primary hover:text-white",
                         )}
                       >
-                        <div className={cn("mb-2 flex items-center gap-2 text-[0.93rem] font-semibold", isActive ? "text-white" : "text-white/70")}>
+                        <div
+                          className={cn(
+                            "mb-2 flex items-center gap-2 text-[0.93rem] font-semibold",
+                            isActive ? "text-white" : "text-white/70",
+                          )}
+                        >
                           <Icon size={15} strokeWidth={2} />
                           {option.title}
                         </div>
-                        <p className={cn("text-[0.78rem] leading-5 text-left", isActive ? "text-white/80" : "text-white/40")}>
+                        <p
+                          className={cn(
+                            "text-[0.78rem] leading-5 text-left",
+                            isActive ? "text-white/80" : "text-white/40",
+                          )}
+                        >
                           {option.description}
                         </p>
                       </Button>

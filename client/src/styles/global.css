@@ -147,9 +147,9 @@ body,
   --badge-coral-border: transparent;
   --badge-coral-bg: var(--primary);
   --badge-coral-text: #ffffff;
-  --badge-teal-border: rgba(110, 160, 154, 0.32);
-  --badge-teal-bg: rgba(233, 245, 242, 0.96);
-  --badge-teal-text: rgba(55, 128, 121, 0.96);
+  --badge-teal-border: rgba(110, 160, 154, 0.35);
+  --badge-teal-bg: rgba(69, 150, 143, 0.25);
+  --badge-teal-text: rgba(178, 230, 224, 0.95);
   --badge-neutral-border: var(--border);
   --badge-neutral-bg: var(--muted);
   --badge-neutral-text: var(--muted-foreground);
@@ -533,6 +533,34 @@ select {
   animation: search-prompt-progress-sweep 1.55s
     cubic-bezier(0.16, 1, 0.3, 1) infinite;
   will-change: transform;
+}
+
+/* ============================================================
+   Themed scrollbar — warm coral on dark glass surfaces
+   ============================================================ */
+.scrollbar-themed {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(217, 119, 87, 0.42) rgba(255, 255, 255, 0.05);
+}
+
+.scrollbar-themed::-webkit-scrollbar {
+  height: 5px;
+  width: 5px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb {
+  background: rgba(217, 119, 87, 0.42);
+  border-radius: 999px;
+  transition: background 200ms ease;
+}
+
+.scrollbar-themed::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 119, 87, 0.72);
 }
 
 /* ============================================================

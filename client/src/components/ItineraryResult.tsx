@@ -1,7 +1,13 @@
+import type {
+  DragEndEvent,
+  DragOverEvent,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import React, {
-  Suspense,
   lazy,
   startTransition,
+  Suspense,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -9,13 +15,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { DragEndEvent, DragOverEvent, DragStartEvent } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
+import { hasFiniteCoordinates } from "../lib/coordinates";
 import {
   getActivityImage,
   ResolvedActivityImage,
 } from "../services/activityImageService";
-import { hasFiniteCoordinates } from "../lib/coordinates";
 import {
   Activity,
   BudgetBreakdown,
@@ -187,7 +191,10 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
     void Promise.all(
       missingImageActivities.map(async ({ activity }) => {
-        const image = await getActivityImage(activity, localItinerary.destination);
+        const image = await getActivityImage(
+          activity,
+          localItinerary.destination,
+        );
         return image ? ([activity.id, image] as const) : null;
       }),
     ).then((results) => {
@@ -280,8 +287,12 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     }
 
     setLocalItinerary((previous) => {
-      const activeDayIdx = previous.days.findIndex((day) => day.day === activeDayNum);
-      const overDayIdx = previous.days.findIndex((day) => day.day === overDayNum);
+      const activeDayIdx = previous.days.findIndex(
+        (day) => day.day === activeDayNum,
+      );
+      const overDayIdx = previous.days.findIndex(
+        (day) => day.day === overDayNum,
+      );
 
       const newDays = previous.days.map((day) => ({
         ...day,
@@ -289,7 +300,9 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
       }));
       const activeItems = newDays[activeDayIdx].activities;
       const overItems = newDays[overDayIdx].activities;
-      const activeIndex = activeItems.findIndex((activity) => activity.id === activeId);
+      const activeIndex = activeItems.findIndex(
+        (activity) => activity.id === activeId,
+      );
 
       if (activeIndex === -1) {
         return previous;
@@ -303,7 +316,8 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
           Boolean(active.rect.current.translated) &&
           active.rect.current.translated.top > over.rect.top + over.rect.height;
         const modifier = isBelow ? 1 : 0;
-        overIndex = overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
+        overIndex =
+          overIndex >= 0 ? overIndex + modifier : overItems.length + 1;
       } else {
         overIndex = overItems.length + 1;
       }
@@ -418,7 +432,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
   };
 
   const activeActivity = activeDragId
-    ? activityLookup.get(activeDragId)?.activity ?? null
+    ? (activityLookup.get(activeDragId)?.activity ?? null)
     : null;
   const activeActivityImage = activeActivity
     ? activityImages[activeActivity.id]
@@ -426,8 +440,8 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
   const journaledDaysCount = useMemo(
     () =>
-      localItinerary.days.filter(
-        (day) => Boolean(day.mood || day.notes?.trim()),
+      localItinerary.days.filter((day) =>
+        Boolean(day.mood || day.notes?.trim()),
       ).length,
     [localItinerary.days],
   );
@@ -435,9 +449,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
   const hasRecordedCosts = useMemo(
     () =>
       localItinerary.days.some((day) =>
-        day.activities.some(
-          (activity) => activity.costEstimate !== undefined,
-        ),
+        day.activities.some((activity) => activity.costEstimate !== undefined),
       ),
     [localItinerary.days],
   );
@@ -476,42 +488,45 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     [localItinerary.days],
   );
 
-  const scrollToSection = useCallback((sectionId: string) => {
-    const scrollContainer = mainScrollRef.current;
-    if (!scrollContainer) {
-      return;
-    }
+  const scrollToSection = useCallback(
+    (sectionId: string) => {
+      const scrollContainer = mainScrollRef.current;
+      if (!scrollContainer) {
+        return;
+      }
 
-    const target = scrollContainer.querySelector<HTMLElement>(
-      `[data-itinerary-section="${sectionId}"]`,
-    );
+      const target = scrollContainer.querySelector<HTMLElement>(
+        `[data-itinerary-section="${sectionId}"]`,
+      );
 
-    if (!target) {
-      return;
-    }
+      if (!target) {
+        return;
+      }
 
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const nextTop =
-      scrollContainer.scrollTop +
-      (targetRect.top - containerRect.top) -
-      ITINERARY_SECTION_TOP_OFFSET;
-    const boundedTop = Math.max(0, nextTop);
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const nextTop =
+        scrollContainer.scrollTop +
+        (targetRect.top - containerRect.top) -
+        ITINERARY_SECTION_TOP_OFFSET;
+      const boundedTop = Math.max(0, nextTop);
 
-    lockedSectionIdRef.current = sectionId;
-    lockedScrollTopRef.current = boundedTop;
-    if (scrollLockTimeoutRef.current !== null) {
-      window.clearTimeout(scrollLockTimeoutRef.current);
-    }
-    scrollLockTimeoutRef.current = window.setTimeout(() => {
-      clearSectionScrollLock();
-    }, SECTION_SCROLL_LOCK_TIMEOUT_MS);
+      lockedSectionIdRef.current = sectionId;
+      lockedScrollTopRef.current = boundedTop;
+      if (scrollLockTimeoutRef.current !== null) {
+        window.clearTimeout(scrollLockTimeoutRef.current);
+      }
+      scrollLockTimeoutRef.current = window.setTimeout(() => {
+        clearSectionScrollLock();
+      }, SECTION_SCROLL_LOCK_TIMEOUT_MS);
 
-    scrollContainer.scrollTo({
-      top: boundedTop,
-      behavior: prefersReducedMotion() ? "auto" : "smooth",
-    });
-  }, [clearSectionScrollLock]);
+      scrollContainer.scrollTo({
+        top: boundedTop,
+        behavior: prefersReducedMotion() ? "auto" : "smooth",
+      });
+    },
+    [clearSectionScrollLock],
+  );
 
   useEffect(() => {
     if (!pendingSectionIdRef.current) {
@@ -549,7 +564,9 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
       }
 
       const visibleSections = Array.from(
-        scrollContainer.querySelectorAll<HTMLElement>("[data-itinerary-section]"),
+        scrollContainer.querySelectorAll<HTMLElement>(
+          "[data-itinerary-section]",
+        ),
       ).filter((section) =>
         activeTab === "notes"
           ? section.dataset.itinerarySection === "notes"
@@ -563,11 +580,13 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
       const containerTop = scrollContainer.getBoundingClientRect().top;
       const targetLine = containerTop + ITINERARY_SECTION_TOP_OFFSET + 8;
 
-      let nextActiveSection = visibleSections[0].dataset.itinerarySection ?? "overview";
+      let nextActiveSection =
+        visibleSections[0].dataset.itinerarySection ?? "overview";
 
       for (const section of visibleSections) {
         if (section.getBoundingClientRect().top <= targetLine) {
-          nextActiveSection = section.dataset.itinerarySection ?? nextActiveSection;
+          nextActiveSection =
+            section.dataset.itinerarySection ?? nextActiveSection;
           continue;
         }
 
@@ -631,7 +650,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
 
           <div
             ref={mainScrollRef}
-            className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden"
+            className="relative z-10 min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-themed overflow-x-hidden"
           >
             <ItineraryHeader
               actions={headerActions}
@@ -647,7 +666,9 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
               <div className="min-w-0 space-y-7">
                 {activeTab === "itinerary" ? (
                   <Suspense
-                    fallback={<PanelFallback label="Loading itinerary planner..." />}
+                    fallback={
+                      <PanelFallback label="Loading itinerary planner..." />
+                    }
                   >
                     <ItineraryPlanView
                       activeActivity={activeActivity}

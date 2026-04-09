@@ -429,7 +429,7 @@ const ProfileRoute: React.FC = () => {
   const regionSpotlight = countryPins[0]?.name || "—";
 
   return (
-    <div className="relative h-full overflow-y-auto">
+    <div className="relative h-full overflow-y-auto scrollbar-themed">
       {/* Background layer */}
       <div className="fixed inset-0 z-0">
         <img
@@ -442,7 +442,7 @@ const ProfileRoute: React.FC = () => {
       </div>
 
       {/* Content layer */}
-      <div className="relative z-10 mx-auto w-full max-w-[88rem] px-4 pt-[4.5rem] pb-8 sm:px-6 sm:pt-[5rem] lg:px-8 lg:pt-[5.5rem]">
+      <div className="relative z-10 mx-auto w-full max-w-356 px-4 pt-[4.5rem] pb-8 sm:px-6 sm:pt-[5rem] lg:px-8 lg:pt-[5.5rem]">
         {/* TOP SECTION: Profile card + Map card */}
         <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[22rem_1fr]">
           {/* Profile Card */}
@@ -555,7 +555,7 @@ const ProfileRoute: React.FC = () => {
               )}
 
               {/* Horizontal stats row */}
-              <div className="mt-6 flex items-start divide-x divide-white/10 border-t border-white/10 pt-5">
+              <div className="mt-6 flex items-start text-center divide-x divide-white/10 border-t border-white/10 pt-5">
                 <div className="flex-1 pr-4">
                   <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
                     Destinations
@@ -570,14 +570,6 @@ const ProfileRoute: React.FC = () => {
                   </p>
                   <p className="mt-1 font-display text-[1.9rem] font-bold leading-none tracking-[-0.04em] text-white drop-shadow-md">
                     {archivedTrips.length}
-                  </p>
-                </div>
-                <div className="flex-1 pl-4">
-                  <p className="text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-white/45">
-                    Saved
-                  </p>
-                  <p className="mt-1 font-display text-[1.9rem] font-bold leading-none tracking-[-0.04em] text-white drop-shadow-md">
-                    {String(trips.length).padStart(2, "0")}
                   </p>
                 </div>
               </div>
@@ -732,7 +724,7 @@ const ProfileRoute: React.FC = () => {
               </p>
             </div>
           ) : archivedTrips.length ? (
-            <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="scrollbar-themed -mx-4 flex gap-4 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [overscroll-behavior-x:contain]">
               {archivedTrips.map((trip) => {
                 const itinerary = trip.currentItinerary;
                 const country = getTripCountry(trip);
@@ -740,7 +732,7 @@ const ProfileRoute: React.FC = () => {
                 const stopCount = getTripStopCount(itinerary);
 
                 return (
-                  <div key={trip.id} className="w-[21rem] shrink-0">
+                  <div key={trip.id} className="w-84 shrink-0">
                     <SavedTripCard
                       trip={trip}
                       coverImage={coverImage}
@@ -762,9 +754,9 @@ const ProfileRoute: React.FC = () => {
               {/* Create new story placeholder */}
               <Button
                 type="button"
-                variant="ghost"
+                variant="default"
                 onClick={goHome}
-                className="flex w-[18rem] shrink-0 flex-col items-center justify-center gap-3 rounded-[1.25rem] border border-dashed border-white/20 py-16"
+                className="h-auto flex w-[18rem] shrink-0 flex-col items-center justify-center gap-3 rounded-[1.25rem] border border-dashed border-white/20 py-16"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/10">
                   <Plus size={22} className="text-white/50" />

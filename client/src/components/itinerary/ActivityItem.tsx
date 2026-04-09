@@ -336,34 +336,34 @@ const SortableActivityCard: React.FC<SortableActivityCardProps> = ({
       ) : null}
 
       {/* Mobile-only action row */}
-      <div className="mt-2 flex items-center gap-2 border-t border-white/10 pt-2 md:hidden">
+      <div className="mt-2 flex items-center justify-end gap-1.5 border-t border-white/10 pt-2 md:hidden">
         <Button
           type="button"
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="xs"
           onClick={(e) => {
             e.stopPropagation();
             onEdit();
           }}
-          className="h-8 gap-1 rounded-full border-white/15 text-xs hover:border-white/30 hover:text-white"
+          className="h-7 gap-1.5 rounded-full px-3 text-[11px] text-white/55 hover:bg-white/15 hover:text-white"
           aria-label={`Edit ${activity.description}`}
         >
-          <Pencil size={12} />
+          <Pencil size={11} />
           <span className="font-semibold tracking-[0.08em]">Edit</span>
         </Button>
         <Button
           type="button"
-          variant="default"
-          size="sm"
+          variant="ghost"
+          size="xs"
           onClick={(e) => {
             e.stopPropagation();
             onDelete();
           }}
-          className="h-8 gap-1 rounded-full text-xs"
+          className="h-7 gap-1.5 rounded-full px-3 text-[11px] text-white/55 hover:bg-red-500/20 hover:text-red-300"
           aria-label={`Delete ${activity.description}`}
         >
-          <Trash2 size={12} />
-          <span className="font-semibold  tracking-[0.08em]">Delete</span>
+          <Trash2 size={11} />
+          <span className="font-semibold tracking-[0.08em]">Delete</span>
         </Button>
       </div>
     </div>

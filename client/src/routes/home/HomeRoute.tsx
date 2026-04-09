@@ -52,7 +52,7 @@ const HomeRoute: React.FC = () => {
   };
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full overflow-y-auto scrollbar-themed">
       {/* Hero Section — mobile-optimized, desktop full viewport */}
       <section className="relative flex h-auto min-h-screen sm:h-screen md:h-[100dvh] flex-col overflow-hidden">
         {/* Background image */}

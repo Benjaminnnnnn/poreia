@@ -174,7 +174,7 @@ export const SavedTripCard: React.FC<SavedTripCardProps> = ({
             <Clock3 size={14} />
             {stopCountLabel}
           </span>
-          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-orange-300 transition-transform duration-200 group-hover:translate-x-0.5">
+          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[#D97757] transition-transform duration-200 group-hover:translate-x-0.5">
             Open trip
             <ArrowUpRight size={15} />
           </span>

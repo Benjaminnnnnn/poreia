@@ -94,7 +94,7 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
       className="scroll-mt-24 space-y-5"
     >
       <div className="max-w-2xl">
-        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/60">
+        <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white/90 drop-shadow-md">
           <BookText size={16} /> Notes by day
         </h3>
         <p className="mt-3 text-sm leading-6 text-white/70">
@@ -214,7 +214,7 @@ export const ItinerarySectionNav: React.FC<{
   return (
     <nav
       aria-label="Itinerary sections"
-      className={`hidden lg:relative lg:z-30 lg:flex lg:h-full lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:border-r lg:border-white/15 lg:bg-black/20 ${
+      className={`hidden lg:relative lg:z-30 lg:flex lg:h-full lg:shrink-0 lg:flex-col scrollbar-themed lg:overflow-y-auto lg:overflow-x-visible lg:border-r lg:border-white/15 lg:bg-black/20 ${
         isCollapsed ? "lg:w-[4.5rem]" : "lg:w-[12.5rem]"
       }`}
     >
@@ -284,7 +284,7 @@ export const ItinerarySidePanel: React.FC<{
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-8 overflow-y-auto bg-black/20 backdrop-blur-sm p-6">
+    <div className="flex h-full min-h-0 flex-col gap-8 scrollbar-themed overflow-y-auto bg-black/20 backdrop-blur-sm p-6">
       <div>
         <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#D97757]">
           Trip journal
@@ -329,7 +329,7 @@ export const ItinerarySidePanel: React.FC<{
                   className={
                     moodOption
                       ? `${moodOption.pillClassName} rounded-[0.45rem] px-3 py-1 text-xs`
-                      : "rounded-[0.45rem] px-3 py-1 text-xs"
+                      : "rounded-[0.45rem] px-3 py-1 text-xs border-white/15 bg-white/10 text-white/50"
                   }
                 >
                   {day.mood || "No mood yet"}

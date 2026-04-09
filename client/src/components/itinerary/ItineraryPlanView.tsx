@@ -275,7 +275,7 @@ const DailyPlanSection: React.FC<DailyPlanSectionProps> = ({
                   Day {dayPlan.day}
                 </p>
                 <h4 className="mt-1 text-lg font-bold text-white drop-shadow-md">
-                  Day {dayPlan.day}: {dayPlan.theme}
+                  {dayPlan.theme}
                 </h4>
                 <p className="mt-1 text-sm text-white/70 drop-shadow-sm">
                   {dayPlan.activities.length} planned{" "}
