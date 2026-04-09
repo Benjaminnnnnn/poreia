@@ -144,7 +144,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             />
           </div>
 
-          <p className="font-display text-[1.25rem] leading-none tracking-[-0.04em] text-white sm:text-[1.45rem]">
+          <p className="text-[1.25rem] tracking-normal text-white sm:text-[1.45rem]">
             Poreia
           </p>
         </Button>
