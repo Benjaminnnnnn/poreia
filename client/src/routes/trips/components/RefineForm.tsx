@@ -1,5 +1,6 @@
-import { ListCheck } from "lucide-react";
+import { ListCheck, Loader2, SendHorizontal } from "lucide-react";
 import React from "react";
+import Button from "@/components/ui/Button";
 import SearchPromptBar from "@/components/ui/SearchPromptBar";
 
 interface RefineFormProps {
@@ -22,16 +23,29 @@ const RefineForm: React.FC<RefineFormProps> = ({
           <SearchPromptBar
             id="trip-refine-input"
             disabled={isRefining}
-            disableGlow
-            disableRing
             isLoading={isRefining}
             label="Refine your itinerary"
             leadingIcon={<ListCheck size={18} />}
-            loadingLabel="Refining…"
             onValueChange={onInputChange}
             placeholder="Refine this trip (e.g., 'Add a dinner spot on Day 2')"
-            submitLabel="Refine"
+            trailingContent={
+              <Button
+                type="submit"
+                variant="primary"
+                size="icon-sm"
+                disabled={isRefining || !inputValue.trim()}
+                aria-label={isRefining ? "Refining…" : "Refine itinerary"}
+                className="rounded-full"
+              >
+                {isRefining ? (
+                  <Loader2 className="animate-spin" size={15} />
+                ) : (
+                  <SendHorizontal size={15} />
+                )}
+              </Button>
+            }
             value={inputValue}
+            variant="refine"
           />
         </form>
       </div>
