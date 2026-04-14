@@ -193,14 +193,12 @@ const AuthLoadingFallback = () => (
     {/* Loading Card */}
     <div className="relative z-10 rounded-[2rem] border border-white/10 bg-white/5 p-8 sm:p-12 shadow-2xl backdrop-blur-xl">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="animate-spin text-[#D97757] drop-shadow-lg" size={40} />
+        <Loader2
+          className="animate-spin text-[#D97757] drop-shadow-lg"
+          size={40}
+        />
         <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-base sm:text-lg font-medium text-white drop-shadow-md">
-            Preparing your traveler pass
-          </p>
-          <p className="text-sm text-white/60">
-            Loading your itinerary…
-          </p>
+          <p className="text-sm text-white/60">Loading your itinerary…</p>
         </div>
       </div>
     </div>

@@ -95,7 +95,7 @@ const SearchPromptBar = React.forwardRef<
       return (
         <div
           className={cn(
-            "group/search-prompt relative flex items-center overflow-hidden rounded-[var(--radius-md)] border border-border bg-card p-1.5 shadow-md transition-[border-color,box-shadow] duration-200 ease-[var(--ease-standard)] focus-within:border-primary/40 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring)_16%,transparent),0_14px_36px_rgba(0,0,0,0.10)]",
+            "group/search-prompt relative flex items-center overflow-hidden rounded-full border border-white/25 bg-white/12 p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] backdrop-blur-md transition-[border-color,box-shadow] duration-200 ease-[var(--ease-standard)] focus-within:border-white/45 focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--ring)_18%,transparent),0_12px_40px_rgba(0,0,0,0.25)]",
             className,
           )}
           onBlurCapture={handleBlurCapture}
@@ -126,39 +126,13 @@ const SearchPromptBar = React.forwardRef<
             placeholder={placeholder}
             type={type}
             value={value}
-            className="h-11 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-transparent bg-transparent px-1 text-sm font-medium text-foreground placeholder:text-muted-foreground/60 focus:outline-none md:text-base"
+            className="h-11 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-transparent bg-transparent px-1 text-sm font-medium text-white placeholder:text-white/38 focus:outline-none md:text-base"
           />
 
           {trailingContent ? (
             <div className="shrink-0">{trailingContent}</div>
           ) : null}
 
-          {/* Bottom progress bar */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-border" />
-            <div
-              className={cn(
-                "absolute inset-y-0 left-0 right-0 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-0 scale-x-[0.72] group-focus-within/search-prompt:scale-x-100 group-focus-within/search-prompt:opacity-100",
-                isLoading && "scale-x-100 opacity-100",
-              )}
-              style={{
-                background:
-                  "linear-gradient(90deg, transparent 0%, var(--primary) 16%, color-mix(in oklab, var(--primary) 60%, white) 50%, var(--primary) 84%, transparent 100%)",
-              }}
-            />
-            {isLoading && (
-              <div
-                className="search-prompt-progress-sweep absolute inset-y-0 left-0 w-[32%] opacity-95"
-                style={{
-                  background:
-                    "linear-gradient(90deg, transparent 0%, color-mix(in oklab, var(--primary) 70%, white) 18%, white 50%, color-mix(in oklab, var(--primary) 70%, white) 82%, transparent 100%)",
-                }}
-              />
-            )}
-          </div>
         </div>
       );
     }
