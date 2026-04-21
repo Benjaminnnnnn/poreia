@@ -1,172 +1,115 @@
 # Poreia
 
-Poreia is an AI travel planner for people who want to get from a rough idea to a usable itinerary fast.
+AI travel planner that turns a single sentence into a multi-day itinerary with budget guidance, an editable day-by-day plan, a map view, and saved trip history.
 
-Type one sentence. Poreia turns it into a multi-day trip plan with budget guidance, editable day-by-day activities, saved trip history, Google sign-in, and a map view you can keep refining before or during the trip.
+## Attribution
 
-## What Poreia Does
+No open-source project was imported or used as a starting point. The application was scaffolded with Vite's `react-ts` template and built from there.
 
-- Generates structured itineraries from a short natural-language prompt.
-- Refines an existing trip with follow-up requests instead of forcing a restart.
-- Saves multiple trips per signed-in user in the browser for quick return visits.
-- Shows itinerary stops on a map and supports drag-and-drop reordering.
-- Adds place imagery to activity cards through Google Places when available.
-- Lets travelers keep notes and mood reflections for each day of the trip.
+All application code in this repository is original and written for this project, including:
+
+- Itinerary generation pipeline and prompt design (`client/src/services`, `client/src/constants`)
+- UI components, layout, and styling (`client/src/components`, `client/src/styles`)
+- Drag-and-drop itinerary editing and day-by-day reflection flow
+- Map view integration built on Leaflet
+- Cloudflare Worker backend, route handlers, and Firestore access layer (`server/src`)
+- Firebase Authentication integration and client-side session handling
+- Rate limiting and request validation on the server
+
+Third-party services consumed through their public APIs: Pollinations (itinerary generation), Google Places (activity photos), Firebase Authentication, Firestore, and OpenStreetMap tiles via Leaflet.
+
+### LLM Integration
+
+Itinerary generation runs as a two-agent harness on top of Pollinations, with both the prompt design and the orchestration layer written from scratch for this project:
+
+- **Planner agent (GPT via Pollinations).** Receives the user's natural-language prompt along with structured constraints (dates, budget, travel style) and returns a day-by-day itinerary as strict JSON. Prompt templates, schema definitions, and output parsing live in `client/src/services` and `client/src/constants`.
+- **Validator agent (Gemini via Pollinations).** Cross-checks the planner's output for factual drift, schedule conflicts, budget overruns, and geographic incoherence (e.g., activities that are impractically far apart within a single day). When the validator flags an issue, the harness either requests a targeted revision from the planner or annotates the itinerary with the concern before returning it to the UI.
+
+This dual-agent setup is our own quality-assurance layer: the planner optimizes for creativity and coverage, while the validator acts as an independent reviewer, reducing hallucinations and improving itinerary reliability before results reach the user.
+
+## Features
+
+- Natural-language prompt to structured multi-day itinerary
+- Follow-up refinement of an existing trip without restarting
+- Per-user saved trip history with Google sign-in
+- Map view of itinerary stops
+- Drag-and-drop reordering of activities
+- Place imagery via Google Places
+- Per-day notes and mood reflections
 
 ## Stack
 
-- React 19
-- TypeScript
-- Vite
-- Firebase Authentication with Google sign-in
-- Pollinations for itinerary generation
-- Leaflet for map rendering
-- `@dnd-kit` for itinerary editing
-- Recharts for budget visualization
+React 19, TypeScript, Vite, Firebase Authentication, Firestore, Cloudflare Workers, Leaflet, `@dnd-kit`, Recharts, Pollinations.
 
-## Run Locally
+## Getting Started
 
-**Prerequisites**
+Requires Node.js 22+.
 
-- Node.js 22 or later
+```bash
+npm install
+npm run dev
+```
 
-1. Install dependencies:
+Open `http://localhost:5173`.
 
-   ```bash
-   npm install
-   ```
+## Environment
 
-2. Create `.env.local` with the variables you need:
+`client/.env.local`
 
-   ```bash
-   VITE_FIREBASE_API_KEY=your_firebase_web_api_key
-   VITE_GOOGLE_PLACES_API_KEY=your_browser_restricted_google_places_key
-   VITE_POLLINATIONS_API_KEY=optional_pollinations_key
-   ```
+```bash
+VITE_FIREBASE_API_KEY=your_firebase_web_api_key
+VITE_GOOGLE_PLACES_API_KEY=your_browser_restricted_google_places_key
+VITE_POLLINATIONS_API_KEY=optional_pollinations_key
+```
 
-3. Start the dev server:
+`server/.dev.vars`
 
-   ```bash
-   npm run dev
-   ```
+```bash
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=service-account@your-project.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+POLLINATIONS_API_KEY=optional_pollinations_api_key
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+```
 
-4. Open `http://localhost:5173`
+`VITE_FIREBASE_API_KEY` is required. `VITE_GOOGLE_PLACES_API_KEY` enables activity photos. `VITE_POLLINATIONS_API_KEY` switches the client to Pollinations' OpenAI-compatible endpoint; without it, the browser-callable text endpoint is used.
 
-## Environment Notes
-
-### Required
-
-- `VITE_FIREBASE_API_KEY`
-  Firebase auth initialization fails without this key.
-
-### Optional
-
-- `VITE_GOOGLE_PLACES_API_KEY`
-  Enables place photos for itinerary activities. Without it, activity cards still work, but image coverage is reduced.
-
-- `VITE_POLLINATIONS_API_KEY`
-  If set, the app uses Pollinations' OpenAI-compatible chat completions endpoint. If not set, it falls back to Pollinations' browser-callable text endpoint.
-
-## Provider Behavior
-
-Poreia currently uses Pollinations for itinerary generation.
-
-- Anonymous mode uses the browser-callable text endpoint.
-- Keyed mode uses Pollinations' OpenAI-compatible chat completions API.
-- In development, Vite proxies provider requests through:
-  - `/api/pollinations/text`
-  - `/api/pollinations/v1`
-  - `/api/google-places`
-
-Do not ship private provider keys in a public client build.
+In development, Vite proxies provider requests through `/api/pollinations/text`, `/api/pollinations/v1`, and `/api/google-places`.
 
 ## Dev Container
 
-This repository includes a shared VS Code dev container in `.devcontainer/devcontainer.json`.
+A VS Code dev container is provided at `.devcontainer/devcontainer.json` (Linux Node 22). Run `Dev Containers: Reopen in Container`, then:
 
-### Host prerequisites
-
-- macOS or Windows
-- Docker Desktop or another compatible Docker engine
-- Visual Studio Code
-- VS Code `Dev Containers` extension (`ms-vscode-remote.remote-containers`)
-
-### Open the project in the container
-
-1. Open the repository in VS Code.
-2. Run `Dev Containers: Reopen in Container`.
-3. Wait for the container build and initial dependency install to finish.
-4. Create the local env files you need inside the workspace:
-
-   ```bash
-   cp server/.dev.vars.example server/.dev.vars
-   ```
-
-   `client/.env.local`
-
-   ```bash
-   VITE_FIREBASE_API_KEY=your_firebase_web_api_key
-   VITE_GOOGLE_PLACES_API_KEY=your_browser_restricted_google_places_key
-   VITE_POLLINATIONS_API_KEY=optional_pollinations_key
-   ```
-
-   `server/.dev.vars`
-
-   ```bash
-   FIREBASE_PROJECT_ID=your-firebase-project-id
-   FIREBASE_CLIENT_EMAIL=service-account@your-project.iam.gserviceaccount.com
-   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nreplace-with-your-service-account-private-key\n-----END PRIVATE KEY-----\n"
-   POLLINATIONS_API_KEY=optional_pollinations_api_key
-   FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
-   ```
-
-5. Start the services you need in separate container terminals:
-
-   ```bash
-   npm run dev
-   npm run server:dev
-   npm run firestore:emulator
-   ```
-
-### Notes
-
-- The container uses a Linux Node 22 environment.
-- Root `npm ci` installs both `client` and `server` through npm workspaces.
-- The backend dev server is exposed on `http://localhost:8787`.
-- The Firestore emulator and Emulator UI are exposed on `http://localhost:8080` and `http://localhost:4000`.
-- Root `npm ci` still installs both `client` and `server` through npm workspaces, but `node_modules` now lives in the workspace mount instead of a Docker volume.
-- `client/.env.local` and `server/.dev.vars` stay in your local checkout and are mounted into the container workspace.
-- Running directly on the host OS is still supported.
-
-## Project Structure
-
-```text
-client/
-  src/
-    components/   UI surfaces such as search, itinerary, and map views
-    constants/    prompts and seed values
-    lib/          Firebase setup
-    services/     itinerary and image provider integrations
-    styles/       global styles
-    types/        shared TypeScript models
-    App.tsx       app shell, routing, auth gate
-    main.tsx      React entry point
-  public/         static files copied as-is
-server/
-  src/            Cloudflare Worker API, routes, and Firestore access
-  test/           Integration coverage against the Firestore emulator
-.devcontainer/    Shared VS Code container config and Dockerfile
+```bash
+npm run dev              # client + server + firestore emulator
+npm run server:dev       # backend only on http://localhost:8787
+npm run firestore:emulator
 ```
+
+The Firestore emulator runs on `http://localhost:8080` with the Emulator UI on `http://localhost:4000`.
 
 ## Scripts
 
 ```bash
-npm run dev
-npm run build
-npm run preview
-npm run client:dev
-npm run server:dev
+npm run dev                       # client, server, and firestore emulator
+npm run client:dev                # client only
+npm run server:dev                # Cloudflare Worker backend
 npm run server:typecheck
+npm run server:test:integration   # integration tests against the Firestore emulator
 npm run firestore:emulator
-npm run server:test:integration
+```
+
+## Project Structure
+
+```text
+client/src/
+  components/   UI surfaces: search, itinerary, map
+  constants/    prompts and seed values
+  lib/          Firebase setup
+  services/     itinerary and image providers
+  styles/       global styles
+  types/        shared TypeScript models
+server/src/     Cloudflare Worker API, routes, Firestore access
+server/test/    integration coverage against the Firestore emulator
+.devcontainer/  VS Code container config
 ```
