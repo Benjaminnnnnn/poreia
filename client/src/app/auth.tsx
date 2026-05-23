@@ -1,18 +1,19 @@
 "use client";
 
-import AppHeader from "@/components/ui/AppHeader";
 import { auth, signInWithGoogle, signOutUser } from "@/lib/firebase";
+import { getErrorMessage } from "@/lib/errorMessage";
 import {
   getCurrentUserProfile,
   updateCurrentUserProfile,
 } from "@/services/profileService";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Loader2 } from "lucide-react";
 import React, {
   createContext,
+  startTransition,
   use,
   useCallback,
   useEffect,
@@ -20,6 +21,10 @@ import React, {
   useRef,
   useState,
 } from "react";
+
+// ============================================================
+// Helpers
+// ============================================================
 
 const getDefaultTravelerName = (user: User | null) =>
   user?.displayName?.trim() || user?.email?.split("@")[0] || "Traveler";
@@ -29,13 +34,35 @@ const getResolvedTravelerName = (
   travelerName?: string | null,
 ) => travelerName?.trim() || getDefaultTravelerName(user);
 
-const getErrorMessage = (error: unknown, fallback: string) => {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
+// ============================================================
+// Broad auth context — available to any component inside AuthRoute,
+// regardless of authentication status. Used by AppHeaderBar.
+// ============================================================
 
-  return fallback;
+export interface AppAuthBroadContextValue {
+  authUser: User | null;
+  isAuthBusy: boolean;
+  travelerName: string;
+  onNavigateHome: () => void;
+  onOpenSavedTrips: () => void;
+  onOpenProfile: () => void;
+  onSignOut: () => Promise<void>;
+}
+
+const AppAuthBroadContext = createContext<AppAuthBroadContextValue | null>(
+  null,
+);
+
+export const useAppHeaderState = (): AppAuthBroadContextValue => {
+  const ctx = use(AppAuthBroadContext);
+  if (!ctx)
+    throw new Error("useAppHeaderState must be used within AuthRoute");
+  return ctx;
 };
+
+// ============================================================
+// Auth gate components
+// ============================================================
 
 interface GoogleMarkProps {
   className?: string;
@@ -83,20 +110,16 @@ const AuthGate: React.FC<AuthGateProps> = ({
 
   return (
     <section className="relative flex min-h-0 flex-1 flex-col w-full overflow-hidden">
-      {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
         <img
           src="https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?q=80&w=2670&auto=format&fit=crop"
           alt="Canyon Landscape"
           className="w-full h-full object-cover"
         />
-        {/* Gradient overlay for better text readability */}
         <div className="absolute inset-0 bg-black/20" />
       </div>
 
-      {/* Main Content */}
       <main className="relative z-10 flex flex-col items-center justify-center my-auto px-6 sm:px-12 w-full text-center">
-        {/* Hero Text */}
         <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,7 +134,6 @@ const AuthGate: React.FC<AuthGateProps> = ({
           </p>
         </motion.div>
 
-        {/* Button Group */}
         <div className="mt-8 sm:mt-10 flex flex-col items-center gap-3">
           <motion.button
             type="button"
@@ -176,7 +198,6 @@ const AuthGate: React.FC<AuthGateProps> = ({
         </div>
       </main>
 
-      {/* Footer */}
       <div className="relative z-10 pb-4 sm:pb-6 text-center">
         <p className="text-white/60 text-xs tracking-wide">
           © 2026 Poreia Inc. — Terms & Privacy
@@ -188,11 +209,9 @@ const AuthGate: React.FC<AuthGateProps> = ({
 
 const AuthLoadingFallback = () => (
   <section className="relative flex min-h-0 flex-1 flex-col w-full overflow-hidden items-center justify-center">
-    {/* Background */}
     <div className="absolute inset-0 bg-[rgb(18,14,10)]" />
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(217,119,87,0.18),transparent)]" />
 
-    {/* Loading Card */}
     <div className="relative z-10 rounded-[2rem] border border-white/10 bg-white/5 p-8 sm:p-12 shadow-2xl backdrop-blur-xl">
       <div className="flex flex-col items-center gap-4">
         <Loader2
@@ -206,6 +225,10 @@ const AuthLoadingFallback = () => (
     </div>
   </section>
 );
+
+// ============================================================
+// Authenticated page context
+// ============================================================
 
 interface AuthRouteContextValue {
   actions: {
@@ -230,12 +253,18 @@ export const useAppAuth = () => {
   return context;
 };
 
-const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// ============================================================
+// AuthRoute — app shell (auth state + layout structure)
+// ============================================================
+
+interface AuthRouteProps {
+  /** Rendered above main content; receives AppAuthBroadContext. */
+  header?: React.ReactNode;
+  children: React.ReactNode;
+}
+
+const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
   const router = useRouter();
-  const pathname = usePathname();
-  const isHomePage = pathname === "/";
-  const isSavedTripsPage = pathname === "/trips";
-  const isProfilePage = pathname === "/profile";
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [travelerName, setTravelerName] = useState("Traveler");
   const [isAuthReady, setIsAuthReady] = useState(false);
@@ -357,6 +386,39 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, []);
 
+  const handleNavigateHome = useCallback(() => {
+    router.push("/");
+  }, [router]);
+
+  const handleOpenSavedTrips = useCallback(() => {
+    router.push("/trips");
+  }, [router]);
+
+  const handleOpenProfile = useCallback(() => {
+    router.push("/profile");
+  }, [router]);
+
+  const broadContextValue = useMemo<AppAuthBroadContextValue>(
+    () => ({
+      authUser,
+      isAuthBusy,
+      travelerName,
+      onNavigateHome: handleNavigateHome,
+      onOpenSavedTrips: handleOpenSavedTrips,
+      onOpenProfile: handleOpenProfile,
+      onSignOut: handleSignOut,
+    }),
+    [
+      authUser,
+      isAuthBusy,
+      travelerName,
+      handleNavigateHome,
+      handleOpenSavedTrips,
+      handleOpenProfile,
+      handleSignOut,
+    ],
+  );
+
   const authContextValue = useMemo<AuthRouteContextValue | null>(() => {
     if (!authUser) {
       return null;
@@ -375,37 +437,28 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [authUser, handleSetTravelerName, isUpdatingProfile, travelerName]);
 
   return (
-    <div className="relative z-10 flex h-full min-h-0 flex-col">
-      <AppHeader
-        authUser={authUser}
-        isAuthBusy={isAuthBusy}
-        isHomePage={isHomePage}
-        isSavedTripsPage={isSavedTripsPage}
-        travelerName={travelerName}
-        onNavigateHome={() => router.push("/")}
-        onOpenProfile={() => router.push("/profile")}
-        onOpenSavedTrips={() => router.push("/trips")}
-        onSignOut={handleSignOut}
-      />
-
-      <main className="relative flex min-h-0 flex-1 flex-col">
-        <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-          {!isAuthReady ? (
-            <AuthLoadingFallback />
-          ) : !authUser || !authContextValue ? (
-            <AuthGate
-              errorMessage={authError}
-              isSigningIn={isAuthBusy}
-              onSignIn={handleSignIn}
-            />
-          ) : (
-            <AuthRouteContext.Provider value={authContextValue}>
-              {children}
-            </AuthRouteContext.Provider>
-          )}
-        </div>
-      </main>
-    </div>
+    <AppAuthBroadContext.Provider value={broadContextValue}>
+      <div className="relative z-10 flex h-full min-h-0 flex-col">
+        {header}
+        <main className="relative flex min-h-0 flex-1 flex-col">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+            {!isAuthReady ? (
+              <AuthLoadingFallback />
+            ) : !authUser || !authContextValue ? (
+              <AuthGate
+                errorMessage={authError}
+                isSigningIn={isAuthBusy}
+                onSignIn={handleSignIn}
+              />
+            ) : (
+              <AuthRouteContext.Provider value={authContextValue}>
+                {children}
+              </AuthRouteContext.Provider>
+            )}
+          </div>
+        </main>
+      </div>
+    </AppAuthBroadContext.Provider>
   );
 };
 

@@ -5,7 +5,6 @@ const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(process.cwd(), "../"),
-
   async headers() {
     return [
       {

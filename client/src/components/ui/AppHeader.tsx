@@ -126,7 +126,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [isAccountMenuOpen]);
 
   return (
-    <header className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 bg-black/20 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-black/15 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/8 before:to-transparent before:-z-10">
+    <header
+      className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 bg-black/20 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-black/15 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/8 before:to-transparent before:-z-10"
+    >
       <div className="relative flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
         {/* Left: circle logo + wordmark */}
         <Button
