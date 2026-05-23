@@ -12,14 +12,8 @@ import {
   signOut,
 } from 'firebase/auth';
 
-const apiKey = import.meta.env.VITE_FIREBASE_API_KEY?.trim();
-
-if (!apiKey) {
-  throw new Error('Missing VITE_FIREBASE_API_KEY in .env.local');
-}
-
 const firebaseConfig = {
-  apiKey,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? '',
   authDomain: 'poreia-c566a.firebaseapp.com',
   projectId: 'poreia-c566a',
   storageBucket: 'poreia-c566a.firebasestorage.app',
@@ -44,6 +38,10 @@ export const analyticsPromise: Promise<Analytics | null> =
     );
 
 export const signInWithGoogle = async () => {
+  if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY?.trim()) {
+    throw new Error('Missing NEXT_PUBLIC_FIREBASE_API_KEY in .env.local');
+  }
+
   try {
     return await signInWithPopup(auth, googleProvider);
   } catch (error) {

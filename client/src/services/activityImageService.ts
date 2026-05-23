@@ -4,11 +4,11 @@ const COMMONS_API_ENDPOINT = 'https://commons.wikimedia.org/w/api.php';
 const COMMONS_SEARCH_LIMIT = '6';
 const COMMONS_THUMBNAIL_WIDTH = '640';
 
-const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY?.trim();
-const GOOGLE_PLACES_TEXT_SEARCH_ENDPOINT = import.meta.env.DEV
+const GOOGLE_PLACES_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY?.trim();
+const GOOGLE_PLACES_TEXT_SEARCH_ENDPOINT = process.env.NODE_ENV === 'development'
   ? '/api/google-places/v1/places:searchText'
   : 'https://places.googleapis.com/v1/places:searchText';
-const GOOGLE_PLACES_BASE_ENDPOINT = import.meta.env.DEV
+const GOOGLE_PLACES_BASE_ENDPOINT = process.env.NODE_ENV === 'development'
   ? '/api/google-places/v1'
   : 'https://places.googleapis.com/v1';
 

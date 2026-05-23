@@ -2,11 +2,11 @@
   "name": "@poreia/client",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@dnd-kit/core": "6.1.0",
@@ -21,6 +21,7 @@
     "framer-motion": "^12.38.0",
     "leaflet": "1.9.4",
     "lucide-react": "0.469.0",
+    "next": "^15.3.2",
     "radix-ui": "^1.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -31,14 +32,13 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.2",
+    "@types/leaflet": "^1.9.19",
     "@types/node": "^22.14.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.27",
     "postcss": "^8.5.8",
     "tailwindcss": "^4.2.2",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "typescript": "~5.8.2"
   }
 }

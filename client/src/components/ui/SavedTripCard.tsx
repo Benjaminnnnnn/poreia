@@ -2,7 +2,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import FadeImage from "@/components/ui/FadeImage";
 import Surface from "@/components/ui/Surface";
-import type { Trip } from "@/types";
+import type { TripSession as Trip } from "@/types";
 import { ArrowUpRight, Clock3, Trash2 } from "lucide-react";
 import React from "react";
 
