@@ -3,8 +3,7 @@
 @custom-variant dark (&:is(.dark *));
 
 html,
-body,
-#root {
+body {
   margin: 0;
   width: 100%;
   height: 100%;
@@ -46,8 +45,8 @@ body,
   --sidebar-accent-foreground: oklch(0.3791 0.1378 265.5222);
   --sidebar-border: oklch(0.9276 0.0058 264.5313);
   --sidebar-ring: oklch(0.6397 0.172 36.4421);
-  --font-sans: Inter, sans-serif;
-  --font-serif: Source Serif 4, serif;
+  --font-sans: var(--font-manrope), sans-serif;
+  --font-serif: var(--font-source-serif), serif;
   --font-mono: JetBrains Mono, monospace;
   --radius: 0.75rem;
   --shadow-2xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.05);

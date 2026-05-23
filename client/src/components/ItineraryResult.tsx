@@ -4,6 +4,7 @@ import type {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import dynamic from "next/dynamic";
 import React, {
   lazy,
   startTransition,
@@ -40,7 +41,7 @@ import {
 } from "./itinerary/constants";
 
 const ItineraryPlanView = lazy(() => import("./itinerary/ItineraryPlanView"));
-const WorldMap = lazy(() => import("./WorldMap"));
+const WorldMap = dynamic(() => import("./WorldMap"), { ssr: false });
 
 const ITINERARY_SECTION_TOP_OFFSET = 132;
 const SECTION_SCROLL_SETTLE_TOLERANCE = 6;
