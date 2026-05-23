@@ -1,4 +1,5 @@
 import type { User } from "firebase/auth";
+import { getErrorMessage } from "@/lib/errorMessage";
 import {
   createTrip as createTripRequest,
   deleteTrip as deleteTripRequest,
@@ -48,14 +49,6 @@ interface TripsContextValue {
 }
 
 const TripsContext = createContext<TripsContextValue | null>(null);
-
-const getErrorMessage = (error: unknown, fallback: string) => {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
-  }
-
-  return fallback;
-};
 
 function mergeTrip(
   current: TripSession | undefined,

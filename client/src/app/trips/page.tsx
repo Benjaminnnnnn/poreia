@@ -2,6 +2,7 @@
 
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { useAppAuth } from "@/app/auth";
 import { TripsProvider, useTrips } from "@/contexts/trips";
 import { hasFiniteCoordinates } from "@/lib/coordinates";
@@ -12,7 +13,12 @@ import {
 import type { Activity, TravelItinerary } from "@/types";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import React, { startTransition, useEffect, useMemo, useState } from "react";
+import React, {
+  startTransition,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 const formatTripDate = (value: string) =>
   new Intl.DateTimeFormat("en-US", {
@@ -136,19 +142,7 @@ function SavedTripsContent() {
         </div>
 
         {isLoadingTrips ? (
-          <Surface
-            as="div"
-            variant="dashed"
-            radius="xl"
-            className="px-5 py-10 text-center border border-white/10 bg-white/5 backdrop-blur-sm"
-          >
-            <p className="font-display text-[1.7rem] leading-none tracking-[-0.04em] text-white drop-shadow-lg">
-              Loading your trips.
-            </p>
-            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-white/75 drop-shadow-sm">
-              Pulling your saved itineraries.
-            </p>
-          </Surface>
+          <PageLoading label="Loading your trips…" />
         ) : trips.length ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {trips.map((trip, index) => {
@@ -175,7 +169,9 @@ function SavedTripsContent() {
                     metadataLabel={`${itinerary?.totalDays ?? 0} day plan`}
                     metadataSecondary={`Updated ${formatTripDate(trip.updatedAt)}`}
                     stopCountLabel={formatStopCountLabel(stopCount)}
-                    onOpen={() => router.push(`/t/${trip.id}`)}
+                    onOpen={() => {
+                      router.push(`/t/${trip.id}`);
+                    }}
                     onDelete={(event) => {
                       event.stopPropagation();
                       deleteTrip(trip.id);

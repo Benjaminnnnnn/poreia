@@ -3,6 +3,7 @@
 import React from "react";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import AuthRoute from "@/app/auth";
+import { AppHeaderBar } from "@/components/ui/AppHeaderBar";
 
 const AppProviders: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -10,7 +11,7 @@ const AppProviders: React.FC<{ children: React.ReactNode }> = ({
   return (
     <TooltipProvider>
       <div className="app-summer relative h-[100dvh] w-full overflow-hidden bg-[rgb(248,245,240)] font-sans text-slate-900">
-        <AuthRoute>
+        <AuthRoute header={<AppHeaderBar />}>
           <div className="min-h-0 flex-1">{children}</div>
         </AuthRoute>
         <style>{`

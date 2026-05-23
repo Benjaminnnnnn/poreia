@@ -3,31 +3,23 @@
 import { useAppAuth } from "@/app/auth";
 import TripCollaborationPanel from "./CollaborationPanel";
 import TripInviteButton from "./InviteButton";
+import { PageLoading } from "@/components/ui/PageLoading";
 import { TripsProvider, useTrips } from "@/contexts/trips";
 import type { TravelItinerary } from "@/types";
 import RefineForm from "./RefineForm";
 import { AnimatePresence, motion } from "framer-motion";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { Suspense, lazy, use, useEffect, useState } from "react";
+import React, {
+  Suspense,
+  lazy,
+  use,
+  useEffect,
+  useState,
+} from "react";
 
 const ItineraryResult = lazy(() => import("@/components/ItineraryResult"));
 
 type WorkspaceTab = "itinerary" | "notes";
-
-const SurfaceFallback: React.FC<{ className?: string; label: string }> = ({
-  className = "",
-  label,
-}) => (
-  <div
-    className={`flex items-center justify-center rounded-[0.7rem] border border-white/20 bg-white/10 backdrop-blur-xl ${className}`}
-  >
-    <div className="flex flex-col items-center gap-3 text-white">
-      <Loader2 className="animate-spin text-[#D97757]" size={32} />
-      <p className="font-medium">{label}</p>
-    </div>
-  </div>
-);
 
 function TripPageContent({ tripId }: { tripId: string }) {
   const router = useRouter();
@@ -57,9 +49,7 @@ function TripPageContent({ tripId }: { tripId: string }) {
 
   if (!trip) {
     return (
-      <div className="flex h-full min-h-0 items-center justify-center bg-black/60 backdrop-blur-xl">
-        <Loader2 className="animate-spin text-[#D97757]" size={32} />
-      </div>
+      <PageLoading className="h-full bg-black/60 backdrop-blur-xl" />
     );
   }
 
@@ -95,10 +85,7 @@ function TripPageContent({ tripId }: { tripId: string }) {
         {trip.currentItinerary ? (
           <Suspense
             fallback={
-              <SurfaceFallback
-                className="h-full"
-                label="Loading itinerary workspace..."
-              />
+              <PageLoading className="h-full" label="Loading itinerary workspace…" />
             }
           >
             <ItineraryResult
@@ -117,7 +104,7 @@ function TripPageContent({ tripId }: { tripId: string }) {
             />
           </Suspense>
         ) : (
-          <SurfaceFallback className="h-full" label="Planning your trip..." />
+          <PageLoading className="h-full" label="Planning your trip…" />
         )}
       </div>
 
