@@ -20,6 +20,9 @@ next-env.d.ts
 server/.dev.vars*
 server/.wrangler
 
+# Claude Code local settings
+settings.local.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

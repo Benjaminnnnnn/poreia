@@ -39,6 +39,7 @@ import {
   DAY_MARKER_COLORS,
   WorkspaceTab,
 } from "./itinerary/constants";
+import { PageLoading } from "./ui/PageLoading";
 
 const ItineraryPlanView = lazy(() => import("./itinerary/ItineraryPlanView"));
 const WorldMap = dynamic(() => import("./WorldMap"), { ssr: false });
@@ -58,17 +59,6 @@ interface ItineraryResultProps {
   onUpdate?: (updatedItinerary: TravelItinerary) => void;
   onWorkspaceTabChange?: (tab: WorkspaceTab) => void;
 }
-
-const PanelFallback: React.FC<{ className?: string; label: string }> = ({
-  className = "",
-  label,
-}) => (
-  <div
-    className={`flex items-center justify-center rounded-[0.7rem] border border-white/20 bg-white/10 backdrop-blur-xl px-4 py-6 text-sm font-medium text-white/70 ${className}`}
-  >
-    {label}
-  </div>
-);
 
 const ItineraryResult: React.FC<ItineraryResultProps> = ({
   itinerary,
@@ -668,7 +658,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
                 {activeTab === "itinerary" ? (
                   <Suspense
                     fallback={
-                      <PanelFallback label="Loading itinerary planner..." />
+                      <PageLoading label="Loading itinerary planner..." />
                     }
                   >
                     <ItineraryPlanView
@@ -705,10 +695,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
         <ItinerarySidePanel activeTab={activeTab} itinerary={localItinerary}>
           <Suspense
             fallback={
-              <PanelFallback
-                className="h-full rounded-none border-0"
-                label="Loading map..."
-              />
+              <PageLoading className="h-full" label="Loading map..." />
             }
           >
             <WorldMap

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppAuth } from "@/app/auth";
+import { useAppAuth, useAppHeaderState } from "@/app/auth";
 import TripCollaborationPanel from "./CollaborationPanel";
 import TripInviteButton from "./InviteButton";
 import { PageLoading } from "@/components/ui/PageLoading";
@@ -47,12 +47,6 @@ function TripPageContent({ tripId }: { tripId: string }) {
     setIsInvitePanelOpen(false);
   }, [tripId]);
 
-  if (!trip) {
-    return (
-      <PageLoading className="h-full bg-black/60 backdrop-blur-xl" />
-    );
-  }
-
   const handleManualItineraryUpdate = (newItinerary: TravelItinerary) => {
     void updateTripItinerary(tripId, newItinerary);
   };
@@ -82,7 +76,9 @@ function TripPageContent({ tripId }: { tripId: string }) {
       </div>
 
       <div className="relative z-10 flex-1 min-h-0 overflow-hidden">
-        {trip.currentItinerary ? (
+        {!trip ? (
+          <PageLoading className="h-full" label="Loading your trip…" />
+        ) : trip.currentItinerary ? (
           <Suspense
             fallback={
               <PageLoading className="h-full" label="Loading itinerary workspace…" />
@@ -109,7 +105,7 @@ function TripPageContent({ tripId }: { tripId: string }) {
       </div>
 
       <AnimatePresence>
-        {activeWorkspaceTab === "itinerary" &&
+        {trip && activeWorkspaceTab === "itinerary" &&
         trip.permissions?.canEdit !== false ? (
           <motion.div
             key="refine-form"
@@ -128,23 +124,20 @@ function TripPageContent({ tripId }: { tripId: string }) {
         ) : null}
       </AnimatePresence>
 
-      <TripCollaborationPanel
-        canManageMembers={trip.permissions?.canManageMembers ?? false}
-        memberCount={trip.memberCount}
-        onClose={() => setIsInvitePanelOpen(false)}
-        open={isInvitePanelOpen}
-        tripId={tripId}
-      />
+      {trip && (
+        <TripCollaborationPanel
+          canManageMembers={trip.permissions?.canManageMembers ?? false}
+          memberCount={trip.memberCount}
+          onClose={() => setIsInvitePanelOpen(false)}
+          open={isInvitePanelOpen}
+          tripId={tripId}
+        />
+      )}
     </div>
   );
 }
 
-export default function TripPage({
-  params,
-}: {
-  params: Promise<{ tripId: string }>;
-}) {
-  const { tripId } = use(params);
+function AuthenticatedTripPage({ tripId }: { tripId: string }) {
   const {
     state: { authUser },
   } = useAppAuth();
@@ -154,4 +147,27 @@ export default function TripPage({
       <TripPageContent tripId={tripId} />
     </TripsProvider>
   );
+}
+
+export default function TripPage({
+  params,
+}: {
+  params: Promise<{ tripId: string }>;
+}) {
+  const { tripId } = use(params);
+  const { authUser, openAuthModal } = useAppHeaderState();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authUser) {
+      openAuthModal();
+      router.push("/");
+    }
+  }, [authUser, openAuthModal, router]);
+
+  if (!authUser) {
+    return null;
+  }
+
+  return <AuthenticatedTripPage tripId={tripId} />;
 }

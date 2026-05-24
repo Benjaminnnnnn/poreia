@@ -9,11 +9,10 @@ import {
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Loader2, X } from "lucide-react";
 import React, {
   createContext,
-  startTransition,
   use,
   useCallback,
   useEffect,
@@ -47,6 +46,7 @@ export interface AppAuthBroadContextValue {
   onOpenSavedTrips: () => void;
   onOpenProfile: () => void;
   onSignOut: () => Promise<void>;
+  openAuthModal: () => void;
 }
 
 const AppAuthBroadContext = createContext<AppAuthBroadContextValue | null>(
@@ -61,14 +61,10 @@ export const useAppHeaderState = (): AppAuthBroadContextValue => {
 };
 
 // ============================================================
-// Auth gate components
+// Google mark SVG
 // ============================================================
 
-interface GoogleMarkProps {
-  className?: string;
-}
-
-const GoogleMark: React.FC<GoogleMarkProps> = ({ className = "" }) => (
+const GoogleMark: React.FC<{ className?: string }> = ({ className = "" }) => (
   <svg
     aria-hidden="true"
     viewBox="0 0 24 24"
@@ -95,117 +91,139 @@ const GoogleMark: React.FC<GoogleMarkProps> = ({ className = "" }) => (
   </svg>
 );
 
-interface AuthGateProps {
+// ============================================================
+// Auth modal — shown as overlay when unauthenticated user tries
+// to perform an action that requires sign-in.
+// ============================================================
+
+interface AuthModalProps {
   errorMessage: string | null;
   isSigningIn: boolean;
+  onClose: () => void;
   onSignIn: () => Promise<void>;
 }
 
-const AuthGate: React.FC<AuthGateProps> = ({
+const AuthModal: React.FC<AuthModalProps> = ({
   errorMessage,
   isSigningIn,
+  onClose,
   onSignIn,
 }) => {
   const prefersReducedMotion = useReducedMotion();
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
-    <section className="relative flex min-h-0 flex-1 flex-col w-full overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <img
-          src="https://images.unsplash.com/photo-1506197603052-3cc9c3a201bd?q=80&w=2670&auto=format&fit=crop"
-          alt="Canyon Landscape"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/20" />
-      </div>
-
-      <main className="relative z-10 flex flex-col items-center justify-center my-auto px-6 sm:px-12 w-full text-center">
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col items-center max-w-3xl"
+    <motion.div
+      initial={prefersReducedMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Sign in to Poreia"
+    >
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.96, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.96, y: 8 }}
+        transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+        className="relative flex w-full max-w-[680px] overflow-hidden rounded-3xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
         >
-          <h1 className="mb-3 text-3xl font-semibold leading-[1.1] tracking-tight text-white drop-shadow-lg sm:mb-4 sm:text-5xl md:text-6xl lg:text-7xl">
-            The world is yours.
-          </h1>
-          <p className="max-w-2xl text-sm font-light leading-relaxed text-white/90 drop-shadow-md sm:text-base md:text-lg md:leading-relaxed lg:text-xl">
-            Shape your next itinerary with Poreia
-          </p>
-        </motion.div>
+          <X size={16} />
+        </button>
 
-        <div className="mt-8 sm:mt-10 flex flex-col items-center gap-3">
-          <motion.button
-            type="button"
-            onClick={() => {
-              void onSignIn();
-            }}
-            disabled={isSigningIn}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-            whileHover={
-              prefersReducedMotion || isSigningIn
-                ? undefined
-                : { scale: 1.02, y: -2 }
-            }
-            whileTap={
-              prefersReducedMotion || isSigningIn ? undefined : { scale: 0.98 }
-            }
-            className="focus-ring flex items-center gap-3 sm:gap-4 bg-[#D97757] hover:bg-[#C66546] disabled:opacity-80 disabled:cursor-not-allowed text-white px-2 py-2 pr-5 sm:pr-6 rounded-full transition-colors active:scale-95 shadow-lg"
-          >
-            <div className="bg-white rounded-full p-2 flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 shrink-0">
-              {isSigningIn ? (
-                <Loader2 className="animate-spin text-[#D97757]" size={18} />
-              ) : (
-                <GoogleMark className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
-              )}
-            </div>
-            <span className="font-medium text-sm sm:text-base">
-              {isSigningIn
-                ? "Validating traveler pass"
-                : "Continue with Google"}
-            </span>
-            <motion.span
-              aria-hidden="true"
-              animate={
-                prefersReducedMotion || isSigningIn
-                  ? { x: 0 }
-                  : { x: [0, 4, 0] }
-              }
-              transition={{
-                duration: 1.9,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-              className="relative ml-1 sm:ml-2 flex items-center justify-center shrink-0"
-            >
-              <ArrowRight size={18} />
-            </motion.span>
-          </motion.button>
-
-          {errorMessage ? (
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.28, ease: "easeOut" }}
-              className="bg-red-500/20 border border-red-400/40 text-red-100 px-4 py-3 rounded-lg text-sm max-w-sm backdrop-blur-sm"
-            >
-              {errorMessage}
-            </motion.div>
-          ) : null}
+        {/* Left: marketing panel */}
+        <div className="relative hidden w-[42%] flex-col overflow-hidden md:flex">
+          <img
+            src="https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg?auto=compress&cs=tinysrgb&w=800&q=80"
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/75 to-slate-700/60" />
+          <div className="relative z-10 flex h-full flex-col justify-end p-8 pb-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/50">
+              Your itinerary, your way
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold leading-tight text-white">
+              Plan your next adventure with AI
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-white/70">
+              Describe where you want to go. Poreia builds a full itinerary in
+              seconds.
+            </p>
+          </div>
         </div>
-      </main>
 
-      <div className="relative z-10 pb-4 sm:pb-6 text-center">
-        <p className="text-white/60 text-xs tracking-wide">
-          © 2026 Poreia Inc. — Terms & Privacy
-        </p>
-      </div>
-    </section>
+        {/* Right: sign-in panel */}
+        <div className="flex flex-1 flex-col items-center justify-center px-8 py-12 md:py-16">
+          <div className="mb-8 flex flex-col items-center">
+            <img
+              src="/logo.svg"
+              alt="Poreia"
+              className="mb-4 h-12 w-12 object-contain"
+            />
+            <h1 className="text-xl font-semibold text-slate-900">
+              Welcome to Poreia
+            </h1>
+            <p className="mt-1.5 text-center text-sm text-slate-500">
+              Sign in to start planning your trip
+            </p>
+          </div>
+
+          <div className="w-full max-w-[260px]">
+            <button
+              type="button"
+              onClick={() => void onSignIn()}
+              disabled={isSigningIn}
+              className="flex w-full items-center gap-3 rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isSigningIn ? (
+                <Loader2 className="h-5 w-5 shrink-0 animate-spin text-[#D97757]" />
+              ) : (
+                <GoogleMark className="h-5 w-5 shrink-0" />
+              )}
+              <span className="flex-1 text-center">
+                {isSigningIn ? "Signing in…" : "Continue with Google"}
+              </span>
+            </button>
+
+            {errorMessage ? (
+              <motion.p
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-center text-sm text-red-600"
+              >
+                {errorMessage}
+              </motion.p>
+            ) : null}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
+
+// ============================================================
+// Loading fallback
+// ============================================================
 
 const AuthLoadingFallback = () => (
   <section className="relative flex min-h-0 flex-1 flex-col w-full overflow-hidden items-center justify-center">
@@ -218,9 +236,7 @@ const AuthLoadingFallback = () => (
           className="animate-spin text-[#D97757] drop-shadow-lg"
           size={40}
         />
-        <div className="flex flex-col items-center gap-2 text-center">
-          <p className="text-sm text-white/60">Loading your itinerary…</p>
-        </div>
+        <p className="text-sm text-white/60">Loading your itinerary…</p>
       </div>
     </div>
   </section>
@@ -271,6 +287,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
   const [isAuthBusy, setIsAuthBusy] = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const authSyncVersionRef = useRef(0);
 
   useEffect(() => {
@@ -286,13 +303,13 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
         setTravelerName(getDefaultTravelerName(null));
         setIsAuthReady(true);
         setIsUpdatingProfile(false);
-        router.push("/");
         return;
       }
 
       setAuthUser(user);
       setTravelerName(getDefaultTravelerName(user));
       setIsAuthReady(false);
+      setIsAuthModalOpen(false);
 
       void (async () => {
         try {
@@ -322,7 +339,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
       isCancelled = true;
       unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   const handleSetTravelerName = useCallback(
     async (nextTravelerName: string) => {
@@ -398,6 +415,14 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
     router.push("/profile");
   }, [router]);
 
+  const handleOpenAuthModal = useCallback(() => {
+    setIsAuthModalOpen(true);
+  }, []);
+
+  const handleCloseAuthModal = useCallback(() => {
+    setIsAuthModalOpen(false);
+  }, []);
+
   const broadContextValue = useMemo<AppAuthBroadContextValue>(
     () => ({
       authUser,
@@ -407,6 +432,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
       onOpenSavedTrips: handleOpenSavedTrips,
       onOpenProfile: handleOpenProfile,
       onSignOut: handleSignOut,
+      openAuthModal: handleOpenAuthModal,
     }),
     [
       authUser,
@@ -416,6 +442,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
       handleOpenSavedTrips,
       handleOpenProfile,
       handleSignOut,
+      handleOpenAuthModal,
     ],
   );
 
@@ -444,12 +471,6 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
           <div className="relative z-10 flex min-h-0 flex-1 flex-col">
             {!isAuthReady ? (
               <AuthLoadingFallback />
-            ) : !authUser || !authContextValue ? (
-              <AuthGate
-                errorMessage={authError}
-                isSigningIn={isAuthBusy}
-                onSignIn={handleSignIn}
-              />
             ) : (
               <AuthRouteContext.Provider value={authContextValue}>
                 {children}
@@ -458,6 +479,17 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
           </div>
         </main>
       </div>
+      <AnimatePresence>
+        {isAuthModalOpen ? (
+          <AuthModal
+            key="auth-modal"
+            errorMessage={authError}
+            isSigningIn={isAuthBusy}
+            onClose={handleCloseAuthModal}
+            onSignIn={handleSignIn}
+          />
+        ) : null}
+      </AnimatePresence>
     </AppAuthBroadContext.Provider>
   );
 };

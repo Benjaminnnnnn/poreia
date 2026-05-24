@@ -1,5 +1,6 @@
 import Button from "@/components/ui/Button";
 import FadeImage from "@/components/ui/FadeImage";
+import { PageLoading } from "@/components/ui/PageLoading";
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
 import { useAppAuth } from "@/app/auth";
@@ -460,7 +461,6 @@ const ProfileRoute: React.FC = () => {
                     <FadeImage
                       src={authUser.photoURL}
                       alt={`${travelerName} profile`}
-                      iconSize={20}
                       referrerPolicy="no-referrer"
                     />
                   ) : (
@@ -599,9 +599,7 @@ const ProfileRoute: React.FC = () => {
             <div className="relative h-[16rem] sm:h-[20rem] lg:h-[22rem]">
               <Suspense
                 fallback={
-                  <div className="flex h-full items-center justify-center text-sm font-medium text-white/60">
-                    Loading traveler atlas…
-                  </div>
+                  <PageLoading className="h-full" label="Loading traveler atlas…" />
                 }
               >
                 <WorldMap

@@ -1,5 +1,5 @@
 import React from "react";
-import { cx } from "./cx";
+import { cn as cx } from "@/lib/utils";
 
 type SurfaceVariant = "card" | "subtle" | "glass" | "muted" | "dashed";
 type SurfacePadding = "none" | "sm" | "md" | "lg" | "xl";

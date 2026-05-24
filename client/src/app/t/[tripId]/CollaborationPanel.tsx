@@ -242,7 +242,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
               <div className="relative z-10 flex flex-col items-center w-full px-10">
                 {TRIP_IMAGES.map((src, i) => (
                   <motion.div
-                    key={i}
+                    key={src}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{

@@ -19,14 +19,9 @@ export interface AppHeaderProps {
   isAuthBusy: boolean;
 
   /**
-   * Whether the current page is the home page. Affects styling (dark mode vs light).
+   * Which page is currently active. Controls which nav buttons are shown.
    */
-  isHomePage: boolean;
-
-  /**
-   * Whether the current page is the saved trips page. Hides the "Saved trips" nav button.
-   */
-  isSavedTripsPage: boolean;
+  activePage?: "home" | "trips";
 
   /**
    * Display name for the currently authenticated user.
@@ -52,6 +47,11 @@ export interface AppHeaderProps {
    * Callback when user clicks "Sign out" in the account menu.
    */
   onSignOut: () => Promise<void>;
+
+  /**
+   * Callback when unauthenticated user clicks "Sign in".
+   */
+  onSignIn?: () => void;
 }
 
 /**
@@ -65,31 +65,17 @@ export interface AppHeaderProps {
  * - Keyboard navigation (Escape to close menu)
  * - Click-outside detection for menu dismissal
  *
- * Usage:
- * ```tsx
- * <AppHeader
- *   authUser={user}
- *   isAuthBusy={false}
- *   isHomePage={true}
- *   isSavedTripsPage={false}
- *   travelerName="Alex"
- *   onNavigateHome={() => navigate('/')}
- *   onOpenProfile={() => navigate('/profile')}
- *   onOpenSavedTrips={() => navigate('/saved-trips')}
- *   onSignOut={() => signOut()}
- * />
- * ```
  */
 export const AppHeader: React.FC<AppHeaderProps> = ({
+  activePage,
   authUser,
   isAuthBusy,
-  isHomePage,
-  isSavedTripsPage,
   travelerName,
   onNavigateHome,
   onOpenProfile,
   onOpenSavedTrips,
   onSignOut,
+  onSignIn,
 }) => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
@@ -156,7 +142,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex shrink-0 items-center justify-end gap-3">
           {authUser ? (
             <>
-              {!isHomePage ? (
+              {activePage !== "home" ? (
                 <Button
                   type="button"
                   variant="ghost"
@@ -168,7 +154,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </Button>
               ) : null}
 
-              {!isSavedTripsPage ? (
+              {activePage !== "trips" ? (
                 <Button
                   type="button"
                   variant="ghost"
@@ -263,6 +249,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </AnimatePresence>
               </div>
             </>
+          ) : onSignIn ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onSignIn}
+              className="rounded-xl border border-white/25 bg-white/10 px-4 text-white hover:bg-primary hover:border-primary hover:text-white"
+            >
+              Sign in
+            </Button>
           ) : null}
         </div>
       </div>

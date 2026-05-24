@@ -156,7 +156,6 @@ export function useTripMembers({
     actions: {
       addMember,
       deleteMember,
-      loadMembers,
       updateMember,
     },
     state: {

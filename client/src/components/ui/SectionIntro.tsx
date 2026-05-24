@@ -1,5 +1,5 @@
 import React from "react";
-import { cx } from "./cx";
+import { cn as cx } from "@/lib/utils";
 
 type SectionIntroAlign = "start" | "between";
 type SectionIntroTone = "default" | "compact";
