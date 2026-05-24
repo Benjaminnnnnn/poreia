@@ -3,6 +3,7 @@
 import { useAppAuth, useAppHeaderState } from "@/app/auth";
 import TripCollaborationPanel from "./CollaborationPanel";
 import TripInviteButton from "./InviteButton";
+import ShareButton from "@/components/ShareButton";
 import { PageLoading } from "@/components/ui/PageLoading";
 import { TripsProvider, useTrips } from "@/contexts/trips";
 import type { TravelItinerary } from "@/types";
@@ -87,10 +88,13 @@ function TripPageContent({ tripId }: { tripId: string }) {
             <ItineraryResult
               headerActions={
                 trip.permissions?.canManageMembers ? (
-                  <TripInviteButton
-                    memberCount={trip.memberCount}
-                    onClick={() => setIsInvitePanelOpen(true)}
-                  />
+                  <div className="flex items-center gap-2">
+                    <ShareButton trip={trip} />
+                    <TripInviteButton
+                      memberCount={trip.memberCount}
+                      onClick={() => setIsInvitePanelOpen(true)}
+                    />
+                  </div>
                 ) : null
               }
               itinerary={trip.currentItinerary}

@@ -149,13 +149,16 @@ interface CreateTestAppOptions {
 }
 
 export function createTestApp(options: CreateTestAppOptions = {}) {
+  const tripsServiceFactory = options.buildTripsService
+    ?? (() => createTripsService(options.itineraryFactory ?? defaultItinerary));
   return createApp({
+    shareRoutes: {
+      buildTripsService: () => tripsServiceFactory(),
+    },
     tripsRoutes: {
       authMiddleware: options.authMiddleware ?? testAuthMiddleware,
       buildTripMembersService: options.buildTripMembersService ?? (() => createTripMembersService()),
-      buildTripsService:
-        options.buildTripsService ??
-        (() => createTripsService(options.itineraryFactory ?? defaultItinerary)),
+      buildTripsService: tripsServiceFactory,
     },
   });
 }

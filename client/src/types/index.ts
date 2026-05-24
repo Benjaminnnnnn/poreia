@@ -5,6 +5,7 @@ export type {
   DayPlan,
   MessageRole,
   PatchTripRequest,
+  PublicTripResponse,
   RefineTripRequest,
   ReplaceTripItineraryRequest,
   TripDetailResponse,
