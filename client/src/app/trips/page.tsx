@@ -3,14 +3,14 @@
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
 import { PageLoading } from "@/components/ui/PageLoading";
-import { useAppAuth } from "@/app/auth";
+import { useAppAuth, useAppHeaderState } from "@/app/auth";
 import { TripsProvider, useTrips } from "@/contexts/trips";
 import { hasFiniteCoordinates } from "@/lib/coordinates";
 import {
   getActivityImage,
   type ResolvedActivityImage,
 } from "@/services/activityImageService";
-import type { Activity, TravelItinerary } from "@/types";
+import type { Activity, TravelItinerary, TripSession } from "@/types";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import React, {
@@ -37,7 +37,7 @@ function getRepresentativeActivity(
 const getTripStopCount = (itinerary: TravelItinerary | null) =>
   itinerary?.days.reduce((sum, day) => sum + day.activities.length, 0) ?? 0;
 
-const getTripCountry = (trip: any) => {
+const getTripCountry = (trip: TripSession) => {
   const destination = trip.currentItinerary?.destination;
   if (!destination) return "";
   const parts = destination.trim().split(",");
@@ -203,7 +203,7 @@ function SavedTripsContent() {
   );
 }
 
-export default function TripsPage() {
+function AuthenticatedTripsPage() {
   const {
     state: { authUser },
   } = useAppAuth();
@@ -213,4 +213,22 @@ export default function TripsPage() {
       <SavedTripsContent />
     </TripsProvider>
   );
+}
+
+export default function TripsPage() {
+  const { authUser, openAuthModal } = useAppHeaderState();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authUser) {
+      openAuthModal();
+      router.push("/");
+    }
+  }, [authUser, openAuthModal, router]);
+
+  if (!authUser) {
+    return null;
+  }
+
+  return <AuthenticatedTripsPage />;
 }

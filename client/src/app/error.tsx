@@ -14,15 +14,15 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
   return (
     <div className="flex h-full flex-col items-center justify-center">
-      <div className="flex flex-col items-center gap-4 rounded-2xl border border-red-400/20 bg-red-900/10 px-8 py-6 text-center shadow-xl backdrop-blur-xl">
-        <p className="font-medium text-white">Something went wrong.</p>
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-red-200 bg-red-50 px-8 py-6 text-center shadow-lg">
+        <p className="font-medium text-slate-900">Something went wrong.</p>
         {error.message ? (
-          <p className="max-w-xs text-xs text-white/50">{error.message}</p>
+          <p className="max-w-xs text-xs text-slate-500">{error.message}</p>
         ) : null}
         <button
           type="button"
           onClick={reset}
-          className="mt-1 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/20"
+          className="mt-1 rounded-lg bg-slate-900 px-4 py-2 text-sm text-white transition-colors hover:bg-slate-700"
         >
           Try again
         </button>

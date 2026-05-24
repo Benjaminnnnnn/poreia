@@ -108,6 +108,7 @@ export const TripsProvider: React.FC<{
   const [isCreatingTrip, setIsCreatingTrip] = useState(false);
   const [refiningTripId, setRefiningTripId] = useState<string | null>(null);
   const tripsRef = useRef<TripSession[]>([]);
+  const refiningTripIdRef = useRef<string | null>(null);
   const tripOperationChainsRef = useRef(new Map<string, Promise<void>>());
 
   useEffect(() => {
@@ -287,7 +288,7 @@ export const TripsProvider: React.FC<{
   const refineTrip = useCallback(
     async (tripId: string, prompt: string) => {
       const trimmedPrompt = prompt.trim();
-      if (!trimmedPrompt || refiningTripId) {
+      if (!trimmedPrompt || refiningTripIdRef.current) {
         return;
       }
 
@@ -296,6 +297,7 @@ export const TripsProvider: React.FC<{
         return;
       }
 
+      refiningTripIdRef.current = tripId;
       setRefiningTripId(tripId);
 
       try {
@@ -316,18 +318,13 @@ export const TripsProvider: React.FC<{
         console.error(error);
         alert(getErrorMessage(error, "Failed to update itinerary."));
       } finally {
+        refiningTripIdRef.current = null;
         setRefiningTripId((currentTripId) =>
           currentTripId === tripId ? null : currentTripId,
         );
       }
     },
-    [
-      authUser,
-      getTripByIdFromRef,
-      queueTripOperation,
-      refiningTripId,
-      replaceTrip,
-    ],
+    [authUser, getTripByIdFromRef, queueTripOperation, replaceTrip],
   );
 
   const updateTripItinerary = useCallback(

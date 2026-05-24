@@ -131,7 +131,6 @@ export const SavedTripCard: React.FC<SavedTripCardProps> = ({
           <FadeImage
             src={coverImage}
             alt={destination}
-            iconSize={28}
             className="group-hover:scale-[1.03]"
           />
         ) : (

@@ -3,7 +3,7 @@
 import Button from "@/components/ui/Button";
 import SearchPromptBar from "@/components/ui/SearchPromptBar";
 import { SUGGESTED_PROMPTS } from "@/constants";
-import { useAppAuth } from "@/app/auth";
+import { useAppHeaderState } from "@/app/auth";
 import { TripsProvider, useTrips } from "@/contexts/trips";
 import { motion } from "framer-motion";
 import { MoveUpRight, Search } from "lucide-react";
@@ -13,23 +13,15 @@ import React, { useState } from "react";
 const SEARCH_OVERLAY_IMAGE =
   "https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg?auto=compress&cs=tinysrgb&w=2560&q=80";
 
-function HomePageContent() {
-  const router = useRouter();
-  const {
-    actions: { createTrip },
-    state: { isCreatingTrip },
-  } = useTrips();
+interface HomePageContentProps {
+  onSearch: (prompt: string) => void;
+  isSearching?: boolean;
+}
+
+function HomePageContent({ onSearch, isSearching = false }: HomePageContentProps) {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const searchHintId = "trip-search-input-hint";
-  const isGenerating = isCreatingTrip;
-
-  const handleSearch = async (prompt: string) => {
-    const trip = await createTrip(prompt);
-    if (trip) {
-      router.push(`/t/${trip.id}`);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,17 +30,17 @@ function HomePageContent() {
       return;
     }
 
-    void handleSearch(trimmedQuery);
+    onSearch(trimmedQuery);
     setIsFocused(false);
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    if (isGenerating) {
+    if (isSearching) {
       return;
     }
 
     setQuery(suggestion);
-    void handleSearch(suggestion);
+    onSearch(suggestion);
     setIsFocused(false);
   };
 
@@ -100,15 +92,15 @@ function HomePageContent() {
 
             <form
               onSubmit={handleSubmit}
-              aria-busy={isGenerating}
+              aria-busy={isSearching}
               className="space-y-2.5 sm:space-y-3"
             >
               <div className="w-full">
                 <SearchPromptBar
                   aria-describedby={searchHintId}
-                  disabled={isGenerating}
+                  disabled={isSearching}
                   id="trip-search-input"
-                  isLoading={isGenerating}
+                  isLoading={isSearching}
                   label="Where should we start?"
                   leadingIcon={<Search size={18} />}
                   loadingLabel="Planning…"
@@ -120,7 +112,7 @@ function HomePageContent() {
                 />
               </div>
 
-              {isGenerating ? (
+              {isSearching ? (
                 <p
                   id={searchHintId}
                   role="status"
@@ -159,7 +151,7 @@ function HomePageContent() {
                       type="button"
                       variant="ghost"
                       onClick={() => handleSuggestionClick(prompt)}
-                      disabled={isGenerating}
+                      disabled={isSearching}
                       className="group h-auto w-full justify-start whitespace-normal rounded-lg py-2.5 px-3 text-left text-xs sm:rounded-xl sm:text-[0.9rem] border border-white/20 bg-white/10 hover:bg-white/20 hover:border-white/35"
                     >
                       <span className="shrink-0 text-white/50 transition-colors duration-150 group-hover:text-white/80">
@@ -184,14 +176,38 @@ function HomePageContent() {
   );
 }
 
-export default function HomePage() {
+function AuthenticatedHomePage() {
+  const router = useRouter();
   const {
-    state: { authUser },
-  } = useAppAuth();
+    actions: { createTrip },
+    state: { isCreatingTrip },
+  } = useTrips();
+
+  const handleSearch = async (prompt: string) => {
+    const trip = await createTrip(prompt);
+    if (trip) {
+      router.push(`/t/${trip.id}`);
+    }
+  };
+
+  return (
+    <HomePageContent
+      onSearch={(prompt) => void handleSearch(prompt)}
+      isSearching={isCreatingTrip}
+    />
+  );
+}
+
+export default function HomePage() {
+  const { authUser, openAuthModal } = useAppHeaderState();
+
+  if (!authUser) {
+    return <HomePageContent onSearch={openAuthModal} />;
+  }
 
   return (
     <TripsProvider user={authUser}>
-      <HomePageContent />
+      <AuthenticatedHomePage />
     </TripsProvider>
   );
 }

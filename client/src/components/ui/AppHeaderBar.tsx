@@ -13,20 +13,21 @@ export function AppHeaderBar() {
     onOpenSavedTrips,
     onOpenProfile,
     onSignOut,
+    openAuthModal,
   } = useAppHeaderState();
   const pathname = usePathname();
 
   return (
     <AppHeader
+      activePage={pathname === "/" ? "home" : pathname === "/trips" ? "trips" : undefined}
       authUser={authUser}
       isAuthBusy={isAuthBusy}
-      isHomePage={pathname === "/"}
-      isSavedTripsPage={pathname === "/trips"}
       travelerName={travelerName}
       onNavigateHome={onNavigateHome}
       onOpenProfile={onOpenProfile}
       onOpenSavedTrips={onOpenSavedTrips}
       onSignOut={onSignOut}
+      onSignIn={openAuthModal}
     />
   );
 }

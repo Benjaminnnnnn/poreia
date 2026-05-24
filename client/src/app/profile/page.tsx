@@ -2,9 +2,11 @@
 
 import ProfileView from "./Profile";
 import { TripsProvider } from "@/contexts/trips";
-import { useAppAuth } from "@/app/auth";
+import { useAppAuth, useAppHeaderState } from "@/app/auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function ProfilePage() {
+function AuthenticatedProfilePage() {
   const {
     state: { authUser },
   } = useAppAuth();
@@ -14,4 +16,22 @@ export default function ProfilePage() {
       <ProfileView />
     </TripsProvider>
   );
+}
+
+export default function ProfilePage() {
+  const { authUser, openAuthModal } = useAppHeaderState();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!authUser) {
+      openAuthModal();
+      router.push("/");
+    }
+  }, [authUser, openAuthModal, router]);
+
+  if (!authUser) {
+    return null;
+  }
+
+  return <AuthenticatedProfilePage />;
 }

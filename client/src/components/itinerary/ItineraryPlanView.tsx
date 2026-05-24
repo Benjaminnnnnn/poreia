@@ -118,9 +118,9 @@ const BudgetChartCard: React.FC<{
                 paddingAngle={5}
                 dataKey="amount"
               >
-                {breakdown.map((_, index) => (
+                {breakdown.map((entry, index) => (
                   <Cell
-                    key={`cell-${index}`}
+                    key={entry.category}
                     fill={COLORS[index % COLORS.length]}
                     stroke="none"
                   />
