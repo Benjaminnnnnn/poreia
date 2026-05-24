@@ -7,6 +7,7 @@ import type {
 import type { TripSession } from "@/types";
 import type {
   CreateTripRequest,
+  PatchTripRequest,
   RefineTripRequest,
   ReplaceTripItineraryRequest,
   TripDetailResponse,
@@ -179,6 +180,19 @@ export async function replaceTripItinerary(
     data: request,
   });
 
+  return fromTripDetail(detail);
+}
+
+export async function patchTrip(
+  authUser: User,
+  tripId: string,
+  input: PatchTripRequest,
+): Promise<TripSession> {
+  const detail = await apiRequest<TripDetailResponse>(authUser, {
+    method: "PATCH",
+    url: `/api/v1/trips/${tripId}`,
+    data: input,
+  });
   return fromTripDetail(detail);
 }
 

@@ -3,9 +3,11 @@ import type { EnvBindings } from './core/env';
 import { jsonError, toAppError } from './core/http';
 import { createRequestLogger } from './core/logger';
 import { createProfileRoutes } from './routes/profile';
+import { createShareRoutes, type CreateShareRoutesOptions } from './routes/share';
 import { createTripsRoutes, type CreateTripsRoutesOptions } from './routes/trips';
 
 export interface CreateAppOptions {
+  shareRoutes?: CreateShareRoutesOptions;
   tripsRoutes?: CreateTripsRoutesOptions;
 }
 
@@ -31,6 +33,7 @@ export function createApp(options: CreateAppOptions = {}) {
   );
 
   app.route('/api/v1', createProfileRoutes());
+  app.route('/api/v1', createShareRoutes(options.shareRoutes));
   app.route('/api/v1', createTripsRoutes(options.tripsRoutes));
 
   app.notFound((context) =>

@@ -121,6 +121,18 @@ export interface TripDetailResponse {
   members?: TripMemberResponse[];
 }
 
+export interface PublicTripResponse {
+  id: string;
+  title: string;
+  destination: string;
+  overview: string;
+  totalDays: number;
+  totalBudget: number;
+  currency: string;
+  days: DayPlan[];
+  budgetBreakdown: BudgetBreakdown[];
+}
+
 export interface UserProfileResponse {
   userId: string;
   displayName: string;

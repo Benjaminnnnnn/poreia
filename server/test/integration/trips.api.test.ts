@@ -1102,4 +1102,107 @@ describe('Trips API integration', () => {
 
     await expectApiError(response, 404, 'trip_not_found');
   });
+
+  describe('Public share endpoint GET /api/v1/share/:tripId', () => {
+    it('returns public trip fields when visibility is shared', async () => {
+      await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'shared', expectedVersion: 1 }),
+      });
+
+      const response = await appRequest(`/api/v1/share/${tripId}`);
+
+      expect(response.status).toBe(200);
+      const body = await response.json() as { data: Record<string, unknown> };
+      expect(body.data).toMatchObject({
+        id: tripId,
+        title: 'Tokyo Test Trip',
+        destination: 'Tokyo, Japan',
+        overview: 'Seeded itinerary for integration tests.',
+        totalDays: 3,
+        totalBudget: 1200,
+        currency: 'USD',
+      });
+      expect(body.data.days).toHaveLength(2);
+      expect(body.data.budgetBreakdown).toHaveLength(2);
+      // Must not leak private fields
+      expect(body.data.ownerId).toBeUndefined();
+      expect(body.data.permissions).toBeUndefined();
+      expect(body.data.members).toBeUndefined();
+      expect(body.data.recentMessages).toBeUndefined();
+    });
+
+    it('does not require an auth header', async () => {
+      await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'shared', expectedVersion: 1 }),
+      });
+
+      // No x-test-user header — would 401 on any /trips/* route
+      const response = await appRequest(`/api/v1/share/${tripId}`);
+      expect(response.status).toBe(200);
+    });
+
+    it('returns 404 when the trip does not exist', async () => {
+      const response = await appRequest('/api/v1/share/trip_nonexistent');
+      await expectApiError(response, 404, 'not_found');
+    });
+
+    it('returns 404 when the trip is private', async () => {
+      // seedBaseTrip sets visibility: 'private'
+      const response = await appRequest(`/api/v1/share/${tripId}`);
+      await expectApiError(response, 404, 'not_found');
+    });
+
+    it('returns 404 when the trip is archived even if shared', async () => {
+      await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'shared', archived: true, expectedVersion: 1 }),
+      });
+
+      const response = await appRequest(`/api/v1/share/${tripId}`);
+      await expectApiError(response, 404, 'not_found');
+    });
+  });
+
+  describe('PATCH /api/v1/trips/:tripId visibility toggle', () => {
+    it('toggles visibility from private to shared and back', async () => {
+      const shareResponse = await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'shared', expectedVersion: 1 }),
+      });
+      expect(shareResponse.status).toBe(200);
+      const shareBody = await shareResponse.json() as { data: { summary: { visibility: string; version: number } } };
+      expect(shareBody.data.summary.visibility).toBe('shared');
+
+      const privateResponse = await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'private', expectedVersion: 2 }),
+      });
+      expect(privateResponse.status).toBe(200);
+      const privateBody = await privateResponse.json() as { data: { summary: { visibility: string } } };
+      expect(privateBody.data.summary.visibility).toBe('private');
+    });
+
+    it('rejects going private when active members exist', async () => {
+      await addCollaborator();
+      await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'shared', expectedVersion: 1 }),
+      });
+
+      const response = await appRequest(`/api/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        headers: ownerHeaders(),
+        body: JSON.stringify({ visibility: 'private', expectedVersion: 2 }),
+      });
+      await expectApiError(response, 422, 'validation_error');
+    });
+  });
 });
