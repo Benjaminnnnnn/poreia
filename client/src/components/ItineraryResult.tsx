@@ -34,6 +34,7 @@ import {
   ItinerarySectionNav,
   ItinerarySidePanel,
 } from "./itinerary/ItineraryContent";
+import { PlaceDetailOverlay } from "./itinerary/PlaceDetailCard";
 import {
   DAY_CONTAINER_PATTERN,
   DAY_MARKER_COLORS,
@@ -79,6 +80,10 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
   >({});
   const [activeSectionId, setActiveSectionId] = useState("overview");
   const [isSectionNavCollapsed, setIsSectionNavCollapsed] = useState(false);
+  const [selectedMapPin, setSelectedMapPin] = useState<{
+    pin: MapPinData;
+    activity: Activity;
+  } | null>(null);
   const deferredSelectedActivityId = useDeferredValue(selectedActivityId);
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const pendingSectionIdRef = useRef<string | null>(null);
@@ -246,9 +251,16 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     setSelectedActivityId(activityId);
   }, []);
 
-  const handleMapPinClick = useCallback((pin: MapPinData) => {
-    setSelectedActivityId(pin.id);
-  }, []);
+  const handleMapPinClick = useCallback(
+    (pin: MapPinData) => {
+      setSelectedActivityId(pin.id);
+      const entry = activityLookup.get(pin.id);
+      setSelectedMapPin(entry ? { pin, activity: entry.activity } : null);
+    },
+    [activityLookup],
+  );
+
+  const handleCloseMapPin = useCallback(() => setSelectedMapPin(null), []);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
@@ -706,6 +718,11 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
             />
           </Suspense>
         </ItinerarySidePanel>
+        <PlaceDetailOverlay
+          activity={selectedMapPin?.activity ?? null}
+          pin={selectedMapPin?.pin ?? null}
+          onClose={handleCloseMapPin}
+        />
       </div>
     </div>
   );
