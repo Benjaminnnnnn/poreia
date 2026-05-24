@@ -2,13 +2,13 @@
 
 import { useAppAuth, useAppHeaderState } from "@/app/auth";
 import TripCollaborationPanel from "./CollaborationPanel";
-import TripInviteButton from "./InviteButton";
-import ShareButton from "@/components/ShareButton";
 import { PageLoading } from "@/components/ui/PageLoading";
+import Button from "@/components/ui/Button";
 import { TripsProvider, useTrips } from "@/contexts/trips";
 import type { TravelItinerary } from "@/types";
 import RefineForm from "./RefineForm";
 import { AnimatePresence, motion } from "framer-motion";
+import { Globe, Lock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, {
   Suspense,
@@ -87,15 +87,33 @@ function TripPageContent({ tripId }: { tripId: string }) {
           >
             <ItineraryResult
               headerActions={
-                trip.permissions?.canManageMembers ? (
-                  <div className="flex items-center gap-2">
-                    <ShareButton trip={trip} />
-                    <TripInviteButton
-                      memberCount={trip.memberCount}
-                      onClick={() => setIsInvitePanelOpen(true)}
-                    />
-                  </div>
-                ) : null
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  onClick={() => setIsInvitePanelOpen(true)}
+                  className="min-h-[46px] px-3.5"
+                >
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-foreground/20 text-primary-foreground">
+                    {trip.visibility === "shared" ? (
+                      <Globe size={14} />
+                    ) : trip.permissions?.canManageMembers ? (
+                      <Users size={14} />
+                    ) : (
+                      <Lock size={14} />
+                    )}
+                  </span>
+                  <span className="flex min-w-0 flex-col items-start leading-none">
+                    <span className="text-[0.82rem] font-semibold tracking-[-0.01em]">
+                      Share
+                    </span>
+                    <span className="mt-1 text-[0.63rem] font-semibold uppercase tracking-[0.18em] opacity-80">
+                      {trip.visibility === "shared"
+                        ? "Public"
+                        : `${trip.memberCount} with access`}
+                    </span>
+                  </span>
+                </Button>
               }
               itinerary={trip.currentItinerary}
               onUpdate={handleManualItineraryUpdate}
@@ -134,7 +152,7 @@ function TripPageContent({ tripId }: { tripId: string }) {
           memberCount={trip.memberCount}
           onClose={() => setIsInvitePanelOpen(false)}
           open={isInvitePanelOpen}
-          tripId={tripId}
+          trip={trip}
         />
       )}
     </div>
