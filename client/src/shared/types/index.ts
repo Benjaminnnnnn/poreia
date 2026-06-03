@@ -5,7 +5,6 @@ export type {
   DayPlan,
   MessageRole,
   PatchTripRequest,
-  PublicTripResponse,
   RefineTripRequest,
   ReplaceTripItineraryRequest,
   TripDetailResponse,
@@ -20,6 +19,8 @@ export type {
   UpdateUserProfileRequest,
   UserProfileResponse,
 } from "@poreia/shared";
+
+export type { TravelItinerary as PublicTripResponse } from "@poreia/shared";
 
 import type {
   TravelItinerary,
