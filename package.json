@@ -9,18 +9,11 @@
     "shared"
   ],
   "scripts": {
-    "dev": "concurrently -n client,server,firestore \"npm run client:dev\" \"npm run server:dev\" \"npm run firestore:emulator\"",
+    "dev": "concurrently -n client,server \"npm run client:dev\" \"npm run server:dev\"",
     "client:dev": "npm --workspace @poreia/client run dev",
     "server:dev": "npm --workspace @poreia/server run dev",
     "server:deploy": "npm --workspace @poreia/server run deploy",
-    "server:test:integration": "npx -y firebase-tools@latest emulators:exec --only firestore \"npm --workspace @poreia/server run test:integration\"",
-    "server:typecheck": "npm --workspace @poreia/server run typecheck",
-    "firebase:login": "npx -y firebase-tools@latest login",
-    "firebase:use": "npx -y firebase-tools@latest use",
-    "firestore:emulator": "npx -y firebase-tools@latest emulators:start --only firestore",
-    "firestore:deploy": "npx -y firebase-tools@latest deploy --only firestore",
-    "firestore:rules": "npx -y firebase-tools@latest deploy --only firestore:rules",
-    "firestore:indexes": "npx -y firebase-tools@latest deploy --only firestore:indexes"
+    "server:typecheck": "npm --workspace @poreia/server run typecheck"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
