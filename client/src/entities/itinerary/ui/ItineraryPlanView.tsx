@@ -28,8 +28,8 @@ import { useMediaQuery } from "@/shared/lib/useMediaQuery";
 import { ResolvedActivityImage } from "@/entities/activity/api/activityImageService";
 import { Activity, BudgetBreakdown, DayPlan } from "@/shared/types";
 import Surface from "@/shared/ui/Surface";
-import { ActivityDragOverlayCard, SortableActivityItem } from "./ActivityItem";
-import { COLORS, DAY_MARKER_COLORS } from "./constants";
+import { ActivityDragOverlayCard, SortableActivityItem } from "@/components/itinerary/ActivityItem";
+import { COLORS, DAY_MARKER_COLORS } from "@/components/itinerary/constants";
 
 const DRAG_HANDLE_SELECTOR = "[data-drag-handle='true']";
 const MOBILE_MEDIA_QUERY = "(max-width: 767px)";

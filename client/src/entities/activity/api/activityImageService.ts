@@ -1,4 +1,4 @@
-import { Activity } from '../types';
+import { Activity } from '@/types';
 
 const COMMONS_API_ENDPOINT = 'https://commons.wikimedia.org/w/api.php';
 const COMMONS_SEARCH_LIMIT = '6';

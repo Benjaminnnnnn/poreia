@@ -5,7 +5,7 @@ import Badge from "@/shared/ui/Badge";
 import Button from "@/shared/ui/Button";
 import Surface from "@/shared/ui/Surface";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/Tooltip";
-import { MOOD_OPTIONS, MOOD_OPTION_LOOKUP, WorkspaceTab } from "./constants";
+import { MOOD_OPTIONS, MOOD_OPTION_LOOKUP, WorkspaceTab } from "@/components/itinerary/constants";
 
 export interface ItinerarySectionNavItem {
   id: string;

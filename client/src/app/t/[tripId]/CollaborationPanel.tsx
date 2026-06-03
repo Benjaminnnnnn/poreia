@@ -100,7 +100,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
 
   const {
     actions: { syncTripSummary },
-    state: { authUser },
+
   } = useTrips();
 
   const [inviteEmail, setInviteEmail] = useState("");
@@ -181,7 +181,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
     setToggleError(null);
     const nextVisibility = isShared ? "private" : "shared";
     try {
-      const result = await patchTrip(authUser, tripId, {
+      const result = await patchTrip(tripId, {
         visibility: nextVisibility,
         expectedVersion: trip.version,
       });
@@ -197,7 +197,7 @@ const TripCollaborationPanel: React.FC<TripCollaborationPanelProps> = ({
     } finally {
       setIsTogglingVisibility(false);
     }
-  }, [authUser, isShared, syncTripSummary, trip.version, tripId]);
+  }, [isShared, syncTripSummary, trip.version, tripId]);
 
   const handleCopy = useCallback(async () => {
     try {
