@@ -33,3 +33,10 @@ settings.local.json
 *.njsproj
 *.sln
 *.sw?
+.vercel
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
