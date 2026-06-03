@@ -1,11 +1,25 @@
-import { jwtVerify } from 'jose';
+import { jwtVerify, createRemoteJWKSet } from 'jose';
 import type { AuthUser } from '../../types/domain';
 import { AppError } from '../../core/errors';
 
-export async function verifySupabaseToken(token: string, jwtSecret: string): Promise<AuthUser> {
+type JWKSResolver = ReturnType<typeof createRemoteJWKSet>;
+
+let cachedJWKS: JWKSResolver | null = null;
+let cachedJwksUrl: string | null = null;
+
+function getJWKS(supabaseUrl: string): JWKSResolver {
+  const url = `${supabaseUrl}/auth/v1/.well-known/jwks.json`;
+  if (!cachedJWKS || cachedJwksUrl !== url) {
+    cachedJwksUrl = url;
+    cachedJWKS = createRemoteJWKSet(new URL(url));
+  }
+  return cachedJWKS;
+}
+
+export async function verifySupabaseToken(token: string, supabaseUrl: string): Promise<AuthUser> {
   try {
-    const secret = new TextEncoder().encode(jwtSecret);
-    const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
+    const JWKS = getJWKS(supabaseUrl);
+    const { payload } = await jwtVerify(token, JWKS, { algorithms: ['ES256'] });
 
     if (!payload.sub) {
       throw new AppError(401, 'unauthorized', 'Supabase token subject is missing.');

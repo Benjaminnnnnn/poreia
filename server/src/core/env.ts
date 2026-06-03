@@ -2,20 +2,20 @@ import { z } from 'zod';
 import { AppError } from './errors';
 
 const envSchema = z.object({
-  SUPABASE_JWT_SECRET: z.string().min(32),
+  SUPABASE_URL: z.string().url(),
   DATABASE_URL: z.string().min(1),
   POLLINATIONS_API_KEY: z.string().min(1).optional(),
 });
 
 export type EnvBindings = {
-  SUPABASE_JWT_SECRET?: string;
+  SUPABASE_URL?: string;
   DATABASE_URL?: string;
   POLLINATIONS_API_KEY?: string;
   POREIA_RATE_LIMIT_KV?: KVNamespace;
 };
 
 export interface AppEnv {
-  supabaseJwtSecret: string;
+  supabaseUrl: string;
   databaseUrl: string;
   pollinationsApiKey?: string;
   // Unused after Firebase→Supabase migration; kept so legacy Firestore files compile.
@@ -40,7 +40,7 @@ export function getAppEnv(bindings: EnvBindings): AppEnv {
   }
 
   cachedEnv = {
-    supabaseJwtSecret: parsed.data.SUPABASE_JWT_SECRET,
+    supabaseUrl: parsed.data.SUPABASE_URL,
     databaseUrl: parsed.data.DATABASE_URL,
     pollinationsApiKey: parsed.data.POLLINATIONS_API_KEY,
   };

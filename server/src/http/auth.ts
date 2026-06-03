@@ -27,7 +27,7 @@ export const requireAuth: MiddlewareHandler<{
     throw new AppError(401, 'unauthorized', 'Missing authorization token.');
   }
 
-  const authUser = await verifySupabaseToken(token, appEnv.supabaseJwtSecret);
+  const authUser = await verifySupabaseToken(token, appEnv.supabaseUrl);
   context.set('authUser', authUser);
 
   await next();
