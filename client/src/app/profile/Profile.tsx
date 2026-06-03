@@ -457,9 +457,9 @@ const ProfileRoute: React.FC = () => {
               {/* Avatar + Status badge */}
               <div className="mb-6 flex items-start justify-between">
                 <div className="relative h-[4.5rem] w-[4.5rem] overflow-hidden rounded-[1.1rem] border border-white/20 bg-white/15 shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
-                  {authUser.photoURL ? (
+                  {authUser.user_metadata?.avatar_url as string | undefined ? (
                     <FadeImage
-                      src={authUser.photoURL}
+                      src={authUser.user_metadata?.avatar_url as string | undefined}
                       alt={`${travelerName} profile`}
                       referrerPolicy="no-referrer"
                     />

@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
-import { verifyFirebaseIdToken } from '../auth/firebaseIdToken';
 import { getAppEnv, type EnvBindings } from '../core/env';
 import { AppError } from '../core/errors';
+import { verifySupabaseToken } from '../infrastructure/auth/SupabaseAuthAdapter';
 
 function readBearerToken(authorizationHeader: string | undefined | null): string | null {
   if (!authorizationHeader) {
@@ -27,7 +27,7 @@ export const requireAuth: MiddlewareHandler<{
     throw new AppError(401, 'unauthorized', 'Missing authorization token.');
   }
 
-  const authUser = await verifyFirebaseIdToken(token, appEnv.firebaseProjectId);
+  const authUser = await verifySupabaseToken(token, appEnv.supabaseJwtSecret);
   context.set('authUser', authUser);
 
   await next();

@@ -1,4 +1,4 @@
-import type { User } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 import { getErrorMessage } from "@/lib/errorMessage";
 import {
   createTrip as createTripRequest,
@@ -181,7 +181,7 @@ export const TripsProvider: React.FC<{
 
     void (async () => {
       try {
-        const listedTrips = await listTrips(authUser);
+        const listedTrips = await listTrips();
         if (isCancelled) {
           return;
         }
@@ -193,7 +193,7 @@ export const TripsProvider: React.FC<{
         }
 
         const detailResults = await Promise.allSettled(
-          listedTrips.map((trip) => getTripDetail(authUser, trip.id)),
+          listedTrips.map((trip) => getTripDetail(trip.id)),
         );
 
         if (isCancelled) {
@@ -219,7 +219,7 @@ export const TripsProvider: React.FC<{
     return () => {
       isCancelled = true;
     };
-  }, [authUser, replaceTrips]);
+  }, [authUser.id, replaceTrips]);
 
   const createTrip = useCallback(
     async (prompt: string) => {
@@ -231,7 +231,7 @@ export const TripsProvider: React.FC<{
       setIsCreatingTrip(true);
 
       try {
-        const createdTrip = await createTripRequest(authUser, trimmedPrompt);
+        const createdTrip = await createTripRequest(trimmedPrompt);
         replaceTrip(createdTrip);
         return createdTrip;
       } catch (error) {
@@ -242,7 +242,7 @@ export const TripsProvider: React.FC<{
         setIsCreatingTrip(false);
       }
     },
-    [authUser, isCreatingTrip, replaceTrip],
+    [isCreatingTrip, replaceTrip],
   );
 
   const deleteTrip = useCallback(
@@ -254,7 +254,7 @@ export const TripsProvider: React.FC<{
 
       try {
         await queueTripOperation(tripId, async () => {
-          await deleteTripRequest(authUser, tripId);
+          await deleteTripRequest(tripId);
           setTrips((currentTrips) =>
             currentTrips.filter((currentTrip) => currentTrip.id !== tripId),
           );
@@ -264,7 +264,7 @@ export const TripsProvider: React.FC<{
         alert(getErrorMessage(error, "Failed to delete trip."));
       }
     },
-    [authUser, getTripByIdFromRef, queueTripOperation],
+    [getTripByIdFromRef, queueTripOperation],
   );
 
   const refreshTrip = useCallback(
@@ -275,14 +275,14 @@ export const TripsProvider: React.FC<{
       }
 
       try {
-        const refreshedTrip = await getTripDetail(authUser, tripId);
+        const refreshedTrip = await getTripDetail(tripId);
         replaceTrip(refreshedTrip);
       } catch (error) {
         console.error(error);
         alert(getErrorMessage(error, "Failed to refresh trip details."));
       }
     },
-    [authUser, getTripByIdFromRef, replaceTrip],
+    [getTripByIdFromRef, replaceTrip],
   );
 
   const refineTrip = useCallback(
@@ -307,7 +307,7 @@ export const TripsProvider: React.FC<{
             return;
           }
 
-          const refinedTrip = await refineTripRequest(authUser, tripId, {
+          const refinedTrip = await refineTripRequest(tripId, {
             expectedVersion: currentTrip.version,
             prompt: trimmedPrompt,
           });
@@ -324,7 +324,7 @@ export const TripsProvider: React.FC<{
         );
       }
     },
-    [authUser, getTripByIdFromRef, queueTripOperation, replaceTrip],
+    [getTripByIdFromRef, queueTripOperation, replaceTrip],
   );
 
   const updateTripItinerary = useCallback(
@@ -349,7 +349,7 @@ export const TripsProvider: React.FC<{
             return;
           }
 
-          const updatedTrip = await replaceTripItinerary(authUser, tripId, {
+          const updatedTrip = await replaceTripItinerary(tripId, {
             expectedVersion: currentTrip.version,
             itinerary,
           });
@@ -360,7 +360,7 @@ export const TripsProvider: React.FC<{
         console.error(error);
 
         try {
-          const refreshedTrip = await getTripDetail(authUser, tripId);
+          const refreshedTrip = await getTripDetail(tripId);
           replaceTrip(refreshedTrip);
         } catch (refreshError) {
           console.error(refreshError);
@@ -369,7 +369,7 @@ export const TripsProvider: React.FC<{
         alert(getErrorMessage(error, "Failed to save itinerary changes."));
       }
     },
-    [authUser, getTripByIdFromRef, queueTripOperation, replaceTrip],
+    [getTripByIdFromRef, queueTripOperation, replaceTrip],
   );
 
   const meta = useMemo<TripsContextValue["meta"]>(

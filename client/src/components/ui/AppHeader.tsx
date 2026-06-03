@@ -1,4 +1,4 @@
-import type { User } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, Plus, UserRound } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -54,18 +54,6 @@ export interface AppHeaderProps {
   onSignIn?: () => void;
 }
 
-/**
- * AppHeader — App-wide header/navigation component
- *
- * Features:
- * - Logo + branding (responsive sizing)
- * - Conditional nav buttons (New Trip, Saved trips) on desktop when authenticated
- * - Profile dropdown with user menu (Profile, Sign out)
- * - Context-aware styling (dark on home page, light on other pages)
- * - Keyboard navigation (Escape to close menu)
- * - Click-outside detection for menu dismissal
- *
- */
 export const AppHeader: React.FC<AppHeaderProps> = ({
   activePage,
   authUser,
@@ -80,6 +68,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const fallbackInitial = travelerName.charAt(0).toUpperCase();
+  const avatarUrl = authUser?.user_metadata?.avatar_url as string | undefined;
 
   // Handle menu dismissal on outside click and Escape key
   useEffect(() => {
@@ -175,9 +164,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
                   className="rounded-full ring-0.5 ring-transparent transition-all hover:ring-primary focus-visible:ring-0 focus-visible:border-transparent sm:h-10 sm:w-10"
                 >
-                  {authUser.photoURL ? (
+                  {avatarUrl ? (
                     <img
-                      src={authUser.photoURL}
+                      src={avatarUrl}
                       alt={`${travelerName} profile`}
                       className="h-10 w-10 rounded-full object-cover sm:h-9 sm:w-9"
                       referrerPolicy="no-referrer"

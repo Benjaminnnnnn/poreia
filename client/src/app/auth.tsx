@@ -1,13 +1,12 @@
 "use client";
 
-import { auth, signInWithGoogle, signOutUser } from "@/lib/firebase";
+import { signInWithGoogle, signOutUser, supabase } from "@/lib/supabase";
 import { getErrorMessage } from "@/lib/errorMessage";
 import {
   getCurrentUserProfile,
   updateCurrentUserProfile,
 } from "@/services/profileService";
-import type { User } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Loader2, X } from "lucide-react";
@@ -26,7 +25,9 @@ import React, {
 // ============================================================
 
 const getDefaultTravelerName = (user: User | null) =>
-  user?.displayName?.trim() || user?.email?.split("@")[0] || "Traveler";
+  (user?.user_metadata?.full_name as string | undefined)?.trim() ||
+  user?.email?.split("@")[0] ||
+  "Traveler";
 
 const getResolvedTravelerName = (
   user: User | null,
@@ -293,7 +294,8 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
   useEffect(() => {
     let isCancelled = false;
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
       const syncVersion = authSyncVersionRef.current + 1;
       authSyncVersionRef.current = syncVersion;
       setAuthError(null);
@@ -313,7 +315,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
 
       void (async () => {
         try {
-          const profile = await getCurrentUserProfile(user);
+          const profile = await getCurrentUserProfile();
           if (isCancelled || authSyncVersionRef.current !== syncVersion) {
             return;
           }
@@ -337,7 +339,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
 
     return () => {
       isCancelled = true;
-      unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -355,7 +357,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ header, children }) => {
       setIsUpdatingProfile(true);
 
       try {
-        const profile = await updateCurrentUserProfile(authUser, {
+        const profile = await updateCurrentUserProfile({
           travelerName: trimmedTravelerName,
         });
         setTravelerName(

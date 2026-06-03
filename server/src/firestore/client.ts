@@ -1,3 +1,4 @@
+// @ts-nocheck — dead code, kept for rollback reference only
 import type { AppEnv } from '../core/env';
 import { AppError } from '../core/errors';
 import { getGoogleAccessToken } from './googleAccessToken';

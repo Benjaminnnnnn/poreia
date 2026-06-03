@@ -29,7 +29,6 @@ export function useTripMembers({
 }: UseTripMembersOptions) {
   const {
     actions: { refreshTrip, syncTripSummary },
-    state: { authUser },
   } = useTrips();
   const [members, setMembers] = useState<TripMemberResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +45,7 @@ export function useTripMembers({
     setErrorMessage(null);
 
     try {
-      const nextMembers = await listTripMembers(authUser, tripId);
+      const nextMembers = await listTripMembers(tripId);
       setMembers(nextMembers);
     } catch (error) {
       console.error(error);
@@ -56,7 +55,7 @@ export function useTripMembers({
     } finally {
       setIsLoading(false);
     }
-  }, [authUser, enabled, tripId]);
+  }, [enabled, tripId]);
 
   useEffect(() => {
     if (!enabled) {
@@ -72,7 +71,7 @@ export function useTripMembers({
       setErrorMessage(null);
 
       try {
-        const result = await addTripMember(authUser, tripId, input);
+        const result = await addTripMember(tripId, input);
         syncTripSummary(result.summary);
         setMembers((currentMembers) => {
           const filteredMembers = currentMembers.filter(
@@ -93,7 +92,7 @@ export function useTripMembers({
         setIsAdding(false);
       }
     },
-    [authUser, syncTripSummary, tripId],
+    [syncTripSummary, tripId],
   );
 
   const updateMember = useCallback(
@@ -102,7 +101,7 @@ export function useTripMembers({
       setErrorMessage(null);
 
       try {
-        const result = await updateTripMember(authUser, tripId, userId, input);
+        const result = await updateTripMember(tripId, userId, input);
         syncTripSummary(result.summary);
         setMembers((currentMembers) =>
           currentMembers.map((member) =>
@@ -122,7 +121,7 @@ export function useTripMembers({
         );
       }
     },
-    [authUser, syncTripSummary, tripId],
+    [syncTripSummary, tripId],
   );
 
   const deleteMember = useCallback(
@@ -131,7 +130,7 @@ export function useTripMembers({
       setErrorMessage(null);
 
       try {
-        await removeTripMember(authUser, tripId, userId);
+        await removeTripMember(tripId, userId);
         setMembers((currentMembers) =>
           currentMembers.filter((member) => member.userId !== userId),
         );
@@ -149,7 +148,7 @@ export function useTripMembers({
         );
       }
     },
-    [authUser, refreshTrip, tripId],
+    [refreshTrip, tripId],
   );
 
   return {

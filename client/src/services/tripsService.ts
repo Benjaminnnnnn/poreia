@@ -1,4 +1,3 @@
-import type { User } from "firebase/auth";
 import type {
   TripMessage,
   TripPermissions,
@@ -56,12 +55,12 @@ export interface TripMemberMutationResult {
   summary: TripSummaryResponse;
 }
 
-export async function listTrips(authUser: User): Promise<TripSession[]> {
+export async function listTrips(): Promise<TripSession[]> {
   const params = new URLSearchParams({
     scope: "all",
     status: "all",
   });
-  const summaries = await apiRequest<TripSummaryResponse[]>(authUser, {
+  const summaries = await apiRequest<TripSummaryResponse[]>({
     method: "GET",
     url: `/api/v1/trips?${params.toString()}`,
   });
@@ -70,10 +69,9 @@ export async function listTrips(authUser: User): Promise<TripSession[]> {
 }
 
 export async function getTripDetail(
-  authUser: User,
   tripId: string,
 ): Promise<TripSession> {
-  const detail = await apiRequest<TripDetailResponse>(authUser, {
+  const detail = await apiRequest<TripDetailResponse>({
     method: "GET",
     url: `/api/v1/trips/${tripId}`,
   });
@@ -82,21 +80,19 @@ export async function getTripDetail(
 }
 
 export async function listTripMembers(
-  authUser: User,
   tripId: string,
 ): Promise<TripMemberResponse[]> {
-  return apiRequest<TripMemberResponse[]>(authUser, {
+  return apiRequest<TripMemberResponse[]>({
     method: "GET",
     url: `/api/v1/trips/${tripId}/members`,
   });
 }
 
 export async function addTripMember(
-  authUser: User,
   tripId: string,
   input: AddTripMemberInput,
 ): Promise<TripMemberMutationResult> {
-  return apiRequest<TripMemberMutationResult>(authUser, {
+  return apiRequest<TripMemberMutationResult>({
     method: "POST",
     url: `/api/v1/trips/${tripId}/members`,
     data: input,
@@ -104,12 +100,11 @@ export async function addTripMember(
 }
 
 export async function updateTripMember(
-  authUser: User,
   tripId: string,
   userId: string,
   input: UpdateTripMemberInput,
 ): Promise<TripMemberMutationResult> {
-  return apiRequest<TripMemberMutationResult>(authUser, {
+  return apiRequest<TripMemberMutationResult>({
     method: "PATCH",
     url: `/api/v1/trips/${tripId}/members/${userId}`,
     data: input,
@@ -117,25 +112,23 @@ export async function updateTripMember(
 }
 
 export async function removeTripMember(
-  authUser: User,
   tripId: string,
   userId: string,
 ): Promise<void> {
-  await apiRequest<void>(authUser, {
+  await apiRequest<void>({
     method: "DELETE",
     url: `/api/v1/trips/${tripId}/members/${userId}`,
   });
 }
 
 export async function createTrip(
-  authUser: User,
   prompt: string,
 ): Promise<TripSession> {
   const request: CreateTripRequest = {
     clientRequestId: crypto.randomUUID(),
     prompt,
   };
-  const detail = await apiRequest<TripDetailResponse>(authUser, {
+  const detail = await apiRequest<TripDetailResponse>({
     method: "POST",
     url: "/api/v1/trips",
     data: request,
@@ -145,7 +138,6 @@ export async function createTrip(
 }
 
 export async function refineTrip(
-  authUser: User,
   tripId: string,
   input: {
     expectedVersion: number;
@@ -156,7 +148,7 @@ export async function refineTrip(
     clientRequestId: crypto.randomUUID(),
     ...input,
   };
-  const detail = await apiRequest<TripDetailResponse>(authUser, {
+  const detail = await apiRequest<TripDetailResponse>({
     method: "POST",
     url: `/api/v1/trips/${tripId}/refinements`,
     data: request,
@@ -166,7 +158,6 @@ export async function refineTrip(
 }
 
 export async function replaceTripItinerary(
-  authUser: User,
   tripId: string,
   input: {
     expectedVersion: number;
@@ -174,7 +165,7 @@ export async function replaceTripItinerary(
   },
 ): Promise<TripSession> {
   const request: ReplaceTripItineraryRequest = input;
-  const detail = await apiRequest<TripDetailResponse>(authUser, {
+  const detail = await apiRequest<TripDetailResponse>({
     method: "PUT",
     url: `/api/v1/trips/${tripId}/itinerary`,
     data: request,
@@ -184,11 +175,10 @@ export async function replaceTripItinerary(
 }
 
 export async function patchTrip(
-  authUser: User,
   tripId: string,
   input: PatchTripRequest,
 ): Promise<TripSession> {
-  const detail = await apiRequest<TripDetailResponse>(authUser, {
+  const detail = await apiRequest<TripDetailResponse>({
     method: "PATCH",
     url: `/api/v1/trips/${tripId}`,
     data: input,
@@ -196,8 +186,8 @@ export async function patchTrip(
   return fromTripDetail(detail);
 }
 
-export async function deleteTrip(authUser: User, tripId: string): Promise<void> {
-  await apiRequest<void>(authUser, {
+export async function deleteTrip(tripId: string): Promise<void> {
+  await apiRequest<void>({
     method: "DELETE",
     url: `/api/v1/trips/${tripId}`,
   });

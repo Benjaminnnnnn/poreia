@@ -11,12 +11,19 @@
   },
   "dependencies": {
     "@poreia/shared": "file:../shared",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
     "hono": "^4.8.5",
     "jose": "^6.0.13",
+    "postgres": "^3.4.9",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250410.0",
+    "@supabase/supabase-js": "^2.107.0",
+    "drizzle-kit": "^0.31.10",
+    "firebase-admin": "^13.10.0",
+    "tsx": "^4.22.4",
     "typescript": "~5.8.2",
     "vitest": "^4.1.2",
     "wrangler": "^4.11.1"

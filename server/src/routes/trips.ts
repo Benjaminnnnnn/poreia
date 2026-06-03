@@ -2,8 +2,9 @@ import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import { getAppEnv, type EnvBindings } from '../core/env';
 import { emptyResponse, jsonData } from '../core/http';
 import { getLogger } from '../core/logger';
-import { FirestoreClient } from '../firestore/client';
-import { TripsRepository } from '../firestore/tripsRepository';
+import { createDrizzleClient } from '../infrastructure/persistence/drizzle/client';
+import { DrizzleTripsRepository } from '../infrastructure/persistence/drizzle/DrizzleTripsRepository';
+import type { TripsRepository } from '../firestore/tripsRepository';
 import { requireAuth } from '../http/auth';
 import { checkTripGenerationLimit } from '../http/tripRateLimit';
 import { ItineraryProvider } from '../itinerary/provider';
@@ -14,24 +15,21 @@ type TripsRouteContext = Context<{ Bindings: EnvBindings }>;
 type TripsServiceBuilder = (context: TripsRouteContext) => TripsService;
 type TripMembersServiceBuilder = (env: EnvBindings) => TripMembersService;
 
-function createServerFirestoreClient(appEnv: ReturnType<typeof getAppEnv>) {
-  return new FirestoreClient(
-    appEnv,
-    appEnv.firestoreEmulatorHost ? { emulatorAuth: 'owner' } : undefined,
-  );
+function buildRepo(databaseUrl: string): TripsRepository {
+  return new DrizzleTripsRepository(createDrizzleClient(databaseUrl)) as unknown as TripsRepository;
 }
 
 function defaultBuildTripsService(context: TripsRouteContext): TripsService {
   const appEnv = getAppEnv(context.env);
   return new TripsService(
-    new TripsRepository(createServerFirestoreClient(appEnv)),
+    buildRepo(appEnv.databaseUrl),
     new ItineraryProvider(appEnv.pollinationsApiKey, getLogger(context)),
   );
 }
 
 function defaultBuildTripMembersService(env: EnvBindings): TripMembersService {
   const appEnv = getAppEnv(env);
-  return new TripMembersService(new TripsRepository(createServerFirestoreClient(appEnv)));
+  return new TripMembersService(buildRepo(appEnv.databaseUrl));
 }
 
 export interface CreateTripsRoutesOptions {

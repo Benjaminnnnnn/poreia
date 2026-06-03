@@ -2,8 +2,9 @@ import { Hono, type Context } from 'hono';
 import { getAppEnv, type EnvBindings } from '../core/env';
 import { jsonData } from '../core/http';
 import { getLogger } from '../core/logger';
-import { FirestoreClient } from '../firestore/client';
-import { TripsRepository } from '../firestore/tripsRepository';
+import { createDrizzleClient } from '../infrastructure/persistence/drizzle/client';
+import { DrizzleTripsRepository } from '../infrastructure/persistence/drizzle/DrizzleTripsRepository';
+import type { TripsRepository } from '../firestore/tripsRepository';
 import { checkShareRateLimit } from '../http/tripRateLimit';
 import { ItineraryProvider } from '../itinerary/provider';
 import { TripsService } from '../services/tripsService';
@@ -15,17 +16,11 @@ export interface CreateShareRoutesOptions {
   buildTripsService?: TripsServiceBuilder;
 }
 
-function createServerFirestoreClient(appEnv: ReturnType<typeof getAppEnv>) {
-  return new FirestoreClient(
-    appEnv,
-    appEnv.firestoreEmulatorHost ? { emulatorAuth: 'owner' } : undefined,
-  );
-}
-
 function defaultBuildTripsService(context: ShareRouteContext): TripsService {
   const appEnv = getAppEnv(context.env);
+  const repo = new DrizzleTripsRepository(createDrizzleClient(appEnv.databaseUrl)) as unknown as TripsRepository;
   return new TripsService(
-    new TripsRepository(createServerFirestoreClient(appEnv)),
+    repo,
     new ItineraryProvider(appEnv.pollinationsApiKey, getLogger(context)),
   );
 }
