@@ -2,8 +2,8 @@
 
 import { ListCheck, Loader2, SendHorizontal } from "lucide-react";
 import React from "react";
-import Button from "@/components/ui/Button";
-import SearchPromptBar from "@/components/ui/SearchPromptBar";
+import Button from "@/shared/ui/Button";
+import SearchPromptBar from "@/features/create-trip/ui/TripPromptInput";
 
 interface RefineFormProps {
   inputValue: string;

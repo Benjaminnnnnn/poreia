@@ -1,4 +1,4 @@
-import { PageLoading } from "@/components/ui/PageLoading";
+import { PageLoading } from "@/shared/ui/PageLoading";
 
 export default function Loading() {
   return <PageLoading className="h-full" />;

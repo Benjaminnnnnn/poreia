@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import Field from "@/components/ui/Field";
+import Field from "@/shared/ui/Field";
 import { Search } from "lucide-react";
 
 const meta: Meta<typeof Field> = {

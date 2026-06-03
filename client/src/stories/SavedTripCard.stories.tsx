@@ -1,7 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import SavedTripCard from "@/components/ui/SavedTripCard";
-import type { TripSession } from "@/types";
+import SavedTripCard from "@/entities/trip/ui/TripCard";
+import type { TripSession } from "@/shared/types";
 
 const meta: Meta<typeof SavedTripCard> = {
   title: "UI/SavedTripCard",

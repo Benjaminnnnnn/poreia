@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import TextInput from "@/components/ui/TextInput";
+import TextInput from "@/shared/ui/TextInput";
 import { Mail, Search } from "lucide-react";
 
 const meta: Meta<typeof TextInput> = {

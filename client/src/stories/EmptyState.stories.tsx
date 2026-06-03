@@ -1,7 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import EmptyState from "@/components/ui/EmptyState";
-import Button from "@/components/ui/Button";
+import EmptyState from "@/shared/ui/EmptyState";
+import Button from "@/shared/ui/Button";
 
 const meta: Meta<typeof EmptyState> = {
   title: "UI/EmptyState",

@@ -1,8 +1,8 @@
 "use client";
 
 import ProfileView from "./Profile";
-import { TripsProvider } from "@/contexts/trips";
-import { useAppAuth, useAppHeaderState } from "@/app/auth";
+import { TripsProvider } from "@/entities/trip/model/tripsContext";
+import { useAppAuth, useAppHeaderState } from "@/entities/auth/model/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

@@ -1,7 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import SectionIntro from "@/components/ui/SectionIntro";
-import Button from "@/components/ui/Button";
+import SectionIntro from "@/shared/ui/SectionIntro";
+import Button from "@/shared/ui/Button";
 import { Plus } from "lucide-react";
 
 const meta: Meta<typeof SectionIntro> = {

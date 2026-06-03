@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { PageLoading } from "@/components/ui/PageLoading";
+import { PageLoading } from "@/shared/ui/PageLoading";
 
 const meta: Meta<typeof PageLoading> = {
   title: "UI/PageLoading",

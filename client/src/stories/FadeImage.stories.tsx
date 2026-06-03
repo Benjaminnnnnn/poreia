@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import FadeImage from "@/components/ui/FadeImage";
+import FadeImage from "@/shared/ui/FadeImage";
 
 const meta: Meta<typeof FadeImage> = {
   title: "UI/FadeImage",

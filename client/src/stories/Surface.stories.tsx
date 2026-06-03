@@ -1,6 +1,6 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import Surface from "@/components/ui/Surface";
+import Surface from "@/shared/ui/Surface";
 
 const meta: Meta<typeof Surface> = {
   title: "UI/Surface",

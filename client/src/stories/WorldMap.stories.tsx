@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import "leaflet/dist/leaflet.css";
-import WorldMap from "@/components/WorldMap";
-import type { MapPinData } from "@/types";
+import WorldMap from "@/entities/trip/ui/TripMap";
+import type { MapPinData } from "@/shared/types";
 
 const meta: Meta<typeof WorldMap> = {
   title: "UI/WorldMap",

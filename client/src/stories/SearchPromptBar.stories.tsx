@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import SearchPromptBar from "@/components/ui/SearchPromptBar";
+import SearchPromptBar from "@/features/create-trip/ui/TripPromptInput";
 import { Search } from "lucide-react";
 
 const meta: Meta<typeof SearchPromptBar> = {

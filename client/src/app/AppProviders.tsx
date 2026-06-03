@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { TooltipProvider } from "@/components/ui/Tooltip";
-import AuthRoute from "@/app/auth";
-import { AppHeaderBar } from "@/components/ui/AppHeaderBar";
+import { TooltipProvider } from "@/shared/ui/Tooltip";
+import AuthRoute from "@/entities/auth/model/AuthProvider";
+import { AppHeaderBar } from "@/widgets/AppHeader/ui/AppHeaderBar";
 
 const AppProviders: React.FC<{ children: React.ReactNode }> = ({
   children,

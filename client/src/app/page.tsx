@@ -1,10 +1,10 @@
 "use client";
 
-import Button from "@/components/ui/Button";
-import SearchPromptBar from "@/components/ui/SearchPromptBar";
-import { SUGGESTED_PROMPTS } from "@/constants";
-import { useAppHeaderState } from "@/app/auth";
-import { TripsProvider, useTrips } from "@/contexts/trips";
+import Button from "@/shared/ui/Button";
+import SearchPromptBar from "@/features/create-trip/ui/TripPromptInput";
+import { SUGGESTED_PROMPTS } from "@/features/create-trip/config/suggestedPrompts";
+import { useAppHeaderState } from "@/entities/auth/model/AuthProvider";
+import { TripsProvider, useTrips } from "@/entities/trip/model/tripsContext";
 import { motion } from "framer-motion";
 import { MoveUpRight, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
