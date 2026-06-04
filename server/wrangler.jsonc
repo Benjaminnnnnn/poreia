@@ -8,5 +8,8 @@
       "binding": "POREIA_RATE_LIMIT_KV",
       "id": "cb4fe4fe5b034b5ca42321e348a1ce07"
     }
+  ],
+  "compatibility_flags": [
+    "nodejs_compat"
   ]
 }

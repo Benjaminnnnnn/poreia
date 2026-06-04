@@ -1,6 +1,6 @@
 import React from "react";
 import Field, { type FieldSize, type FieldVariant } from "./Field";
-import { cx } from "./cx";
+import { cn as cx } from "@/lib/utils";
 
 export interface TextInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "size"> {

@@ -4,6 +4,7 @@ import type {
   DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import dynamic from "next/dynamic";
 import React, {
   lazy,
   startTransition,
@@ -19,7 +20,7 @@ import { hasFiniteCoordinates } from "../lib/coordinates";
 import {
   getActivityImage,
   ResolvedActivityImage,
-} from "../services/activityImageService";
+} from "@/entities/activity/api/activityImageService";
 import {
   Activity,
   BudgetBreakdown,
@@ -33,14 +34,16 @@ import {
   ItinerarySectionNav,
   ItinerarySidePanel,
 } from "./itinerary/ItineraryContent";
+import { PlaceDetailOverlay } from "./itinerary/PlaceDetailCard";
 import {
   DAY_CONTAINER_PATTERN,
   DAY_MARKER_COLORS,
   WorkspaceTab,
 } from "./itinerary/constants";
+import { PageLoading } from "./ui/PageLoading";
 
 const ItineraryPlanView = lazy(() => import("./itinerary/ItineraryPlanView"));
-const WorldMap = lazy(() => import("./WorldMap"));
+const WorldMap = dynamic(() => import("./WorldMap"), { ssr: false });
 
 const ITINERARY_SECTION_TOP_OFFSET = 132;
 const SECTION_SCROLL_SETTLE_TOLERANCE = 6;
@@ -57,17 +60,6 @@ interface ItineraryResultProps {
   onUpdate?: (updatedItinerary: TravelItinerary) => void;
   onWorkspaceTabChange?: (tab: WorkspaceTab) => void;
 }
-
-const PanelFallback: React.FC<{ className?: string; label: string }> = ({
-  className = "",
-  label,
-}) => (
-  <div
-    className={`flex items-center justify-center rounded-[0.7rem] border border-white/20 bg-white/10 backdrop-blur-xl px-4 py-6 text-sm font-medium text-white/70 ${className}`}
-  >
-    {label}
-  </div>
-);
 
 const ItineraryResult: React.FC<ItineraryResultProps> = ({
   itinerary,
@@ -88,6 +80,10 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
   >({});
   const [activeSectionId, setActiveSectionId] = useState("overview");
   const [isSectionNavCollapsed, setIsSectionNavCollapsed] = useState(false);
+  const [selectedMapPin, setSelectedMapPin] = useState<{
+    pin: MapPinData;
+    activity: Activity;
+  } | null>(null);
   const deferredSelectedActivityId = useDeferredValue(selectedActivityId);
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const pendingSectionIdRef = useRef<string | null>(null);
@@ -255,9 +251,16 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
     setSelectedActivityId(activityId);
   }, []);
 
-  const handleMapPinClick = useCallback((pin: MapPinData) => {
-    setSelectedActivityId(pin.id);
-  }, []);
+  const handleMapPinClick = useCallback(
+    (pin: MapPinData) => {
+      setSelectedActivityId(pin.id);
+      const entry = activityLookup.get(pin.id);
+      setSelectedMapPin(entry ? { pin, activity: entry.activity } : null);
+    },
+    [activityLookup],
+  );
+
+  const handleCloseMapPin = useCallback(() => setSelectedMapPin(null), []);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveDragId(event.active.id as string);
@@ -667,7 +670,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
                 {activeTab === "itinerary" ? (
                   <Suspense
                     fallback={
-                      <PanelFallback label="Loading itinerary planner..." />
+                      <PageLoading label="Loading itinerary planner..." />
                     }
                   >
                     <ItineraryPlanView
@@ -704,10 +707,7 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
         <ItinerarySidePanel activeTab={activeTab} itinerary={localItinerary}>
           <Suspense
             fallback={
-              <PanelFallback
-                className="h-full rounded-none border-0"
-                label="Loading map..."
-              />
+              <PageLoading className="h-full" label="Loading map..." />
             }
           >
             <WorldMap
@@ -718,6 +718,11 @@ const ItineraryResult: React.FC<ItineraryResultProps> = ({
             />
           </Suspense>
         </ItinerarySidePanel>
+        <PlaceDetailOverlay
+          activity={selectedMapPin?.activity ?? null}
+          pin={selectedMapPin?.pin ?? null}
+          onClose={handleCloseMapPin}
+        />
       </div>
     </div>
   );

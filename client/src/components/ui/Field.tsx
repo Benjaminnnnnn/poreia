@@ -1,5 +1,5 @@
 import React from "react";
-import { cx } from "./cx";
+import { cn as cx } from "@/lib/utils";
 
 type FieldVariant = "default" | "subtle" | "glass";
 type FieldSize = "md" | "lg";

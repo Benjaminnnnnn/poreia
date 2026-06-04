@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import React, { useId, useState } from "react";
-import { ResolvedActivityImage } from "../../services/activityImageService";
+import { ResolvedActivityImage } from "@/entities/activity/api/activityImageService";
 import { Activity } from "../../types";
 import Button from "../ui/Button";
 import FadeImage from "../ui/FadeImage";
@@ -173,14 +173,6 @@ const ActivityCardLayout: React.FC<ActivityCardLayoutProps> = ({
 
       {/* Mobile-only actions (rendered by children) */}
       {children}
-    </div>
-
-    {/* Desktop action buttons — top-right, hover-only */}
-    <div
-      className="pointer-events-none absolute right-2 top-2 hidden flex-col gap-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 md:flex"
-      aria-hidden="true"
-    >
-      {/* Injected via renderDesktopActions prop pattern — see SortableActivityCard */}
     </div>
   </div>
 );

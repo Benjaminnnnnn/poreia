@@ -25,7 +25,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { ResolvedActivityImage } from "../../services/activityImageService";
+import { ResolvedActivityImage } from "@/entities/activity/api/activityImageService";
 import { Activity, BudgetBreakdown, DayPlan } from "../../types";
 import Surface from "../ui/Surface";
 import { ActivityDragOverlayCard, SortableActivityItem } from "./ActivityItem";
@@ -118,9 +118,9 @@ const BudgetChartCard: React.FC<{
                 paddingAngle={5}
                 dataKey="amount"
               >
-                {breakdown.map((_, index) => (
+                {breakdown.map((entry, index) => (
                   <Cell
-                    key={`cell-${index}`}
+                    key={entry.category}
                     fill={COLORS[index % COLORS.length]}
                     stroke="none"
                   />

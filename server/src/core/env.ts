@@ -1,57 +1,28 @@
 import { z } from 'zod';
 import { AppError } from './errors';
 
-const envSchema = z
-  .object({
-    FIREBASE_PROJECT_ID: z.string().min(1),
-    FIREBASE_CLIENT_EMAIL: z.string().email().optional(),
-    FIREBASE_PRIVATE_KEY: z.string().min(1).optional(),
-    FIRESTORE_EMULATOR_HOST: z.string().min(1).optional(),
-    POLLINATIONS_API_KEY: z.string().min(1).optional(),
-  })
-  .superRefine((value, context) => {
-    if (!value.FIRESTORE_EMULATOR_HOST) {
-      if (!value.FIREBASE_CLIENT_EMAIL) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'FIREBASE_CLIENT_EMAIL is required when not using the Firestore emulator.',
-          path: ['FIREBASE_CLIENT_EMAIL'],
-        });
-      }
-
-      if (!value.FIREBASE_PRIVATE_KEY) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'FIREBASE_PRIVATE_KEY is required when not using the Firestore emulator.',
-          path: ['FIREBASE_PRIVATE_KEY'],
-        });
-      }
-    }
-  });
+const envSchema = z.object({
+  SUPABASE_URL: z.string().url(),
+  DATABASE_URL: z.string().min(1),
+  POLLINATIONS_API_KEY: z.string().min(1).optional(),
+});
 
 export type EnvBindings = {
-  FIREBASE_PROJECT_ID?: string;
-  FIREBASE_CLIENT_EMAIL?: string;
-  FIREBASE_PRIVATE_KEY?: string;
-  FIRESTORE_EMULATOR_HOST?: string;
+  SUPABASE_URL?: string;
+  DATABASE_URL?: string;
   POLLINATIONS_API_KEY?: string;
   POREIA_RATE_LIMIT_KV?: KVNamespace;
 };
 
 export interface AppEnv {
-  firebaseProjectId: string;
-  firebaseClientEmail?: string;
-  firebasePrivateKey?: string;
-  firestoreEmulatorHost?: string;
+  supabaseUrl: string;
+  databaseUrl: string;
   pollinationsApiKey?: string;
-}
-
-function normalizePrivateKey(privateKey?: string): string | undefined {
-  if (!privateKey) {
-    return undefined;
-  }
-
-  return privateKey.replace(/\\n/g, '\n');
+  // Unused after Firebase→Supabase migration; kept so legacy Firestore files compile.
+  firebaseProjectId?: undefined;
+  firebaseClientEmail?: undefined;
+  firebasePrivateKey?: undefined;
+  firestoreEmulatorHost?: undefined;
 }
 
 let cachedEnvKey: string | null = null;
@@ -69,10 +40,8 @@ export function getAppEnv(bindings: EnvBindings): AppEnv {
   }
 
   cachedEnv = {
-    firebaseProjectId: parsed.data.FIREBASE_PROJECT_ID,
-    firebaseClientEmail: parsed.data.FIREBASE_CLIENT_EMAIL,
-    firebasePrivateKey: normalizePrivateKey(parsed.data.FIREBASE_PRIVATE_KEY),
-    firestoreEmulatorHost: parsed.data.FIRESTORE_EMULATOR_HOST,
+    supabaseUrl: parsed.data.SUPABASE_URL,
+    databaseUrl: parsed.data.DATABASE_URL,
     pollinationsApiKey: parsed.data.POLLINATIONS_API_KEY,
   };
   cachedEnvKey = cacheKey;

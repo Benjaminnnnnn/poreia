@@ -11,8 +11,17 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
 server/.dev.vars*
 server/.wrangler
+
+# Claude Code local settings
+settings.local.json
 
 # Editor directories and files
 .vscode/*
@@ -24,3 +33,10 @@ server/.wrangler
 *.njsproj
 *.sln
 *.sw?
+.vercel
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.*.example

@@ -1,4 +1,4 @@
-import type { User } from "firebase/auth";
+import type { User } from "@supabase/supabase-js";
 import { AnimatePresence, motion } from "framer-motion";
 import { LogOut, Plus, UserRound } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
@@ -19,14 +19,9 @@ export interface AppHeaderProps {
   isAuthBusy: boolean;
 
   /**
-   * Whether the current page is the home page. Affects styling (dark mode vs light).
+   * Which page is currently active. Controls which nav buttons are shown.
    */
-  isHomePage: boolean;
-
-  /**
-   * Whether the current page is the saved trips page. Hides the "Saved trips" nav button.
-   */
-  isSavedTripsPage: boolean;
+  activePage?: "home" | "trips";
 
   /**
    * Display name for the currently authenticated user.
@@ -52,48 +47,28 @@ export interface AppHeaderProps {
    * Callback when user clicks "Sign out" in the account menu.
    */
   onSignOut: () => Promise<void>;
+
+  /**
+   * Callback when unauthenticated user clicks "Sign in".
+   */
+  onSignIn?: () => void;
 }
 
-/**
- * AppHeader — App-wide header/navigation component
- *
- * Features:
- * - Logo + branding (responsive sizing)
- * - Conditional nav buttons (New Trip, Saved trips) on desktop when authenticated
- * - Profile dropdown with user menu (Profile, Sign out)
- * - Context-aware styling (dark on home page, light on other pages)
- * - Keyboard navigation (Escape to close menu)
- * - Click-outside detection for menu dismissal
- *
- * Usage:
- * ```tsx
- * <AppHeader
- *   authUser={user}
- *   isAuthBusy={false}
- *   isHomePage={true}
- *   isSavedTripsPage={false}
- *   travelerName="Alex"
- *   onNavigateHome={() => navigate('/')}
- *   onOpenProfile={() => navigate('/profile')}
- *   onOpenSavedTrips={() => navigate('/saved-trips')}
- *   onSignOut={() => signOut()}
- * />
- * ```
- */
 export const AppHeader: React.FC<AppHeaderProps> = ({
+  activePage,
   authUser,
   isAuthBusy,
-  isHomePage,
-  isSavedTripsPage,
   travelerName,
   onNavigateHome,
   onOpenProfile,
   onOpenSavedTrips,
   onSignOut,
+  onSignIn,
 }) => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const fallbackInitial = travelerName.charAt(0).toUpperCase();
+  const avatarUrl = authUser?.user_metadata?.avatar_url as string | undefined;
 
   // Handle menu dismissal on outside click and Escape key
   useEffect(() => {
@@ -126,7 +101,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   }, [isAccountMenuOpen]);
 
   return (
-    <header className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 bg-black/20 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-black/15 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/8 before:to-transparent before:-z-10">
+    <header
+      className="absolute left-0 right-0 top-0 z-20 w-full border-b border-white/15 bg-black/20 px-4 py-3 backdrop-blur-xl supports-[backdrop-filter]:bg-black/15 sm:px-6 lg:px-8 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/8 before:to-transparent before:-z-10"
+    >
       <div className="relative flex min-h-[3.4rem] items-center justify-between gap-3 sm:gap-4">
         {/* Left: circle logo + wordmark */}
         <Button
@@ -154,7 +131,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex shrink-0 items-center justify-end gap-3">
           {authUser ? (
             <>
-              {!isHomePage ? (
+              {activePage !== "home" ? (
                 <Button
                   type="button"
                   variant="ghost"
@@ -166,7 +143,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </Button>
               ) : null}
 
-              {!isSavedTripsPage ? (
+              {activePage !== "trips" ? (
                 <Button
                   type="button"
                   variant="ghost"
@@ -187,9 +164,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                   onClick={() => setIsAccountMenuOpen((open) => !open)}
                   className="rounded-full ring-0.5 ring-transparent transition-all hover:ring-primary focus-visible:ring-0 focus-visible:border-transparent sm:h-10 sm:w-10"
                 >
-                  {authUser.photoURL ? (
+                  {avatarUrl ? (
                     <img
-                      src={authUser.photoURL}
+                      src={avatarUrl}
                       alt={`${travelerName} profile`}
                       className="h-10 w-10 rounded-full object-cover sm:h-9 sm:w-9"
                       referrerPolicy="no-referrer"
@@ -261,6 +238,15 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 </AnimatePresence>
               </div>
             </>
+          ) : onSignIn ? (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onSignIn}
+              className="rounded-xl border border-white/25 bg-white/10 px-4 text-white hover:bg-primary hover:border-primary hover:text-white"
+            >
+              Sign in
+            </Button>
           ) : null}
         </div>
       </div>

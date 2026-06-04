@@ -82,8 +82,13 @@ export const ItineraryNotesView: React.FC<ItineraryNotesViewProps> = ({
   >({});
 
   useEffect(() => {
-    setDraftNotesByDay(
-      Object.fromEntries(days.map((day) => [day.day, day.notes || ""])),
+    setDraftNotesByDay((current) =>
+      Object.fromEntries(
+        days.map((day) => [
+          day.day,
+          day.day in current ? current[day.day] : (day.notes ?? ""),
+        ]),
+      ),
     );
   }, [days]);
 

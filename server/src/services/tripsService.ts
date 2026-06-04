@@ -7,6 +7,7 @@ import { ItineraryProvider, travelItinerarySchema } from '../itinerary/provider'
 import type {
   AuthUser,
   MessageDoc,
+  PublicTripResponse,
   SnapshotDoc,
   TripMemberDoc,
   TripMemberResponse,
@@ -755,6 +756,31 @@ export class TripsService {
       currentItinerary: snapshot.itinerary,
       recentMessages,
       members,
+    };
+  }
+
+  async getPublicTripDetail(tripId: string): Promise<PublicTripResponse> {
+    const summary = await this.repository.getTripSummary(tripId);
+
+    if (!summary || summary.visibility !== 'shared' || summary.archivedAt !== null) {
+      throw new AppError(404, 'not_found', 'Trip not found.');
+    }
+
+    const snapshot = await this.repository.getSnapshot(tripId, summary.currentSnapshotId);
+    if (!snapshot) {
+      throw new AppError(500, 'internal_error', 'Trip snapshot is missing.');
+    }
+
+    return {
+      id: tripId,
+      title: summary.title,
+      destination: summary.destination,
+      overview: summary.overview,
+      totalDays: summary.totalDays,
+      totalBudget: summary.totalBudget,
+      currency: summary.currency,
+      days: snapshot.itinerary.days,
+      budgetBreakdown: snapshot.itinerary.budgetBreakdown,
     };
   }
 

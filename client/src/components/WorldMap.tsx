@@ -1,8 +1,10 @@
+"use client";
+
 import L from "leaflet";
 import { Locate, Minus, Plus } from "lucide-react";
 import React, {
+  useCallback,
   useEffect,
-  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -238,12 +240,17 @@ const WorldMap: React.FC<WorldMapProps> = ({
     [validPins],
   );
 
-  const handleMarkerClick = useEffectEvent((pinId: string) => {
-    const pin = pinLookup.get(pinId);
+  const onPinClickRef = useRef(onPinClick);
+  onPinClickRef.current = onPinClick;
+  const pinLookupRef = useRef(pinLookup);
+  pinLookupRef.current = pinLookup;
+
+  const handleMarkerClick = useCallback((pinId: string) => {
+    const pin = pinLookupRef.current.get(pinId);
     if (pin) {
-      onPinClick(pin);
+      onPinClickRef.current(pin);
     }
-  });
+  }, []);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) {
