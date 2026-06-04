@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Allow Firebase signInWithPopup — Next.js 15 sets COOP: same-origin by default
-        // which blocks the popup's window.closed polling.
+        // Allow Supabase signInWithOAuth popup — Next.js 15 sets COOP: same-origin by default
+        // which blocks the OAuth popup's window.closed polling.
         source: "/(.*)",
         headers: [
           {

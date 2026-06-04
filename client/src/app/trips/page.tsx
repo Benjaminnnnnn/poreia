@@ -3,13 +3,13 @@
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
 import { PageLoading } from "@/components/ui/PageLoading";
-import { useAppAuth, useAppHeaderState } from "@/app/auth";
-import { TripsProvider, useTrips } from "@/contexts/trips";
+import { useAppAuth, useAppHeaderState } from "@/entities/auth/model/AuthProvider";
+import { TripsProvider, useTrips } from "@/entities/trip/model/tripsContext";
 import { hasFiniteCoordinates } from "@/lib/coordinates";
 import {
   getActivityImage,
   type ResolvedActivityImage,
-} from "@/services/activityImageService";
+} from "@/entities/activity/api/activityImageService";
 import type { Activity, TravelItinerary, TripSession } from "@/types";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";

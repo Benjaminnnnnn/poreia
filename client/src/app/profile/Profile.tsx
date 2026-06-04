@@ -3,13 +3,13 @@ import FadeImage from "@/components/ui/FadeImage";
 import { PageLoading } from "@/components/ui/PageLoading";
 import SavedTripCard from "@/components/ui/SavedTripCard";
 import Surface from "@/components/ui/Surface";
-import { useAppAuth } from "@/app/auth";
-import { useTrips } from "@/contexts/trips";
+import { useAppAuth } from "@/entities/auth/model/AuthProvider";
+import { useTrips } from "@/entities/trip/model/tripsContext";
 import { hasFiniteCoordinates } from "@/lib/coordinates";
 import {
   getActivityImage,
   type ResolvedActivityImage,
-} from "@/services/activityImageService";
+} from "@/entities/activity/api/activityImageService";
 import type {
   Activity,
   MapPinData,

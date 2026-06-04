@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import React, { useId, useState } from "react";
-import { ResolvedActivityImage } from "../../services/activityImageService";
+import { ResolvedActivityImage } from "@/entities/activity/api/activityImageService";
 import { Activity } from "../../types";
 import Button from "../ui/Button";
 import FadeImage from "../ui/FadeImage";

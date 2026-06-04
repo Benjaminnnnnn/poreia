@@ -1,10 +1,10 @@
 "use client";
 
-import { useAppAuth, useAppHeaderState } from "@/app/auth";
+import { useAppAuth, useAppHeaderState } from "@/entities/auth/model/AuthProvider";
 import TripCollaborationPanel from "./CollaborationPanel";
 import { PageLoading } from "@/components/ui/PageLoading";
 import Button from "@/components/ui/Button";
-import { TripsProvider, useTrips } from "@/contexts/trips";
+import { TripsProvider, useTrips } from "@/entities/trip/model/tripsContext";
 import type { TravelItinerary } from "@/types";
 import RefineForm from "./RefineForm";
 import { AnimatePresence, motion } from "framer-motion";

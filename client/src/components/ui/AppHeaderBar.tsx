@@ -1,7 +1,7 @@
 "use client";
 
 import AppHeader from "@/components/ui/AppHeader";
-import { useAppHeaderState } from "@/app/auth";
+import { useAppHeaderState } from "@/entities/auth/model/AuthProvider";
 import { usePathname } from "next/navigation";
 
 export function AppHeaderBar() {

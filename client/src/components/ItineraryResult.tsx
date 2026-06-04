@@ -20,7 +20,7 @@ import { hasFiniteCoordinates } from "../lib/coordinates";
 import {
   getActivityImage,
   ResolvedActivityImage,
-} from "../services/activityImageService";
+} from "@/entities/activity/api/activityImageService";
 import {
   Activity,
   BudgetBreakdown,

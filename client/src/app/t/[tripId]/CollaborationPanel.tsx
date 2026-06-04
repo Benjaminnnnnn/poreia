@@ -1,9 +1,9 @@
 import Button from "@/components/ui/Button";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
-import { ApiServiceError } from "@/services/apiService";
-import { patchTrip } from "@/services/tripsService";
-import { useTrips } from "@/contexts/trips";
+import { ApiServiceError } from "@/shared/api/apiService";
+import { patchTrip } from "@/entities/trip/api/tripsService";
+import { useTrips } from "@/entities/trip/model/tripsContext";
 import type { TripMemberResponse, TripRole, TripSession } from "@/types";
 import {
   Check,

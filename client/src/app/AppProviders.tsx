@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TooltipProvider } from "@/components/ui/Tooltip";
-import AuthRoute from "@/app/auth";
+import AuthRoute from "@/entities/auth/model/AuthProvider";
 import { AppHeaderBar } from "@/components/ui/AppHeaderBar";
 
 const AppProviders: React.FC<{ children: React.ReactNode }> = ({

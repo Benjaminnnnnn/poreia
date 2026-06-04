@@ -5,8 +5,8 @@ import {
   updateTripMember,
   type AddTripMemberInput,
   type UpdateTripMemberInput,
-} from "@/services/tripsService";
-import { useTrips } from "@/contexts/trips";
+} from "@/entities/trip/api/tripsService";
+import { useTrips } from "@/entities/trip/model/tripsContext";
 import type { TripMemberResponse } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 
